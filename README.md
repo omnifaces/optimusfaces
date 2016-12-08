@@ -1,5 +1,6 @@
 # OptimusFaces [![Build Status](https://travis-ci.org/omnifaces/optimusfaces.svg?branch=develop)](https://travis-ci.org/omnifaces/optimusfaces)
-<sup>Utility library for OmniFaces + PrimeFaces combined</sup>
+
+Utility library for OmniFaces + PrimeFaces combined.
 
 
 ##This project is currently still in development stage!
@@ -59,3 +60,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     </dependency>
 </dependencies>
 ```
+
+###Usage
+
+[Check `PagedDataModel` javadoc](https://github.com/omnifaces/optimusfaces/blob/develop/src/main/java/org/omnifaces/optimusfaces/model/PagedDataModel.java).
