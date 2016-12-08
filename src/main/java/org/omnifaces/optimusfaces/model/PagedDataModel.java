@@ -33,7 +33,8 @@ import org.primefaces.model.SortOrder;
 
 /**
  * <p>
- * Paged data model for &lt;op:dataTable&gt; which utilizes {@link GenericEntityService} from OmniPersistence project.
+ * Paged data model for <code>&lt;op:dataTable&gt;</code> which utilizes {@link GenericEntityService} from
+ * OmniPersistence project.
  *
  * <h3>Usage:</h3>
  * <p>
@@ -105,13 +106,20 @@ import org.primefaces.model.SortOrder;
  *
  * }
  * </pre>
+ * <p>
+ * Finally use <code>&lt;op:dataTable&gt;</code> to have a semi-dynamic lazy-loaded, searchable, sortable and filterable
+ * <code>&lt;p:dataTable&gt;</code> without much hassle.
  * <pre>
- * &lt;op:dataTable id="yourEntitiesTable" value="#{bean.model}" searchable="true"&gt;
- *     &lt;op:column field="id" /&gt;
- *     &lt;op:column field="created" /&gt;
- *     &lt;op:column field="name" /&gt;
- *     &lt;op:column field="description" /&gt;
- * &lt;/op:dataTable&gt;
+ * &lt;... xmlns:op="http://omnifaces.org/optimusfaces"&gt;
+ *
+ * &lt;h:form&gt;
+ *     &lt;op:dataTable id="yourEntitiesTable" value="#{bean.model}" searchable="true"&gt;
+ *         &lt;op:column field="id" /&gt;
+ *         &lt;op:column field="created" /&gt;
+ *         &lt;op:column field="name" /&gt;
+ *         &lt;op:column field="description" /&gt;
+ *     &lt;/op:dataTable&gt;
+ * &lt;/h:form&gt;
  * </pre>
  *
  * @author Bauke Scholtz

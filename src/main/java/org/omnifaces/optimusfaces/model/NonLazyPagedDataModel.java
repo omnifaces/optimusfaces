@@ -49,9 +49,11 @@ import org.omnifaces.persistence.model.dto.SortFilterPage;
  * </pre>
  *
  * <pre>
- * &lt;op:dataTable id="yourEntitiesTable" value="#{bean.model}"&gt;
- *     ...
- * &lt;/op:dataTable&gt;
+ * &lt;h:form&gt;
+ *     &lt;op:dataTable id="yourEntitiesTable" value="#{bean.model}"&gt;
+ *         ...
+ *     &lt;/op:dataTable&gt;
+ * &lt;/h:form&gt;
  * </pre>
  *
  * @author Bauke Scholtz
