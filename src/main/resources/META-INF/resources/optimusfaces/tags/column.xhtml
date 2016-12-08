@@ -1,0 +1,65 @@
+<!--
+
+    Copyright 2016 OmniFaces
+
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+    the License. You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+    specific language governing permissions and limitations under the License.
+
+-->
+<ui:composition
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:o="http://omnifaces.org/ui"
+	xmlns:of="http://omnifaces.org/functions"
+	xmlns:p="http://primefaces.org/ui"
+>
+	<!-- Cell -->
+	<o:tagAttribute name="type" default="text" /> <!-- Value of type attribute MAY NOT be an EL expression referencing #{item}. -->
+	<o:tagAttribute name="field" />
+	<o:tagAttribute name="id" default="#{field}" />
+	<o:tagAttribute name="header" default="#{null}" />
+	<o:tagAttribute name="styleClass" />
+	<o:tagAttribute name="rendered" default="#{true}" />
+	<o:tagAttribute name="visible" default="#{true}" />
+	<o:tagAttribute name="value" default="#{item[field]}" />
+	<o:tagAttribute name="width" />
+	<o:tagAttribute name="tooltip" />
+
+	<!-- Sorting/filtering/exporting -->
+	<o:tagAttribute name="sortable" default="#{true}" />
+	<o:tagAttribute name="sortBy" default="#{value}" />
+	<o:tagAttribute name="filterBy" default="#{sortBy}" />
+	<o:tagAttribute name="filterOptions" />
+	<o:tagAttribute name="filterable" default="#{not empty filterOptions or component.namingContainer.value.filterableFields.contains(field)}" />
+	<o:tagAttribute name="exportable" default="#{true}" />
+	<o:tagAttribute name="export" default="#{value}" />
+
+	<c:set var="exporting" value="#{facesContext.currentPhaseId.ordinal eq 5 or not empty param[component.namingContainer.parent.namingContainer.findComponent('export').clientId]}" />
+
+	<p:column
+		field="#{field}" id="#{id}" headerText="#{header}" filterable="#{filterable}" filterMatchMode="contains" 
+		styleClass="#{type} #{styleClass} #{empty filterOptions ? '' : 'filterable'} #{component.sortField eq field ? 'ui-state-active' : ''}"
+		rendered="#{exporting ? rendered and exportable : rendered}" visible="#{visible}"
+	>
+		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
+		<c:if test="#{sortable}"><f:attribute name="sortBy" value="#{sortBy}" /></c:if>
+		<c:if test="#{filterable}"><f:attribute name="filterBy" value="#{filterBy}" /></c:if>
+		<c:if test="#{not empty filterOptions}"><f:attribute name="filterOptions" value="#{filterOptions}" /></c:if>
+
+		<h:outputText rendered="#{exporting}" value="#{export}" />
+
+		<ui:fragment rendered="#{not exporting}">
+			<ui:insert name="cell"><h:outputText value="#{value}" title="#{tooltip}" /></ui:insert>
+		</ui:fragment>
+	</p:column>
+</ui:composition>

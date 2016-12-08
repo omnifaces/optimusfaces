@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2016 OmniFaces
+
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+    the License. You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+    specific language governing permissions and limitations under the License.
+
+-->
+<facelet-taglib
+	xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facelettaglibrary_2_2.xsd"
+	version="2.2"
+>
+	<namespace>http://omnifaces.org/optimusfaces</namespace>
+	<short-name>op</short-name>
+
+	<tag>
+		<description>Renders a table based on p:dataTable with PagedDataModel. Each item is available by #{item}.</description>
+		<tag-name>dataTable</tag-name>
+		<source>resources/optimusfaces/tags/dataTable.xhtml</source>
+		<attribute>
+			<description>The id of the p:dataTable. Will also be used as widgetVar name.</description>
+			<name>id</name>
+			<required>true</required>
+			<type>java.lang.String</type>
+		</attribute>
+		<attribute>
+			<description>Data model must be an instance of PagedDataModel.</description>
+			<name>value</name>
+			<required>true</required>
+			<type>org.omnifaces.optimusfaces.model.PagedDataModel</type>
+		</attribute>
+	</tag>
+
+	<tag>
+		<description>Renders a column based on p:column for op:dataTable.</description>
+		<tag-name>column</tag-name>
+		<source>resources/optimusfaces/tags/column.xhtml</source>
+		<attribute>
+			<description>The field (property) name of the #{item} representing the column value. By default, this is also used in id, field, sortBy and filterBy of p:column.</description>
+			<name>field</name>
+			<required>true</required>
+			<type>java.lang.String</type>
+		</attribute>
+	</tag>
+
+</facelet-taglib>

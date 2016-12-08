@@ -1,0 +1,85 @@
+<!--
+
+    Copyright 2016 OmniFaces
+
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+    the License. You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+    specific language governing permissions and limitations under the License.
+
+-->
+<ui:composition
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:o="http://omnifaces.org/ui"
+	xmlns:of="http://omnifaces.org/functions"
+	xmlns:p="http://primefaces.org/ui"
+>
+	<!-- Table -->
+	<o:tagAttribute name="id" />
+	<o:tagAttribute name="value" />
+	<o:tagAttribute name="selectionMode" />
+	<o:tagAttribute name="rows" default="10" />
+	<o:tagAttribute name="rowsPerPage" default="10,25,50" />
+	<o:tagAttribute name="rowsLabel" default="records" />
+	<o:tagAttribute name="styleClass" />
+
+	<!-- Searching/exporting -->
+	<o:tagAttribute name="searchPlaceholder" default="Search…" />
+	<o:tagAttribute name="searchable" default="#{false}" />
+	<o:tagAttribute name="paginable" default="#{true}" />
+	<o:tagAttribute name="exportable" default="#{false}" />
+	<o:tagAttribute name="csvUserId" />
+	<o:tagAttribute name="csvSuffix" default="#{of:formatDate(now, 'yyyyMMddHHmmss')}" />
+
+	<ui:fragment rendered="#{searchable or exportable or paramHasActions}">
+		<div class="dataTableActions hideOnPrint ui-helper-clearfix">
+			<c:if test="#{searchable}">
+				<p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" rendered="#{facesContext.currentPhaseId.ordinal eq 6}"
+					styleClass="dataTableGlobalSearch" placeholder="#{searchPlaceholder}" />
+				<p:button id="search" value="Search" styleClass="dataTableGlobalSearch" onclick="return false" a:data-tablewidgetid="#{id}" />
+				<o:moveComponent for="#{id}" destination="FACET" facet="header">
+					<h:inputHidden id="globalFilter" />
+				</o:moveComponent>
+			</c:if>
+
+			<c:if test="#{exportable}">
+				<div class="buttons">
+					<p:commandButton id="columnToggler" type="button" value="Columns">
+						<p:columnToggler trigger="columnToggler" datasource="#{id}" />
+					</p:commandButton>
+					<p:commandButton id="export" a:value="CSV" value="CSV" ajax="false" styleClass="export" rendered="#{exportable}">
+						<p:dataExporter target="#{id}" type="csv" fileName="#{id}#{empty csvUserId ? '' : '-' += csvUserId}-#{csvSuffix}" />
+					</p:commandButton>
+				</div>
+			</c:if>
+
+			<ui:insert name="actions">
+				<ui:param name="paramHasActions" value="false" />
+			</ui:insert>
+		</div>
+	</ui:fragment>
+
+	<p:dataTable id="#{id}" widgetVar="#{id}" value="#{value}" var="item" lazy="true" styleClass="#{styleClass}"
+		filteredValue="#{value.filteredValue}" sortOrder="#{value.sortOrder}" sortField="#{value.sortField}"
+		rows="#{rows}" paginator="#{paginable}" paginatorPosition="bottom" paginatorAlwaysVisible="true"
+		rowsPerPageTemplate="#{rowsPerPage}" currentPageReportTemplate="Showing {startRecord} - {endRecord} of {totalRecords} #{rowsLabel}"
+		paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
+	>
+		<c:if test="#{not empty selectionMode}">
+			<f:attribute name="selection" value="#{value.selection}" />
+			<f:attribute name="selectionMode" value="#{selectionMode}" />
+		</c:if>
+		<ui:insert />
+	</p:dataTable>
+
+	<o:deferredScript library="optimusfaces" name="scripts/dataTable.js" />
+</ui:composition>
