@@ -26,26 +26,39 @@
 	<!-- Table -->
 	<o:tagAttribute name="id" />
 	<o:tagAttribute name="value" />
+	<o:tagAttribute name="styleClass" />
 	<o:tagAttribute name="selectionMode" />
+
+	<!-- Pagination -->
+	<o:tagAttribute name="paginable" default="#{true}" />
 	<o:tagAttribute name="rows" default="10" />
 	<o:tagAttribute name="rowsPerPage" default="10,25,50" />
-	<o:tagAttribute name="rowsLabel" default="records" />
-	<o:tagAttribute name="styleClass" />
+	<o:tagAttribute name="paginatorTemplate" default="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}" />
+	<o:tagAttribute name="currentPageReportPrefix" default="Showing" />
+	<o:tagAttribute name="currentPageReportTemplate" default="{startRecord} - {endRecord} of {totalRecords}" />
+	<o:tagAttribute name="currentPageReportSuffix" default="records" />
 
-	<!-- Searching/exporting -->
-	<o:tagAttribute name="searchPlaceholder" default="Search…" />
+	<!-- Searching -->
 	<o:tagAttribute name="searchable" default="#{false}" />
-	<o:tagAttribute name="paginable" default="#{true}" />
+	<o:tagAttribute name="searchPlaceholder" default="Search…" />
+	<o:tagAttribute name="searchButtonLabel" default="Search" />
+
+	<!-- Exporting -->
 	<o:tagAttribute name="exportable" default="#{false}" />
+	<o:tagAttribute name="exportButtonLabel" default="CSV" />
+	<o:tagAttribute name="columnsButtonLabel" default="Columns" />
 	<o:tagAttribute name="csvUserId" />
 	<o:tagAttribute name="csvSuffix" default="#{of:formatDate(now, 'yyyyMMddHHmmss')}" />
 
-	<ui:fragment rendered="#{searchable or exportable or paramHasActions}">
-		<div class="dataTableActions hideOnPrint ui-helper-clearfix">
+	<c:if test="#{searchable or exportable}">
+		<div class="ui-datatable-actions ui-helper-clearfix">
 			<c:if test="#{searchable}">
-				<p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" rendered="#{facesContext.currentPhaseId.ordinal eq 6}"
-					styleClass="dataTableGlobalSearch" placeholder="#{searchPlaceholder}" />
-				<p:button id="search" value="Search" styleClass="dataTableGlobalSearch" onclick="return false" a:data-tablewidgetid="#{id}" />
+				<p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" placeholder="#{searchPlaceholder}"
+					styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
+				</p:inputText>
+				<p:button id="search" value="#{searchButtonLabel}" styleClass="search"
+					onclick="return false" a:data-tablewidgetid="#{id}">
+				</p:button>
 				<o:moveComponent for="#{id}" destination="FACET" facet="header">
 					<h:inputHidden id="globalFilter" />
 				</o:moveComponent>
@@ -53,26 +66,22 @@
 
 			<c:if test="#{exportable}">
 				<div class="buttons">
-					<p:commandButton id="columnToggler" type="button" value="Columns">
+					<p:commandButton id="columnToggler" type="button" value="#{columnsButtonLabel}">
 						<p:columnToggler trigger="columnToggler" datasource="#{id}" />
 					</p:commandButton>
-					<p:commandButton id="export" a:value="CSV" value="CSV" ajax="false" styleClass="export" rendered="#{exportable}">
+					<p:commandButton id="export" a:value="#{exportButtonLabel}" value="#{exportButtonLabel}" ajax="false" styleClass="export">
 						<p:dataExporter target="#{id}" type="csv" fileName="#{id}#{empty csvUserId ? '' : '-' += csvUserId}-#{csvSuffix}" />
 					</p:commandButton>
 				</div>
 			</c:if>
-
-			<ui:insert name="actions">
-				<ui:param name="paramHasActions" value="false" />
-			</ui:insert>
 		</div>
-	</ui:fragment>
+	</c:if>
 
 	<p:dataTable id="#{id}" widgetVar="#{id}" value="#{value}" var="item" lazy="true" styleClass="#{styleClass}"
 		filteredValue="#{value.filteredValue}" sortOrder="#{value.sortOrder}" sortField="#{value.sortField}"
 		rows="#{rows}" paginator="#{paginable}" paginatorPosition="bottom" paginatorAlwaysVisible="true"
-		rowsPerPageTemplate="#{rowsPerPage}" currentPageReportTemplate="Showing {startRecord} - {endRecord} of {totalRecords} #{rowsLabel}"
-		paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
+		paginatorTemplate="#{paginatorTemplate}" rowsPerPageTemplate="#{rowsPerPage}"
+		currentPageReportTemplate="#{currentPageReportPrefix} #{currentPageReportTemplate} #{currentPageReportSuffix}"
 	>
 		<c:if test="#{not empty selectionMode}">
 			<f:attribute name="selection" value="#{value.selection}" />

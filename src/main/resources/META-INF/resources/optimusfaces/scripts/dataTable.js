@@ -107,27 +107,27 @@ if (PrimeFaces.widget.DataTable) {
 	});
 	
 	/**
-	 * Highlight global filter columns on focus of global search.
+	 * Highlight global filter columns on focus of global filter input.
 	 */
-	$(document).on("focus", "input.dataTableGlobalSearch", function() {
+	$(document).on("focus", ".ui-datatable-actions .ui-inputfield.filter", function() {
 		$(this).closest("form").find("th.ui-filter-column:not(.filterable)").addClass("globalFilter");
-	}).on("blur", "input.dataTableGlobalSearch", function() {
+	}).on("blur", ".ui-datatable-actions .ui-inputfield.filter", function() {
 		$(this).closest("form").find("th.ui-filter-column:not(.filterable)").removeClass("globalFilter");
 	});
 
 	/**
 	 * Global search actions.
 	 */
-	$(document).on("keypress", "input.dataTableGlobalSearch", function(event) {
+	$(document).on("keypress", ".ui-datatable-actions .ui-inputfield.filter", function(event) {
 		if (event.keyCode == 13) {
 			$(this).next().click();
 			return false;
 		}
-	}).on("search", "input.dataTableGlobalSearch", function() {
+	}).on("search", ".ui-datatable-actions .ui-inputfield.filter", function() {
 		$(this).next().click();
-	}).on("click", "button.dataTableGlobalSearch", function() {
+	}).on("click", ".ui-datatable-actions .ui-button.search", function() {
 		var dataTableWidget = PF($(this).data("tablewidgetid"));
-		var $globalFilter = dataTableWidget.jq.find("input[type=hidden][id$=globalFilter]");
+		var $globalFilter = dataTableWidget.jq.find("[id$=globalFilter]");
 		var $globalFilterValue = $(this).prev().val().trim();
 
 		if ($globalFilter.val() != $globalFilterValue) {

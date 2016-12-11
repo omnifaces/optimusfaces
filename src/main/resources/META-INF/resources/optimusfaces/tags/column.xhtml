@@ -24,10 +24,9 @@
 	xmlns:p="http://primefaces.org/ui"
 >
 	<!-- Cell -->
-	<o:tagAttribute name="type" default="text" /> <!-- Value of type attribute MAY NOT be an EL expression referencing #{item}. -->
 	<o:tagAttribute name="field" />
 	<o:tagAttribute name="id" default="#{field}" />
-	<o:tagAttribute name="header" default="#{null}" />
+	<o:tagAttribute name="head" />
 	<o:tagAttribute name="styleClass" />
 	<o:tagAttribute name="rendered" default="#{true}" />
 	<o:tagAttribute name="visible" default="#{true}" />
@@ -47,8 +46,8 @@
 	<c:set var="exporting" value="#{facesContext.currentPhaseId.ordinal eq 5 or not empty param[component.namingContainer.parent.namingContainer.findComponent('export').clientId]}" />
 
 	<p:column
-		field="#{field}" id="#{id}" headerText="#{header}" filterable="#{filterable}" filterMatchMode="contains" 
-		styleClass="#{type} #{styleClass} #{empty filterOptions ? '' : 'filterable'} #{component.sortField eq field ? 'ui-state-active' : ''}"
+		field="#{field}" id="#{id}" headerText="#{head}" filterable="#{filterable}" filterMatchMode="contains" 
+		styleClass="#{styleClass} #{empty filterOptions ? '' : 'filterable'} #{component.sortField eq field ? 'ui-state-active' : ''}"
 		rendered="#{exporting ? rendered and exportable : rendered}" visible="#{visible}"
 	>
 		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
