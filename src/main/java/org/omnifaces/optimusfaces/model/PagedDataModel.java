@@ -29,8 +29,12 @@ import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.dto.SortFilterPage;
 import org.omnifaces.persistence.service.GenericEntityService;
 import org.omnifaces.utils.collection.PartialResultList;
+import org.primefaces.component.columntoggler.ColumnToggler;
+import org.primefaces.component.datatable.DataTable;
+import org.primefaces.event.ToggleEvent;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
+import org.primefaces.model.Visibility;
 
 /**
  * <p>
@@ -138,12 +142,14 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	private boolean filterWithAND;
 	private List<T> filteredValue;
 	private List<T> selection;
+	private Map<String, Boolean> visibleColumns;
 
 	public PagedDataModel(String defaultSortField, SortOrder defaultSortOrder, String... filterableFields) {
 		sortField = defaultSortField;
 		sortOrder = defaultSortOrder.name();
 		this.filterableFields = filterableFields != null ? unmodifiableList(asList(filterableFields)) : emptyList();
 		filters = new HashMap<>();
+		visibleColumns = new HashMap<>();
 		setRowCount(-1);
 	}
 
@@ -169,6 +175,18 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	}
 
 	public abstract List<T> load(SortFilterPage page, boolean countNeedsUpdate);
+
+	public void toggleColumn(ToggleEvent event) {
+		ColumnToggler toggler = (ColumnToggler) event.getComponent();
+		DataTable table = (DataTable) toggler.findComponent(toggler.getDatasource());
+		String field = table.getColumns().get((Integer) event.getData()).getField();
+		visibleColumns.put(field, event.getVisibility() == Visibility.VISIBLE);
+	}
+
+	public boolean isVisible(String field, boolean defaultVisible) {
+		visibleColumns.putIfAbsent(field, defaultVisible);
+		return visibleColumns.get(field);
+	}
 
 	@Override
 	public Object getRowKey(T entity) {
@@ -259,74 +277,74 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	public void setSelection(List<T> selection) {
 		this.selection = selection;
 	}
-	
+
 	public static <T> PagedDataModelBuilder<T> with() {
 		return new PagedDataModelBuilder<>();
 	}
-	
+
 	public static <T> PagedDataModelBuilder<T> pagedDataModelFor(Class<T> clazz) {
 		PagedDataModelBuilder<T> builder = new PagedDataModelBuilder<>();
 		return builder.forClass(clazz);
 	}
-	
+
 	public static interface DataLoader<T> {
 		List<T> load(SortFilterPage page, boolean countNeedsUpdate);
 	}
-	
+
 	public static class PagedDataModelBuilder<T> {
-		private String defaultSortField; 
+		private String defaultSortField;
 		private SortOrder defaultSortOrder = DESCENDING;
 		private String[] filterableFields;
 		private DataLoader<T> dataLoader;
-		
+
 		private Class<T> forClass;
 		private GenericEntityService entityService;
-		
+
 		public PagedDataModelBuilder<T> defaultSortField(String defaultSortField) {
 			this.defaultSortField = defaultSortField;
 			return this;
 		}
-		
+
 		public PagedDataModelBuilder<T> defaultSortOrder(SortOrder defaultSortOrder) {
 			this.defaultSortOrder = defaultSortOrder;
 			return this;
 		}
-		
+
 		public PagedDataModelBuilder<T> filterableFields(String... filterableFields) {
 			this.filterableFields = filterableFields;
 			return this;
 		}
-		
+
 		public PagedDataModelBuilder<T> dataLoader(DataLoader<T> dataLoader) {
 			this.dataLoader = dataLoader;
 			return this;
 		}
-		
+
 		public PagedDataModelBuilder<T> forClass(Class<T> forClass) {
 			this.forClass = forClass;
 			return this;
 		}
-		
+
 		public PagedDataModelBuilder<T> entityService(GenericEntityService entityService) {
 			this.entityService = entityService;
 			return this;
 		}
-		
+
 		public PagedDataModel<T> buildWithService(GenericEntityService entityService) {
 			return entityService(entityService).build();
 		}
-		
+
 		public PagedDataModel<T> build() {
-			
+
 			if (dataLoader == null) {
-				
+
 				if (forClass != null && entityService != null) {
 					dataLoader = (page, count) -> entityService.getAllPagedAndSortedByType(forClass, page, count);
 				} else {
 					throw new IllegalStateException("Must provide a non null dataLoader, or a forClass and entityService");
 				}
 			}
-			
+
 			return new PagedDataModel<T>(defaultSortField, defaultSortOrder, filterableFields) {
 				private static final long serialVersionUID = 1L;
 				@Override
@@ -334,9 +352,9 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 					return dataLoader.load(page, countNeedsUpdate);
 				}
 			};
-			
+
 		}
-		
+
 	}
 
 }

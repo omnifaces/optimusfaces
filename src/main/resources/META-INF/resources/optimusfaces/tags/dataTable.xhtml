@@ -66,14 +66,13 @@
 
 			<c:if test="#{exportable}">
 				<div class="buttons">
-					<p:commandButton id="columnToggler" type="button" value="#{columnsButtonLabel}">
-						<p:columnToggler trigger="columnToggler" datasource="#{id}">
-							<p:ajax event="toggle" />
-						</p:columnToggler>
-					</p:commandButton>
+					<p:commandButton id="columnToggler" type="button" value="#{columnsButtonLabel}" />
 					<p:commandButton id="export" a:value="#{exportButtonLabel}" value="#{exportButtonLabel}" ajax="false" styleClass="export">
 						<p:dataExporter target="#{id}" type="csv" fileName="#{id}#{empty csvUserId ? '' : '-' += csvUserId}-#{csvSuffix}" />
 					</p:commandButton>
+					<p:columnToggler trigger="columnToggler" datasource="#{id}">
+						<p:ajax event="toggle" listener="#{value.toggleColumn}" />
+					</p:columnToggler>
 				</div>
 			</c:if>
 		</div>
