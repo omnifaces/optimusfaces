@@ -48,7 +48,7 @@
 	<p:column
 		field="#{field}" id="#{id}" headerText="#{head}" filterable="#{filterable}" filterMatchMode="contains" 
 		styleClass="#{styleClass} #{empty filterOptions ? '' : 'filterable'} #{component.sortField eq field ? 'ui-state-active' : ''}"
-		rendered="#{exporting ? rendered and exportable : rendered}" visible="#{visible}"
+		rendered="#{exporting ? rendered and exportable and visible : rendered}" visible="#{visible}"
 	>
 		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
 		<c:if test="#{sortable}"><f:attribute name="sortBy" value="#{sortBy}" /></c:if>
