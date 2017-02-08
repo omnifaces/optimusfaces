@@ -16,6 +16,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
+import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.omnifaces.util.Faces.getRequestQueryStringMap;
 import static org.omnifaces.util.Utils.isBlank;
 import static org.omnifaces.utils.Lang.isEmpty;
@@ -29,6 +30,7 @@ import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.dto.SortFilterPage;
 import org.omnifaces.persistence.service.GenericEntityService;
 import org.omnifaces.utils.collection.PartialResultList;
+import org.primefaces.component.column.Column;
 import org.primefaces.component.columntoggler.ColumnToggler;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.event.ToggleEvent;
@@ -177,8 +179,7 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	public abstract List<T> load(SortFilterPage page, boolean countNeedsUpdate);
 
 	public void toggleColumn(ToggleEvent event) {
-		ColumnToggler toggler = (ColumnToggler) event.getComponent();
-		DataTable table = (DataTable) toggler.findComponent(toggler.getDatasource());
+		DataTable table = getDataTable(((ColumnToggler) event.getComponent()).getDatasource());
 		String field = table.getColumns().get((Integer) event.getData()).getField();
 		visibleColumns.put(field, event.getVisibility() == Visibility.VISIBLE);
 	}
@@ -186,6 +187,18 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	public boolean isVisible(String field, boolean defaultVisible) {
 		visibleColumns.putIfAbsent(field, defaultVisible);
 		return visibleColumns.get(field);
+	}
+
+	public void prepareExportVisible(String tableId) {
+		getDataTable(tableId).getColumns().forEach(c -> ((Column) c).setExportable(visibleColumns.get(c.getField())));
+	}
+
+	public void prepareExportAll(String tableId) {
+		getDataTable(tableId).getColumns().forEach(c -> ((Column) c).setExportable(true));
+	}
+
+	private static DataTable getDataTable(String id) {
+		return (DataTable) getCurrentComponent().findComponent(id);
 	}
 
 	@Override

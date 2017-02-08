@@ -47,6 +47,8 @@
 	<o:tagAttribute name="exportable" default="#{false}" />
 	<o:tagAttribute name="exportButtonLabel" default="CSV" />
 	<o:tagAttribute name="columnsButtonLabel" default="Columns" />
+	<o:tagAttribute name="visibleColumnsButtonLabel" default="Visible Columns" />
+	<o:tagAttribute name="allColumnsButtonLabel" default="All Columns" />
 	<o:tagAttribute name="csvUserId" />
 	<o:tagAttribute name="csvSuffix" default="#{of:formatDate(now, 'yyyyMMddHHmmss')}" />
 
@@ -67,9 +69,19 @@
 			<c:if test="#{exportable}">
 				<div class="buttons">
 					<p:commandButton id="columnToggler" type="button" value="#{columnsButtonLabel}" />
-					<p:commandButton id="export" a:value="#{exportButtonLabel}" value="#{exportButtonLabel}" ajax="false" styleClass="export">
+					<p:splitButton id="export" value="#{exportButtonLabel}" styleClass="export" actionListener="#{value.prepareExportVisible(id)}" ajax="false">
 						<p:dataExporter target="#{id}" type="csv" fileName="#{id}#{empty csvUserId ? '' : '-' += csvUserId}-#{csvSuffix}" />
-					</p:commandButton>
+						<f:param name="export" value="visible" />
+						<p:menuitem id="exportVisible" value="#{visibleColumnsButtonLabel}" actionListener="#{value.prepareExportVisible(id)}" ajax="false">
+							<p:dataExporter target="#{id}" type="csv" fileName="#{id}#{empty csvUserId ? '' : '-' += csvUserId}-#{csvSuffix}" />
+							<f:param name="export" value="visible" />
+						</p:menuitem>
+						<p:menuitem id="exportAll" value="#{allColumnsButtonLabel}" actionListener="#{value.prepareExportAll(id)}" ajax="false">
+							<p:dataExporter target="#{id}" type="csv" fileName="#{id}#{empty csvUserId ? '' : '-' += csvUserId}-#{csvSuffix}" />
+							<f:param name="export" value="all" />
+						</p:menuitem>
+					</p:splitButton>
+
 					<p:columnToggler trigger="columnToggler" datasource="#{id}">
 						<p:ajax event="toggle" listener="#{value.toggleColumn}" />
 					</p:columnToggler>

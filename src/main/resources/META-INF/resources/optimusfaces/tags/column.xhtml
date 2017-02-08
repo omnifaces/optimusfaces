@@ -40,15 +40,14 @@
 	<o:tagAttribute name="filterBy" default="#{sortBy}" />
 	<o:tagAttribute name="filterOptions" />
 	<o:tagAttribute name="filterable" default="#{not empty filterOptions or component.namingContainer.value.filterableFields.contains(field)}" />
-	<o:tagAttribute name="exportable" default="#{true}" />
 	<o:tagAttribute name="export" default="#{value}" />
 
-	<c:set var="exporting" value="#{facesContext.currentPhaseId.ordinal eq 5 or not empty param[component.namingContainer.parent.namingContainer.findComponent('export').clientId]}" />
+	<c:set var="exporting" value="#{not empty param.export}" scope="request" />
 
 	<p:column
 		field="#{field}" id="#{id}" headerText="#{head}" filterable="#{filterable}" filterMatchMode="contains" 
 		styleClass="#{styleClass} #{empty filterOptions ? '' : 'filterable'} #{component.sortField eq field ? 'ui-state-active' : ''}"
-		rendered="#{rendered}" visible="#{component.namingContainer.value.isVisible(field, visible)}" exportable="#{rendered and exportable}"
+		rendered="#{rendered}" visible="#{component.namingContainer.value.isVisible(field, visible)}"
 	>
 		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
 		<c:if test="#{sortable}"><f:attribute name="sortBy" value="#{sortBy}" /></c:if>
