@@ -16,19 +16,29 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
+import static javax.faces.component.UINamingContainer.getSeparatorChar;
+import static org.omnifaces.util.Ajax.oncomplete;
 import static org.omnifaces.util.Components.getCurrentComponent;
-import static org.omnifaces.util.Faces.getRequestQueryStringMap;
-import static org.omnifaces.util.Utils.isBlank;
+import static org.omnifaces.util.Faces.getContext;
+import static org.omnifaces.util.Faces.isAjaxRequest;
+import static org.omnifaces.util.FacesLocal.getRequestParameter;
 import static org.omnifaces.utils.Lang.isEmpty;
 import static org.primefaces.model.SortOrder.DESCENDING;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import javax.faces.context.FacesContext;
+
+import org.omnifaces.component.ParamHolder;
+import org.omnifaces.component.SimpleParam;
 import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.dto.SortFilterPage;
 import org.omnifaces.persistence.service.GenericEntityService;
+import org.omnifaces.util.Servlets;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.primefaces.component.column.Column;
 import org.primefaces.component.columntoggler.ColumnToggler;
@@ -139,8 +149,8 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	private String sortField;
 	private String sortOrder;
 	private final List<String> filterableFields;
+	private String globalFilter;
 	private Map<String, Object> filters;
-	private Map<String, Object> remappedFilters;
 	private boolean filterWithAND;
 	private List<T> filteredValue;
 	private List<T> selection;
@@ -151,6 +161,7 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 		sortOrder = defaultSortOrder.name();
 		this.filterableFields = filterableFields != null ? unmodifiableList(asList(filterableFields)) : emptyList();
 		filters = new HashMap<>();
+		selection = emptyList();
 		visibleColumns = new HashMap<>();
 		setRowCount(-1);
 	}
@@ -162,15 +173,20 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 			setSortOrder(sortOrder.name());
 		}
 
-		Map<String, Object> remappedFilters = remapFilters(filters);
-		boolean countNeedsUpdate = getRowCount() <= 0 || !remappedFilters.equals(this.remappedFilters);
-		this.remappedFilters = remappedFilters;
+		globalFilter = prepareGlobalFilter(filters);
+		Map<String, Object> remappedFilters = remapGlobalFilter(filters);
+		boolean countNeedsUpdate = getRowCount() <= 0 || !remappedFilters.equals(this.filters);
+		this.filters = remappedFilters;
 		filterWithAND = !filters.containsKey(GLOBAL_FILTER);
 
 		List<T> list = load(new SortFilterPage(first, pageSize, getSortField(), getSortOrder(), filterableFields, remappedFilters, filterWithAND), countNeedsUpdate);
 
 		if (countNeedsUpdate && list instanceof PartialResultList) {
 			setRowCount(((PartialResultList<T>) list).getEstimatedTotalNumberOfResults());
+		}
+
+		if (isAjaxRequest()) {
+			updateQueryStringIfNecessary();
 		}
 
 		return list;
@@ -217,19 +233,44 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 		return (List<T>) super.getWrappedData();
 	}
 
-	private Map<String, Object> remapFilters(Map<String, Object> filters) {
-		Map<String, Object> remappedFilters = new HashMap<>(filters);
-		getRequestQueryStringMap().forEach((k, v) -> {
-			if (!isEmpty(v) && !isBlank(v.get(0))) {
-				remappedFilters.putIfAbsent("q".equals(k) ? GLOBAL_FILTER : k, v.get(0).trim());
-			}
-		});
-		remappedFilters.values().remove(null);
-		Object globalFilter = remappedFilters.remove(GLOBAL_FILTER);
+	private String prepareGlobalFilter(Map<String, Object> filters) {
+		String globalFilter = (String) filters.get(GLOBAL_FILTER);
 
-		if (!isEmpty(globalFilter)) {
-			filters.put(GLOBAL_FILTER, globalFilter);
+		if (globalFilter != null) {
+			globalFilter = globalFilter.trim();
+
+			if (globalFilter.isEmpty()) {
+				filters.remove(GLOBAL_FILTER);
+			}
+			else {
+				filters.put(GLOBAL_FILTER, globalFilter);
+			}
 		}
+
+		if (!filters.containsKey(GLOBAL_FILTER)) {
+			FacesContext context = getContext();
+			String q = getRequestParameter(context, "q");
+
+			if (q == null) {
+				q = getRequestParameter(context, getCurrentComponent().getClientId(context) + getSeparatorChar(context) + GLOBAL_FILTER);
+			}
+
+			if (q != null) {
+				q = q.trim();
+
+				if (!q.isEmpty()) {
+					filters.put(GLOBAL_FILTER, q);
+				}
+			}
+		}
+
+		return (String) filters.get(GLOBAL_FILTER);
+	}
+
+	private Map<String, Object> remapGlobalFilter(Map<String, Object> filters) {
+		Map<String, Object> remappedFilters = new HashMap<>(filters);
+		Object globalFilter = remappedFilters.remove(GLOBAL_FILTER);
+		remappedFilters.values().remove(null);
 
 		for (String filterableField : filterableFields) {
 			if (!GLOBAL_FILTER.equals(filterableField)) {
@@ -241,10 +282,44 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 				else if (!isEmpty(globalFilter)) {
 					remappedFilters.put(filterableField, globalFilter);
 				}
+				else {
+					FacesContext context = getContext();
+					String value = getRequestParameter(context, filterableField);
+
+					if (value != null) {
+						value = value.trim();
+
+						if (!value.isEmpty()) {
+							remappedFilters.put(filterableField, value);
+						}
+					}
+				}
 			}
 		}
 
 		return remappedFilters;
+	}
+
+	private void updateQueryStringIfNecessary() {
+		if (!isAjaxRequest()) {
+			return;
+		}
+
+		List<ParamHolder> params = new ArrayList<>();
+
+		if (!isEmpty(globalFilter)) {
+			params.add(new SimpleParam("q", globalFilter));
+		}
+
+		filters.forEach((key, value) -> {
+			params.add(new SimpleParam(key, value));
+		});
+
+		selection.stream().filter(item -> item instanceof BaseEntity<?>).forEach(item -> {
+			params.add(new SimpleParam("selected", ((BaseEntity<?>) item).getId()));
+		});
+
+		oncomplete("OptimusFaces.Util.historyPushQueryString('" + Servlets.toQueryString(params) + "')");
 	}
 
 	public String getSortField() {
@@ -288,7 +363,10 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	}
 
 	public void setSelection(List<T> selection) {
-		this.selection = selection;
+		if (!Objects.equals(selection, this.selection)) {
+			this.selection = selection;
+			updateQueryStringIfNecessary();
+		}
 	}
 
 	public static <T> PagedDataModelBuilder<T> with() {

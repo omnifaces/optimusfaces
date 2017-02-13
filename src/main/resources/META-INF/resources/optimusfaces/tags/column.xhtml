@@ -52,7 +52,10 @@
 		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
 		<c:if test="#{sortable}"><f:attribute name="sortBy" value="#{sortBy}" /></c:if>
 		<c:if test="#{filterable}"><f:attribute name="filterBy" value="#{filterBy}" /></c:if>
-		<c:if test="#{not empty filterOptions}"><f:attribute name="filterOptions" value="#{filterOptions}" /></c:if>
+		<c:if test="#{not empty filterOptions}">
+			<f:attribute name="filterOptions" value="#{filterOptions}" />
+			<f:attribute name="filterValue" value="#{component.namingContainer.value.filters[field]}" />
+		</c:if>
 
 		<h:outputText rendered="#{exporting}" value="#{export}" />
 
