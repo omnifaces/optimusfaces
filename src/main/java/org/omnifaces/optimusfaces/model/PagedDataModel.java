@@ -151,6 +151,7 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	private final List<String> filterableFields;
 	private String globalFilter;
 	private Map<String, Object> filters;
+	private Map<String, Object> remappedFilters;
 	private boolean filterWithAND;
 	private List<T> filteredValue;
 	private List<T> selection;
@@ -173,10 +174,11 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 			setSortOrder(sortOrder.name());
 		}
 
+		this.filters = mergeFilters(filters);
 		globalFilter = prepareGlobalFilter(filters);
 		Map<String, Object> remappedFilters = remapGlobalFilter(filters);
-		boolean countNeedsUpdate = getRowCount() <= 0 || !remappedFilters.equals(this.filters);
-		this.filters = remappedFilters;
+		boolean countNeedsUpdate = getRowCount() <= 0 || !remappedFilters.equals(this.remappedFilters);
+		this.remappedFilters = remappedFilters;
 		filterWithAND = !filters.containsKey(GLOBAL_FILTER);
 
 		List<T> list = load(new SortFilterPage(first, pageSize, getSortField(), getSortOrder(), filterableFields, remappedFilters, filterWithAND), countNeedsUpdate);
@@ -233,6 +235,27 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 		return (List<T>) super.getWrappedData();
 	}
 
+	private Map<String, Object> mergeFilters(Map<String, Object> filters) {
+		FacesContext context = getContext();
+		Map<String, Object> mergedFilters = new HashMap<>();
+
+		for (String filterableField : filterableFields) {
+			String value = getRequestParameter(context, filterableField);
+
+			if (value != null) {
+				value = value.trim();
+
+				if (!value.isEmpty()) {
+					mergedFilters.put(filterableField, value);
+				}
+			}
+		}
+
+		mergedFilters.putAll(filters);
+		mergedFilters.remove(GLOBAL_FILTER);
+		return mergedFilters;
+	}
+
 	private String prepareGlobalFilter(Map<String, Object> filters) {
 		String globalFilter = (String) filters.get(GLOBAL_FILTER);
 
@@ -281,18 +304,6 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 				}
 				else if (!isEmpty(globalFilter)) {
 					remappedFilters.put(filterableField, globalFilter);
-				}
-				else {
-					FacesContext context = getContext();
-					String value = getRequestParameter(context, filterableField);
-
-					if (value != null) {
-						value = value.trim();
-
-						if (!value.isEmpty()) {
-							remappedFilters.put(filterableField, value);
-						}
-					}
 				}
 			}
 		}
