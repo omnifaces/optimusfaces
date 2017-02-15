@@ -16,6 +16,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
 import static javax.faces.component.UINamingContainer.getSeparatorChar;
 import static org.omnifaces.util.Ajax.oncomplete;
 import static org.omnifaces.util.Components.getCurrentComponent;
@@ -40,6 +41,7 @@ import org.omnifaces.persistence.model.dto.SortFilterPage;
 import org.omnifaces.persistence.service.GenericEntityService;
 import org.omnifaces.util.Servlets;
 import org.omnifaces.utils.collection.PartialResultList;
+import org.primefaces.component.api.UIColumn;
 import org.primefaces.component.column.Column;
 import org.primefaces.component.columntoggler.ColumnToggler;
 import org.primefaces.component.datatable.DataTable;
@@ -148,7 +150,7 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 
 	private String sortField;
 	private String sortOrder;
-	private final List<String> filterableFields;
+	private List<String> filterableFields;
 	private String globalFilter;
 	private Map<String, Object> filters;
 	private Map<String, Object> remappedFilters;
@@ -157,10 +159,10 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	private List<T> selection;
 	private Map<String, Boolean> visibleColumns;
 
-	public PagedDataModel(String defaultSortField, SortOrder defaultSortOrder, String... filterableFields) {
+	public PagedDataModel(String defaultSortField, SortOrder defaultSortOrder, String... filterableFields) { // TODO: filterableFields must exclusively be defined via <of:column filterable="true"> instead.
 		sortField = defaultSortField;
 		sortOrder = defaultSortOrder.name();
-		this.filterableFields = filterableFields != null ? unmodifiableList(asList(filterableFields)) : emptyList();
+		this.filterableFields = filterableFields != null ? unmodifiableList(asList(filterableFields)) : emptyList(); // TODO: remove this.
 		filters = new HashMap<>();
 		selection = emptyList();
 		visibleColumns = new HashMap<>();
@@ -168,18 +170,17 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 	}
 
 	@Override
-	public List<T> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, Object> filters) {
+	public List<T> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, Object> tableFilters) {
 		if (sortField != null) {
 			setSortField(sortField);
 			setSortOrder(sortOrder.name());
 		}
 
-		this.filters = mergeFilters(filters);
-		globalFilter = prepareGlobalFilter(filters);
-		Map<String, Object> remappedFilters = remapGlobalFilter(filters);
+		Map<String, Object> allFilters = mergeWithQueryParameters(tableFilters);
+		Map<String, Object> remappedFilters = remapGlobalFilter(allFilters);
 		boolean countNeedsUpdate = getRowCount() <= 0 || !remappedFilters.equals(this.remappedFilters);
 		this.remappedFilters = remappedFilters;
-		filterWithAND = !filters.containsKey(GLOBAL_FILTER);
+		filters = allFilters;
 
 		List<T> list = load(new SortFilterPage(first, pageSize, getSortField(), getSortOrder(), filterableFields, remappedFilters, filterWithAND), countNeedsUpdate);
 
@@ -235,29 +236,32 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 		return (List<T>) super.getWrappedData();
 	}
 
-	private Map<String, Object> mergeFilters(Map<String, Object> filters) {
+	private Map<String, Object> mergeWithQueryParameters(Map<String, Object> filters) {
+		if (filterableFields.isEmpty()) {
+			filterableFields = ((DataTable) getCurrentComponent()).getColumns().stream()
+				.filter(UIColumn::isFilterable)
+				.map(UIColumn::getField)
+				.collect(toList());
+		}
+
 		FacesContext context = getContext();
-		Map<String, Object> mergedFilters = new HashMap<>();
+		Map<String, Object> mergedFilters = new HashMap<>(filters);
 
 		for (String filterableField : filterableFields) {
-			String value = getRequestParameter(context, filterableField);
+			if (!mergedFilters.containsKey(filterableField)) {
+				String value = getQueryParameter(context, filterableField);
 
-			if (value != null) {
-				value = value.trim();
-
-				if (!value.isEmpty()) {
+				if (value != null) {
 					mergedFilters.put(filterableField, value);
 				}
 			}
 		}
 
-		mergedFilters.putAll(filters);
-		mergedFilters.remove(GLOBAL_FILTER);
 		return mergedFilters;
 	}
 
-	private String prepareGlobalFilter(Map<String, Object> filters) {
-		String globalFilter = (String) filters.get(GLOBAL_FILTER);
+	private Map<String, Object> remapGlobalFilter(Map<String, Object> filters) {
+		globalFilter = (String) filters.get(GLOBAL_FILTER);
 
 		if (globalFilter != null) {
 			globalFilter = globalFilter.trim();
@@ -272,43 +276,49 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 
 		if (!filters.containsKey(GLOBAL_FILTER)) {
 			FacesContext context = getContext();
-			String q = getRequestParameter(context, "q");
+			String q = getQueryParameter(context, "q");
 
 			if (q == null) {
-				q = getRequestParameter(context, getCurrentComponent().getClientId(context) + getSeparatorChar(context) + GLOBAL_FILTER);
+				q = getQueryParameter(context, getCurrentComponent().getClientId(context) + getSeparatorChar(context) + GLOBAL_FILTER);
 			}
 
 			if (q != null) {
-				q = q.trim();
-
-				if (!q.isEmpty()) {
-					filters.put(GLOBAL_FILTER, q);
-				}
+				filters.put(GLOBAL_FILTER, q);
 			}
 		}
 
-		return (String) filters.get(GLOBAL_FILTER);
-	}
+		filterWithAND = !filters.containsKey(GLOBAL_FILTER);
+		globalFilter = (String) filters.remove(GLOBAL_FILTER);
 
-	private Map<String, Object> remapGlobalFilter(Map<String, Object> filters) {
 		Map<String, Object> remappedFilters = new HashMap<>(filters);
-		Object globalFilter = remappedFilters.remove(GLOBAL_FILTER);
 		remappedFilters.values().remove(null);
 
 		for (String filterableField : filterableFields) {
-			if (!GLOBAL_FILTER.equals(filterableField)) {
-				Object filterableFieldValue = filters.get(filterableField);
+			Object filterableFieldValue = filters.get(filterableField);
 
-				if (!isEmpty(filterableFieldValue)) {
-					remappedFilters.put(filterableField, filterableFieldValue);
-				}
-				else if (!isEmpty(globalFilter)) {
-					remappedFilters.put(filterableField, globalFilter);
-				}
+			if (!isEmpty(filterableFieldValue)) {
+				remappedFilters.put(filterableField, filterableFieldValue);
+			}
+			else if (globalFilter != null) {
+				remappedFilters.put(filterableField, globalFilter);
 			}
 		}
 
 		return remappedFilters;
+	}
+
+	private String getQueryParameter(FacesContext context, String name) {
+		String param = getRequestParameter(context, name);
+
+		if (param != null) {
+			param = param.trim();
+
+			if (!param.isEmpty()) {
+				return param;
+			}
+		}
+
+		return null;
 	}
 
 	private void updateQueryStringIfNecessary() {
