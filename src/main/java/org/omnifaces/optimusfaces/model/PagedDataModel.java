@@ -241,6 +241,7 @@ public abstract class PagedDataModel<T> extends LazyDataModel<T> {
 			filterableFields = ((DataTable) getCurrentComponent()).getColumns().stream()
 				.filter(UIColumn::isFilterable)
 				.map(UIColumn::getField)
+				.filter(Objects::nonNull)
 				.collect(toList());
 		}
 
