@@ -45,7 +45,7 @@ import org.primefaces.model.SortOrder;
 
 /**
  * <p>
- * Paged data model for <code>&lt;op:dataTable&gt;</code> which utilizes {@link GenericEntityService} from
+ * Lazy paged data model for <code>&lt;op:dataTable&gt;</code> which utilizes {@link GenericEntityService} from
  * OmniPersistence project.
  *
  * <h3>Usage:</h3>
@@ -97,19 +97,9 @@ import org.primefaces.model.SortOrder;
  *
  *     private org.omnifaces.optimusfaces.model.PagedDataModel&lt;YourEntity&gt; model;
  *
- *     {@code @Inject}
- *     private YourGenericEntityService yourGenericEntityService;
- *
  *     {@code @PostConstruct}
  *     public void init() {
- *         model = new PagedDataModel&lt;YourEntity&gt;("created", SortOrder.DESCENDING, "name", "description") {
- *             private static final long serialVersionUID = 1L;
- *
- *             {@code @Override}
- *             public List&lt;YourEntity&gt; load(SortFilterPage page, boolean countNeedsUpdate) {
- *                 return yourGenericEntityService.getAllPagedAndSorted(page, countNeedsUpdate);
- *             }
- *         };
+ *         model = PagedDataModel.forClass(YourEntity.class).build();
  *     }
  *
  *     public PagedDataModel&lt;YourEntity&gt; getModel() {
