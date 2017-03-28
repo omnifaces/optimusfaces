@@ -42,7 +42,7 @@ import org.primefaces.model.SortOrder;
  *
  *     {@code @PostConstruct}
  *     public void init() {
- *         model = new NonLazyPagedDataModel&lt;YourEntity&gt;(yourEntityService.getList());
+ *         model = PagedDataModel.forAllData(yourEntityService.getList());
  *     }
  *
  *     public PagedDataModel&lt;YourEntity&gt; getModel() {
