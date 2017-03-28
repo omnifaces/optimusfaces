@@ -12,12 +12,16 @@
  */
 package org.omnifaces.optimusfaces.model;
 
-import static java.lang.Math.min;
-import static org.primefaces.model.SortOrder.DESCENDING;
+import static java.util.Collections.emptyList;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-import org.omnifaces.persistence.model.dto.SortFilterPage;
+import javax.faces.model.ListDataModel;
+
+import org.primefaces.model.SortOrder;
 
 /**
  * <p>
@@ -58,21 +62,93 @@ import org.omnifaces.persistence.model.dto.SortFilterPage;
  *
  * @author Bauke Scholtz
  */
-public class NonLazyPagedDataModel<T> extends PagedDataModel<T> {
+public final class NonLazyPagedDataModel<T> extends ListDataModel<T> implements PagedDataModel<T> {
 
-	private static final long serialVersionUID = 1L;
+	// Internal properties --------------------------------------------------------------------------------------------
 
-	private List<T> allData;
+	private Map<String, Object> filters;
+	private Map<String, Boolean> visibleColumns;
+	private Map<String, Object> remappedFilters; // TODO?
+	private String globalFilter; // TODO?
+	private boolean filterWithAND; // TODO?
 
-	public NonLazyPagedDataModel(List<T> allData) {
-		super("id", DESCENDING);
-		this.allData = allData;
+	// p:dataTable properties -----------------------------------------------------------------------------------------
+
+	private String sortField;
+	private String sortOrder;
+	private List<T> selection;
+	private List<T> filteredValue;
+
+
+	// Constructors ---------------------------------------------------------------------------------------------------
+
+	/**
+	 * Use PagedDataModel.forXxx() to build one.
+	 */
+	NonLazyPagedDataModel(List<T> allData, String defaultSortField, SortOrder defaultSortOrder) {
+		super(allData);
+
+		filters = new HashMap<>();
+		visibleColumns = new HashMap<>();
+
+		sortField = defaultSortField;
+		sortOrder = defaultSortOrder.name();
+		selection = emptyList();
+	}
+
+	// Getters+setters ------------------------------------------------------------------------------------------------
+
+	@Override
+	public Map<String, Boolean> getVisibleColumns() {
+		return visibleColumns;
 	}
 
 	@Override
-	public List<T> load(SortFilterPage page, boolean countNeedsUpdate) {
-		setRowCount(allData.size());
-		return allData.subList(min(getRowCount(), page.getOffset()), min(getRowCount(), page.getOffset() + page.getLimit()));
+	public Map<String, Object> getFilters() {
+		return filters;
+	}
+
+	@Override
+	public String getSortField() {
+		return sortField;
+	}
+
+	@Override
+	public void setSortField(String sortField) {
+		this.sortField = sortField;
+	}
+
+	@Override
+	public String getSortOrder() {
+		return sortOrder;
+	}
+
+	@Override
+	public void setSortOrder(String sortOrder) {
+		this.sortOrder = sortOrder;
+	}
+
+	@Override
+	public List<T> getFilteredValue() {
+		return filteredValue;
+	}
+
+	@Override
+	public void setFilteredValue(List<T> filteredValue) {
+		this.filteredValue = filteredValue;
+	}
+
+	@Override
+	public List<T> getSelection() {
+		return selection;
+	}
+
+	@Override
+	public void setSelection(List<T> selection) {
+		if (!Objects.equals(selection, this.selection)) {
+			this.selection = selection;
+			// updateQueryStringIfNecessary(); TODO?
+		}
 	}
 
 }
