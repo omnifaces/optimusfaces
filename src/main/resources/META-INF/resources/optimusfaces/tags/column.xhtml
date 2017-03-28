@@ -39,7 +39,7 @@
 	<o:tagAttribute name="sortBy" default="#{value}" />
 	<o:tagAttribute name="filterBy" default="#{sortBy}" />
 	<o:tagAttribute name="filterOptions" />
-	<o:tagAttribute name="filterable" default="#{not empty filterOptions or component.namingContainer.value.filterableFields.contains(field)}" />
+	<o:tagAttribute name="filterable" default="#{true}" />
 	<o:tagAttribute name="export" default="#{value}" />
 
 	<c:set var="exporting" value="#{not empty param.export}" scope="request" />

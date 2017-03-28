@@ -90,7 +90,7 @@
 		</div>
 	</c:if>
 
-	<p:dataTable id="#{id}" widgetVar="#{id}" value="#{value}" var="item" lazy="true" styleClass="#{styleClass}"
+	<p:dataTable id="#{id}" widgetVar="#{id}" value="#{value}" var="item" lazy="#{value['class'].simpleName ne 'NonLazyPagedDataModel'}" styleClass="#{styleClass}"
 		filteredValue="#{value.filteredValue}" sortOrder="#{value.sortOrder}" sortField="#{value.sortField}"
 		rows="#{rows}" paginator="#{paginable}" paginatorPosition="bottom" paginatorAlwaysVisible="true"
 		paginatorTemplate="#{paginatorTemplate}" rowsPerPageTemplate="#{rowsPerPage}"
