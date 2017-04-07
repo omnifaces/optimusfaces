@@ -64,6 +64,10 @@ import org.primefaces.model.SortOrder;
  */
 public final class NonLazyPagedDataModel<T> extends ListDataModel<T> implements PagedDataModel<T> {
 
+	// Constants ------------------------------------------------------------------------------------------------------
+
+	private static final long serialVersionUID = 1L;
+
 	// Internal properties --------------------------------------------------------------------------------------------
 
 	private Map<String, Object> filters;

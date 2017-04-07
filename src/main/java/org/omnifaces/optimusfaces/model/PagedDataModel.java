@@ -15,6 +15,7 @@ package org.omnifaces.optimusfaces.model;
 import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.primefaces.model.SortOrder.DESCENDING;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -30,7 +31,7 @@ import org.primefaces.event.ToggleEvent;
 import org.primefaces.model.SortOrder;
 import org.primefaces.model.Visibility;
 
-public interface PagedDataModel<T> {
+public interface PagedDataModel<T> extends Serializable {
 
 	/**
 	 * Invoked on page load.
