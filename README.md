@@ -63,4 +63,4 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 
 ###Usage
 
-[Check `PagedDataModel` javadoc](https://github.com/omnifaces/optimusfaces/blob/develop/src/main/java/org/omnifaces/optimusfaces/model/PagedDataModel.java).
+[Check `LazyPagedDataModel` javadoc](https://github.com/omnifaces/optimusfaces/blob/develop/src/main/java/org/omnifaces/optimusfaces/model/LazyPagedDataModel.java).
