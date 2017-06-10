@@ -37,7 +37,7 @@ OptimusFaces.Util = (function(window, document) {
 
 	self.historyPushQueryStringParameter = function(name, value) {
 		if (window.history && window.history.pushState) {
-			var url = kizitos.updateQueryStringParameter(window.location.href, name, value);
+			var url = self.updateQueryStringParameter(window.location.href, name, value);
 			window.history.pushState(null, document.title, url);
 		}
 	}
