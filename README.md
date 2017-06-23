@@ -7,6 +7,7 @@ Utility library for OmniFaces + PrimeFaces combined.
 
 This project basically combines best of [OmniFaces](http://omnifaces.org/) and [PrimeFaces](http://www.primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for JPA (and [Hibernate](http://hibernate.org/)). This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a JPA model and a generic entity service.
 
+
 ### Installation
 
 `pom.xml`
@@ -61,6 +62,80 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 </dependencies>
 ```
 
-### Usage
+### Basic Usage
+
+First create your entity service extending `org.omnifaces.omnipersistence.service.BaseEntityService`.
+
+```
+@Stateless
+public class YourEntityService extends BaseEntityService<YourEntity> {
+
+   // ...
+
+}
+```
+
+And make sure `YourEntity` extends `org.omnifaces.omnipersistence.model.BaseEntity`.
+
+```
+@Entity
+public class YourEntity extends BaseEntity<Long> {
+
+    private Instant created;
+    private String name;
+    private Type type;
+    private boolean deleted;
+
+    // ...
+}
+```
+
+Then create a `org.omnifaces.optimusfaces.model.PagedDataModel` in your backing bean as below.
+
+```
+@Named
+@ViewScoped
+public class YourBackingBean implements Serializable {
+
+    private PagedDataModel<YourEntity> model;
+
+    @Inject
+    private YourEntityService service;
+    
+    @PostConstruct
+    public void init() {
+        model = PagedDataModel.lazy(service).build();
+    }
+
+    public PagedDataModel<YourEntity> getModel() {
+        return model;
+    }
+
+}
+```
+
+Finally use `<op:dataTable>` to have a semi-dynamic lazy-loaded, pageable, sortable and filterable 
+`<p:dataTable` without much hassle.
+
+```
+<... xmlns:op="http://omnifaces.org/optimusfaces">
+
+<h:form id="yourEntitiesForm">
+    <op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}">
+        <op:column field="id" />
+        <op:column field="created" />
+        <op:column field="name" />
+        <op:column field="type" />
+        <op:column field="deleted" />
+    </op:dataTable>
+</h:form>
+```
+
+The `field` attribute of `<op:column>` represents the entity property path. This will
+in turn be used in `id`, `field`, `headerText` and `filterBy` attributes
+of `<p:column>`.
+
+
+### Advanced Usage
 
 [Check `PagedDataModel` javadoc](https://github.com/omnifaces/optimusfaces/blob/develop/src/main/java/org/omnifaces/optimusfaces/model/PagedDataModel.java).
