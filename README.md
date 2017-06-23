@@ -9,7 +9,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 
 ### Installation
 
-`pom:xml`
+`pom.xml`
 
 ```
 <repositories>
