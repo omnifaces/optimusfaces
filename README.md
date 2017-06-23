@@ -64,7 +64,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 
 ### Basic Usage
 
-First create your entity service extending `org.omnifaces.omnipersistence.service.BaseEntityService`.
+First create your entity service extending `org.omnifaces.omnipersistence.service.BaseEntityService`. You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
 
 ```
 @Stateless
