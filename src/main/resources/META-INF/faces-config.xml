@@ -20,4 +20,18 @@
 	version="2.2"
 >
 	<name>optimusfaces</name>
+
+	<ordering>
+		<after>
+			<others />
+		</after>
+	</ordering>
+
+	<render-kit>
+		<renderer>
+			<component-family>org.primefaces.component</component-family>
+			<renderer-type>org.primefaces.component.DataTableRenderer</renderer-type>
+			<renderer-class>org.omnifaces.optimusfaces.renderer.ExtendedDataTableRenderer</renderer-class>
+		</renderer>
+	</render-kit>
 </faces-config>

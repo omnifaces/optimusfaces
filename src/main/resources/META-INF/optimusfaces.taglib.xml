@@ -41,14 +41,56 @@
 	</tag>
 
 	<tag>
-		<description>Renders a column based on p:column for op:dataTable.</description>
+		<description>Renders a column based on p:column for op:dataTable. Each item is available by #{item}.</description>
 		<tag-name>column</tag-name>
 		<source>resources/optimusfaces/tags/column.xhtml</source>
 		<attribute>
-			<description>The field (property) name of the #{item} representing the column value. By default, this is also used in id, field, sortBy and filterBy of p:column.</description>
+			<description>The field (property) name of the #{item} representing the column value. By default, this is used in id, field, headerText, value and filterBy attributes of p:column.</description>
 			<name>field</name>
 			<required>true</required>
 			<type>java.lang.String</type>
+		</attribute>
+		<attribute>
+			<description>The column header text. Defaults to field. By default, this is used in headerText attribute of p:column.</description>
+			<name>head</name>
+			<required>false</required>
+			<type>java.lang.String</type>
+		</attribute>
+		<attribute>
+			<description>The column cell tooltip. Defaults to nothing.</description>
+			<name>tooltip</name>
+			<required>false</required>
+			<type>java.lang.String</type>
+		</attribute>
+		<attribute>
+			<description>Whether the column is sortable. Defaults to true.</description>
+			<name>sortable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description>Whether to sort column descending on first click. Defaults to false. This is ignored when sortable=false.</description>
+			<name>sortDescending</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description>Whether the column is filterable. Defaults to true.</description>
+			<name>filterable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description>The filter mode of the field. Supported values are "contains", "startsWith", "endsWith", "exact", "none". Defaults to "contains" when filterOptions=null, else "exact". This is ignored when filterable=false.</description>
+			<name>filterMode</name>
+			<required>false</required>
+			<type>java.lang.String</type>
+		</attribute>
+		<attribute>
+			<description>The filter options of the field. Supported values are Object[], Collection and Map. This is ignored when filterable=false.</description>
+			<name>filterOptions</name>
+			<required>false</required>
+			<type>java.lang.Object</type>
 		</attribute>
 	</tag>
 

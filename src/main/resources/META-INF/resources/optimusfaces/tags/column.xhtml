@@ -23,44 +23,46 @@
 	xmlns:of="http://omnifaces.org/functions"
 	xmlns:p="http://primefaces.org/ui"
 >
-	<!-- Cell -->
-	<o:tagAttribute name="field" />
-	<o:tagAttribute name="id" default="#{field}" />
-	<o:tagAttribute name="head" />
-	<o:tagAttribute name="styleClass" />
-	<o:tagAttribute name="rendered" default="#{true}" />
-	<o:tagAttribute name="visible" default="#{true}" />
-	<o:tagAttribute name="value" default="#{item[field]}" />
-	<o:tagAttribute name="width" />
-	<o:tagAttribute name="tooltip" />
-
-	<!-- Sorting/filtering/exporting -->
-	<o:tagAttribute name="sortable" default="#{true}" />
-	<o:tagAttribute name="sortBy" default="#{value}" />
-	<o:tagAttribute name="filterBy" default="#{sortBy}" />
-	<o:tagAttribute name="filterOptions" />
-	<o:tagAttribute name="filterable" default="#{true}" />
-	<o:tagAttribute name="export" default="#{value}" />
-
+	<c:set var="dataTable" value="#{component.namingContainer}" />
+	<c:set var="pagedDataModel" value="#{dataTable.value}" />
 	<c:set var="exporting" value="#{not empty param.export}" scope="request" />
 
+	<o:tagAttribute name="field" />
+		<o:tagAttribute name="id" default="#{field}" />
+		<o:tagAttribute name="head" default="#{field}" />
+		<o:tagAttribute name="value" default="#{requestScope[dataTable.var][field]}" />
+		<o:tagAttribute name="tooltip" />
+		<o:tagAttribute name="styleClass" />
+		<o:tagAttribute name="rendered" default="#{true}" />
+		<o:tagAttribute name="visible" default="#{true}" />
+		<o:tagAttribute name="width" />
+
+	<o:tagAttribute name="sortable" default="#{dataTable.attributes.sortable}" />
+		<o:tagAttribute name="sortDescending" default="#{false}" />
+
+	<o:tagAttribute name="filterable" default="#{dataTable.attributes.filterable}" />
+		<o:tagAttribute name="filterMode" />
+		<o:tagAttribute name="filterOptions" />
+
+	<o:tagAttribute name="exportValue" default="#{value}" />
+
+
 	<p:column
-		field="#{field}" id="#{id}" headerText="#{head}" filterable="#{filterable}" filterMatchMode="contains" 
-		styleClass="#{styleClass} #{empty filterOptions ? '' : 'filterable'} #{component.sortField eq field ? 'ui-state-active' : ''}"
-		rendered="#{rendered}" visible="#{component.namingContainer.value.isVisible(field, visible)}"
+		field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" filterable="#{filterable}"
+		filterBy="#{value}" filterValue="#{pagedDataModel.filters[field]}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
+		styleClass="#{styleClass}#{sortable and dataTable.sortField eq field ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
+		rendered="#{rendered}" visible="#{visible}"
 	>
 		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
-		<c:if test="#{sortable}"><f:attribute name="sortBy" value="#{sortBy}" /></c:if>
-		<c:if test="#{filterable}"><f:attribute name="filterBy" value="#{filterBy}" /></c:if>
 		<c:if test="#{not empty filterOptions}">
-			<f:attribute name="filterOptions" value="#{filterOptions}" />
-			<f:attribute name="filterValue" value="#{component.namingContainer.value.filters[field]}" />
+			<f:attribute name="filterOptions" value="#{pagedDataModel.convertFilterOptionsIfNecessary(filterOptions)}" />
+			<c:if test="#{empty filterMode}"><f:attribute name="filterMatchMode" value="exact" /></c:if>
 		</c:if>
 
-		<h:outputText rendered="#{exporting}" value="#{export}" />
+		<h:outputText rendered="#{exporting}" value="#{exportValue}" />
 
 		<ui:fragment rendered="#{not exporting}">
-			<ui:insert name="cell"><h:outputText value="#{value}" title="#{tooltip}" /></ui:insert>
+			<span title="#{tooltip}"><ui:insert name="cell">#{value}</ui:insert></span>
 		</ui:fragment>
 	</p:column>
 </ui:composition>

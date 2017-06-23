@@ -12,111 +12,944 @@
  */
 package org.omnifaces.optimusfaces.model;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static org.omnifaces.persistence.model.Identifiable.ID;
 import static org.omnifaces.util.Components.getCurrentComponent;
+import static org.omnifaces.utils.stream.Streams.stream;
+import static org.primefaces.model.SortOrder.ASCENDING;
 import static org.primefaces.model.SortOrder.DESCENDING;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import javax.enterprise.inject.spi.CDI;
+import javax.faces.model.SelectItem;
 
+import org.omnifaces.persistence.constraint.Between;
+import org.omnifaces.persistence.constraint.Like;
+import org.omnifaces.persistence.constraint.Not;
+import org.omnifaces.persistence.constraint.Order;
+import org.omnifaces.persistence.model.BaseEntity;
+import org.omnifaces.persistence.model.Identifiable;
+import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.persistence.model.dto.SortFilterPage;
+import org.omnifaces.persistence.service.BaseEntityService;
 import org.omnifaces.persistence.service.GenericEntityService;
+import org.omnifaces.persistence.service.GenericEntityService.QueryBuilder;
+import org.omnifaces.utils.collection.PartialResultList;
+import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.column.Column;
 import org.primefaces.component.columntoggler.ColumnToggler;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.event.ToggleEvent;
+import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
 import org.primefaces.model.Visibility;
 
-public interface PagedDataModel<T> extends Serializable {
+/**
+ * <p>
+ * Paged data model specifically for <code>&lt;op:dataTable&gt;</code> which utilizes {@link BaseEntityService} from
+ * OmniPersistence project. The <code>&lt;op:dataTable&gt;</code> basically wraps the powerful PrimeFaces
+ * <code>&lt;p:dataTable&gt;</code> in a very DRY tagfile hereby further simplifying its usage and reducing down the
+ * sometimes massive boilerplate code when having a bit advanced use case of <code>&lt;p:dataTable&gt;</code> with
+ * its {@link LazyDataModel}.
+ *
+ *
+ * <h3 id="usage"><a href="#usage">Basic Usage</a></h3>
+ * <p>
+ * First create your entity service extending {@link BaseEntityService} from OmniPersistence project.
+ * <pre>
+ * &#64;Stateless
+ * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
+ *
+ *     // ...
+ *
+ * }
+ * </pre>
+ * <p>
+ * And make sure <code>YourEntity</code> extends {@link BaseEntity} from OmniPersistence project.
+ * <pre>
+ *
+ * &#64;Entity
+ * public class YourEntity extends BaseEntity&lt;Long&gt; {
+ *
+ *     &#64;Id &#64;GeneratedValue(strategy = IDENTITY)
+ *     private Long id;
+ *     private Instant created;
+ *     private String name;
+ *     private Type type;
+ *     private boolean deleted;
+ *
+ *     // ...
+ * }
+ * </pre>
+ * <p>
+ * Then create a {@link PagedDataModel} in your backing bean as below.
+ * <pre>
+ * &#64;Named
+ * &#64;ViewScoped
+ * public class YourBackingBean implements Serializable {
+ *
+ *     private PagedDataModel&lt;YourEntity&gt; model;
+ *
+ *     &#64;Inject
+ *     private YourEntityService service;
+ *
+ *     &#64;PostConstruct
+ *     public void init() {
+ *         model = PagedDataModel.lazy(service).build();
+ *     }
+ *
+ *     public PagedDataModel&lt;YourEntity&gt; getModel() {
+ *         return model;
+ *     }
+ *
+ * }
+ * </pre>
+ * <p>
+ * Finally use <code>&lt;op:dataTable&gt;</code> to have a semi-dynamic lazy-loaded, pageable, sortable and filterable
+ * <code>&lt;p:dataTable&gt;</code> without much hassle.
+ * <pre>
+ * &lt;... xmlns:op="http://omnifaces.org/optimusfaces"&gt;
+ *
+ * &lt;h:form id="yourEntitiesForm"&gt;
+ *     &lt;op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}"&gt;
+ *         &lt;op:column field="id" /&gt;
+ *         &lt;op:column field="created" /&gt;
+ *         &lt;op:column field="name" /&gt;
+ *         &lt;op:column field="type" /&gt;
+ *         &lt;op:column field="deleted" /&gt;
+ *     &lt;/op:dataTable&gt;
+ * &lt;/h:form&gt;
+ * </pre>
+ * <p>
+ * The <code>field</code> attribute of <code>&lt;op:column&gt;</code> represents the entity property path. This will
+ * in turn be used in <code>id</code>, <code>field</code>, <code>headerText</code> and <code>filterBy</code> attributes
+ * of <code>&lt;p:column&gt;</code>.
+ *
+ *
+ * <h3 id="criteria-backend"><a href="#criteria-backend">Providing specific criteria in backend</a></h3>
+ * <p>
+ * In the backend, create a new <code>getPageXxx()</code> method and delegate to one of
+ * {@link BaseEntityService#getPage(Page, boolean)} methods which takes a {@link QueryBuilder} argument providing the
+ * JPA Criteria API objects to build the query with. For example, to get a page of only entities of a specific type.
+ * <pre>
+ * &#64;Stateless
+ * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
+ *
+ *     public void getPageOfFooType(Page page, boolean count) {
+ *         return getPage(page, count, (criteriaBuilder, criteriaQuery, root) -&gt; {
+ *             criteriaQuery.where(criteriaBuilder.equals(root.get("type"), Type.FOO));
+ *         });
+ *     }
+ *
+ * }
+ * </pre>
+ * <p>
+ * And in the frontend, delegate to {@link PagedDataModel#lazy(PartialResultListLoader)}.
+ * <pre>
+ * &#64;Named
+ * &#64;ViewScoped
+ * public class YourBackingBean implements Serializable {
+ *
+ *     private PagedDataModel&lt;YourEntity&gt; model;
+ *
+ *     &#64;Inject
+ *     private YourEntityService service;
+ *
+ *     &#64;PostConstruct
+ *     public void init() {
+ *         model = PagedDataModel.lazy(service::getPageOfFooType).build();
+ *     }
+ *
+ *     public PagedDataModel&lt;YourEntity&gt; getModel() {
+ *         return model;
+ *     }
+ *
+ * }
+ * </pre>
+ *
+ *
+ * <h3 id="criteria-frontend"><a href="#criteria-frontend">Providing specific criteria in frontend</a></h3>
+ * <p>
+ * Specify a method reference to a <code>Map&lt;Getter&lt;E&gt;, Object&gt;</code> supplier in {@link Builder#criteria(Supplier)}
+ * This way you can provide criteria from e.g. a separate form with custom filters.
+ * <pre>
+ * &#64;Named
+ * &#64;ViewScoped
+ * public class YourBackingBean implements Serializable {
+ *
+ *     private PagedDataModel&lt;YourEntity&gt; model;
+ *     private String searchNameStartsWith;
+ *     private Instant searchStartDate;
+ *     private Type[] searchTypes;
+ *     // ...
+ *
+ *     &#64;Inject
+ *     private YourEntityService service;
+ *
+ *     &#64;PostConstruct
+ *     public void init() {
+ *         model = PagedDataModel.lazy(service).criteria(this::getCriteria).build();
+ *     }
+ *
+ *     private Map&lt;Getter&lt;YourEntity&gt;, Object&gt; getCriteria() {
+ *         Map&lt;Getter&lt;YourEntity&gt;, Object&gt; criteria = new HashMap&lt;&gt;();
+ *         criteria.put(YourEntity::getName, Like.startsWith(searchNameStartsWith));
+ *         criteria.put(YourEntity::getCreated, Order.greaterThanOrEqualTo(searchStartDate));
+ *         criteria.put(YourEntity::getType, searchTypes);
+ *         criteria.put(YourEntity::isDeleted, false);
+ *         // ...
+ *         return criteria;
+ *     }
+ *
+ *     public PagedDataModel&lt;YourEntity&gt; getModel() {
+ *         return model;
+ *     }
+ *
+ *     // ...
+ * }
+ * </pre>
+ * <p>
+ * You can optionally wrap the value in {@link Like}, {@link Not}, {@link Between} or {@link Order} constraint. Note
+ * that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you intend to search for
+ * <code>IS NOT NULL</code>, use <code>Not(null)</code> constraint. Or in case you'd like to skip <code>IS NULL</code>,
+ * then simply don't add a <code>null</code> value to the criteria.
+ * <p>
+ * Those <code>searchNameStartsWith</code>, <code>searchStartDate</code> and <code>searchTypes</code> in the above
+ * example can in turn be supplied via JSF input components in the same form the usual way. For example:
+ * <pre>
+ * &lt;o:importConstants type="com.example.model.Type" /&gt;
+ *
+ * &lt;p:selectManyCheckbox value="#{yourBackingBean.selectedTypes}"&gt;
+ *     &lt;f:selectItems value="#{Type}" /&gt;
+ *     &lt;p:ajax update="yourEntitiesTable" /&gt;
+ * &lt;/p:selectManyCheckbox&gt;
+ * </pre>
+ *
+ *
+ * <h3 id="non-lazy"><a href="#non-lazy">Non-lazy data model</a></h3>
+ * <p>
+ * If you have a static list and you'd like to use <code>&lt;op:dataTable&gt;</code>, then you can use
+ * either {@link PagedDataModel#nonLazy(List)} to create a non-lazy {@link PagedDataModel}.
+ * <pre>
+ * &#64;Named
+ * &#64;ViewScoped
+ * public class YourBackingBean implements Serializable {
+ *
+ *     private PagedDataModel&lt;YourEntity&gt; model;
+ *
+ *     &#64;PostConstruct
+ *     public void init() {
+ *         List&lt;YourEntity&gt; list = createItSomehow();
+ *         model = PagedDataModel.nonLazy(list).build();
+ *     }
+ *
+ *     public PagedDataModel&lt;YourEntity&gt; getModel() {
+ *         return model;
+ *     }
+ *
+ * }
+ * </pre>
+ * <p>
+ * On contrary to lazy loading, which requires the entities to be of type {@link BaseEntity}, you can here provide
+ * entities just of type {@link Identifiable} which is easier to apply on DTOs.
+ *
+ *
+ * <h3 id="presentation"><a href="#presentation">Presentation</a></h3>
+ * <p>
+ * By default, the <code>field</code> attribute is shown as column header text. You can optionally use <code>head</code>
+ * attribute of <code>&lt;op:column&gt;</code> to set the header text.
+ * <pre>
+ * &lt;op:column field="id" head="ID" /&gt;
+ * </pre>
+ * <p>
+ * You can optionally use <code>tooltip</code> attribute to set the tooltip of the column value.
+ * <pre>
+ * &lt;op:column field="id" tooltip="The identifier" /&gt;
+ * </pre>
+ * <p>
+ * You can optionally set <code>rendered</code> attribute to <code>false</code> to hide the column in server side.
+ * <pre>
+ * &lt;op:column ... rendered="false" /&gt;
+ * </pre>
+ * <p>
+ * You can optionally set <code>visible</code> attribute to <code>false</code> to hide the column in client side.
+ * <pre>
+ * &lt;op:column ... visible="false" /&gt;
+ * </pre>
+ * <p>
+ * The column visibility can be toggled via "Columns" dropdown button when <code>exportable</code> attribute of
+ * <code>&lt;op:dataTable&gt;</code> is set to <code>true</code>. The export button provides the options to export only
+ * visible columns, or to export all columns including invisible (but not non-rendered) columns.
+ * <pre>
+ * &lt;op:dataTable ... exportable="true"&gt;
+ * </pre>
+ *
+ *
+ * <h3 id="pagination"><a href="#pagination">Pagination</a></h3>
+ * <p>
+ * By default, the table is paginable on 10 rows which is overrideable via <code>rows</code> attribute.
+ * <pre>
+ * &lt;op:dataTable ... rows="20"&gt;
+ * </pre>
+ * <p>
+ * And the table is using the following defaults as <code>&lt;p:dataTable&gt;</code> attributes which are also
+ * overrideable by specifying the very same attributes on  <code>&lt;op:dataTable&gt;</code>.
+ * <ul>
+ * <li><code>rowsPerPage</code>: <code>10,25,50</code>
+ * <li><code>paginatorTemplate</code>: <code>{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}</code>
+ * <li><code>currentPageReportTemplate</code>: <code>{startRecord} - {endRecord} of {totalRecords}</code>
+ * </ul>
+ * <p>
+ * Additionally, the <code>&lt;op:dataTable&gt;</code> offers two more specific attributes which can be used to prefix
+ * and suffix the paginator report template. They are shown below with their defaults.
+ * <ul>
+ * <li><code>currentPageReportPrefix</code>: <code>Showing</code>
+ * <li><code>currentPageReportSuffix</code>: <code>records</code>
+ * </ul>
+ *
+ *
+ * <h3 id="sorting"><a href="#sorting">Sorting</a></h3>
+ * <p>
+ * By default, the model is sorted by {@link BaseEntity#getId()} in descending order. You can override this by
+ * {@link Builder#orderBy(Getter, boolean)} passing the getter method reference and whether you want to sort ascending
+ * or not.
+ * <pre>
+ * &#64;PostConstruct
+ * public void init() {
+ *     model = PagedDataModel.lazy(service).orderBy(YourEntity::getName, true).build();
+ * }
+ * </pre>
+ * <p>
+ * You can specify the <code>orderBy</code> multiple times.
+ * <pre>
+ * &#64;PostConstruct
+ * public void init() {
+ *     model = PagedDataModel.lazy(service).orderBy(YourEntity::getType, true).orderBy(YourEntity::getId, false).build();
+ * }
+ * </pre>
+ * <p>
+ * When the ID column is nowhere specified in custom ordering, then it will still be supplied as fallback ordering.
+ * <p>
+ * By default, every column is sortable. You can optionally set <code>sortable</code> attribute of
+ * <code>&lt;op:column&gt;</code> to <code>false</code> to make a column non-sortable.
+ * <pre>
+ * &lt;op:column ... sortable="false" /&gt;
+ * </pre>
+ * <p>
+ * Or if you want to make all columns non-sortable, then set <code>sortable</code> attribute of
+ * <code>&lt;op:dataTable&gt;</code> to <code>false</code>.
+ * <pre>
+ * &lt;op:dataTable ... sortable="false" /&gt;
+ * </pre>
+ * <p>
+ * This is still overrideable on specific columns by explicitly setting <code>sortable</code> attribute of
+ * <code>&lt;op:column&gt;</code> to <code>true</code>.
+ * <pre>
+ * &lt;op:dataTable ... sortable="false" /&gt;
+ *     &lt;op:column ... /&gt;
+ *     &lt;op:column ... sortable="true" /&gt;
+ *     &lt;op:column ... /&gt;
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ * <p>
+ * By default, every first sorting action on a column will sort the column ascending. You can optionally set
+ * <code>sortDescending</code> attribute of <code>&lt;op:column&gt;</code> to <code>true</code> to start descending.
+ * <pre>
+ * &lt;op:column ... sortDescending="true" /&gt;
+ * </pre>
+ *
+ *
+ * <h3 id="filtering"><a href="#filtering">Filtering</a></h3>
+ * <p>
+ * By default, every column is filterable. In the frontend you can optionally set <code>filterable</code> attribute of
+ * <code>&lt;op:column&gt;</code> to <code>false</code> to make a column non-filterable.
+ * <pre>
+ * &lt;op:column ... filterable="false" /&gt;
+ * </pre>
+ * <p>
+ * Or if you want to make all columns non-sortable, then set <code>filterable</code> attribute of
+ * <code>&lt;op:dataTable&gt;</code> to <code>false</code>.
+ * <pre>
+ * &lt;op:dataTable ... filterable="false" /&gt;
+ * </pre>
+ * <p>
+ * This is still overrideable on specific columns by explicitly setting <code>filterable</code> attribute of
+ * <code>&lt;op:column&gt;</code> to <code>true</code>.
+ * <pre>
+ * &lt;op:dataTable ... filterable="false" /&gt;
+ *     &lt;op:column ... /&gt;
+ *     &lt;op:column ... filterable="true" /&gt;
+ *     &lt;op:column ... /&gt;
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ * <p>
+ * Note that turning off filtering applies client side only. In server side the column is still filterable via
+ * externally provided criteria, see "Providing specific criteria" sections above.
+ * <p>
+ * By default, every column is filterable in "contains" mode. In the frontend you can optionally set
+ * <code>filterMode</code> attribute of <code>&lt;op:column&gt;</code> to <code>startsWith</code>, <code>endsWith</code>,
+ * <code>contains</code> or <code>exact</code> to set the desired filter mode.
+ * <pre>
+ * &lt;op:column ... filterMode="startsWith" /&gt;
+ * </pre>
+ * <p>
+ * By default, the filter input is represented by a free text input field. In the frontend you can optionally provide a
+ * fixed set of filter options via <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code>. This will be
+ * presented as a dropdown. Supported types are <code>Object[]</code>, <code>Collection&lt;V&gt;</code> and
+ * <code>Map&lt;V, L&gt;</code>.
+ * <pre>
+ * &lt;o:importConstants type="com.example.model.Type" /&gt;
+ * ...
+ * &lt;op:column field="type" filterOptions="#{Type}" /&gt;
+ * </pre>
+ * <p>
+ * Note that this will change the default value of <code>filterMode</code> from "contains" to "exact". You can still
+ * override this by explicitly specifying the <code>filterMode</code> attribute.
+ * <pre>
+ * &lt;op:column field="type" filterOptions="#{Type}" filterMode="contains" /&gt;
+ * </pre>
+ *
+ *
+ * <h3 id="global-search"><a href="#global-search">Global search</a></h3>
+ * <p>
+ * You can optionally turn on "global search" by setting <code>searchable</code> attribute of
+ * <code>&lt;op:dataTable&gt;</code> to <code>true</code>.
+ * <pre>
+ * &lt;op:dataTable ... searchable="true"&gt;
+ * </pre>
+ * <p>
+ * This will perform a "contains" search in every column having the <code>field</code> attribute, including any custom
+ * <code>&lt;p:column&gt;</code>. Note that this won't override the values of any column filters, it will just expand
+ * the filtering on them.
+ * <p>
+ * On the contrary to the column filters, the global search field does not run on keyup, but only on enter key or when
+ * pressing the search button. This is done on purpose because the global search performs a relatively expensive LIKE
+ * query on every single field.
+ * <p>
+ * The global search field placeholder and button label are customizable with following attributes on
+ * <code>&lt;op:dataTable&gt;</code>.
+ * <ul>
+ * <li><code>searchPlaceholder</code>: <code>Search…</code>
+ * <li><code>searchButtonLabel</code>: <code>Search</code>
+ * </ul>
+ *
+ *
+ * <h3 id="exporting"><a href="#exporting">Exporting</a></h3>
+ * <p>
+ * You can optionally show column toggler and CSV export buttons by setting <code>exportable</code> attribute of
+ * <code>&lt;op:dataTable&gt;</code> to <code>true</code>.
+ * <pre>
+ * &lt;op:dataTable ... exportable="true"&gt;
+ * </pre>
+ * <p>
+ * The column toggler allows you to show/hide specific columns in client side and the CSV export button with a split
+ * button allows you to export all columns or only the visible columns. The export will take into account the current
+ * filtering and sorting state, if any.
+ * <p>
+ * Below are the available export related attributes and their default values.
+ * <ul>
+ * <li><code>columnTogglerButtonLabel</code>: <code>Columns</code>
+ * <li><code>exportType</code>: <code>csv</code>
+ * <li><code>exportButtonLabel</code>: <code>CSV</code>
+ * <li><code>exportVisibleColumnsButtonLabel</code>: <code>Visible Columns</code>
+ * <li><code>exportAllColumnsButtonLabel</code>: <code>All Columns</code>
+ * <li><code>exportFilename</code>: <code>#{id}-#{of:formatDate(now, 'yyyyMMddHHmmss')}</code>
+ * </ul>
+ * <p>
+ * Note: the <code>#{id}</code> of the <code>exportFilename</code> represents the ID of the
+ * <code>&lt;op:dataTable&gt;</code>.
+ *
+ *
+ * <h3 id="selection"><a href="#selection">Selection</a></h3>
+ * <p>
+ * You can optionally make the rows selectable by setting <code>selectable</code> attribute of
+ * <code>&lt;op:dataTable&gt;</code> to <code>true</code>.
+ * <pre>
+ * &lt;op:dataTable ... selectable="true"&gt;
+ * </pre>
+ * <p>
+ * The selection is available as a {@link List} by {@link PagedDataModel#getSelection()}. The row select and unselect
+ * events will automatically update components matching PrimeFaces selector <code>@(.updateOnDataTableSelection)</code>.
+ * So you could automatically show the selection as below:
+ * <pre>
+ * &lt;h:form id="yourEntitiesForm"&gt;
+ *     &lt;op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}" selectable="true"&gt;
+ *         &lt;op:column field="id" /&gt;
+ *         &lt;op:column field="created" /&gt;
+ *         &lt;op:column field="name" /&gt;
+ *         &lt;op:column field="type" /&gt;
+ *         &lt;op:column field="deleted" /&gt;
+ *     &lt;/op:dataTable&gt;
+ *     &lt;p:dataTable id="selectionTable" value="#{yourBackingBean.model.selection}" var="item" styleClass="updateOnDataTableSelection"&gt;
+ *         &lt;op:column field="id" /&gt;
+ *         &lt;op:column field="created" /&gt;
+ *         &lt;op:column field="name" /&gt;
+ *         &lt;op:column field="type" /&gt;
+ *         &lt;op:column field="deleted" /&gt;
+ *     &lt;/p:dataTable&gt;
+ * &lt;/h:form&gt;
+ * </pre>
+ * <p>
+ * Note that you can't show the selection in a <code>&lt;op:dataTable&gt;</code> as the selection returns a {@link List}
+ * not a {@link PagedDataModel}. You can however keep using <code>&lt;op:column&gt;</code> the usual way as shown above.
+ *
+ *
+ * <h3 id="query-parameters"><a href="#query-parameters">Query parameters</a></h3>
+ * <p>
+ * On every paging, sorting, filtering, searching and selection action the query parameter string in the URL will be
+ * updated to reflect the current table's state. Every page after the first page gets a <code>p={pageNumber}</code>
+ * parameter where <code>{pageNumber}</code> represents the current page number. Every sorting action other than the
+ * default/initial sorting gets a <code>o={field}</code> parameter where <code>{field}</code> represents the field name.
+ * If the sorting is descending, then the <code>{field}</code> will be prefixed with a <code>-</code> (a hyphen). Every
+ * filtering action gets a <code>{field}={value}</code> parameter where <code>{value}</code> represents the filter value.
+ * Every global search action gets a <code>q={value}</code> parameter. Every selection action gets a <code>s={id}</code>
+ * parameter where <code>{id}</code> represents the entity ID.
+ * <p>
+ * You can optionally disable this behavior altogether by setting <code>updateQueryString</code> attribute of
+ * <code>&lt;op:dataTable&gt;</code> to <code>false</code>.
+ * <pre>
+ * &lt;op:dataTable ... updateQueryString="false"&gt;
+ * </pre>
+ * <p>
+ * In case you have multiple tables in same page (poor UI, but that aside), then you can optionally prefix the
+ * query parameter name with a table-specific prefix via the <code>queryParameterPrefix</code> attribute, so that they
+ * don't clash each other.
+ * <pre>
+ * &lt;op:dataTable ... queryParameterPrefix="t1"&gt;
+ *     ...
+ * &lt;/op:dataTable&gt;
+ * &lt;op:dataTable ... queryParameterPrefix="t2"&gt;
+ *     ...
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ *
+ *
+ * <h3 id="css"><a href="#css">CSS</a></h3>
+ * <p>
+ * Standard PrimeFaces CSS is being reused as much as possible, including the fix of missing <code>.ui-state-active</code>
+ * class on a sorted column when sorting is done via <code>field</code> attribute. Below is a list of new additions:
+ * <ul>
+ * <li><code>.ui-datatable-actions</code>: the div holding the global search field and export buttons
+ * <li><code>.ui-datatable-actions .ui-datatable-search</code>: the div holding the global search field
+ * <li><code>.ui-datatable-actions .ui-datatable-export</code>: the div holding the export buttons
+ * <li><code>.ui-datatable-actions .ui-inputfield.filter</code>: the global search input field
+ * <li><code>.ui-datatable-actions .ui-button.search</code>: the global search button
+ * <li><code>.ui-datatable-actions .ui-button.toggle</code>: the column toggler button
+ * <li><code>.ui-datatable-actions .ui-splitbutton.export</code>: the export split button
+ * <li><code>.ui-datatable-actions .ui-splitbutton.export .ui-button.ui-button-text-only</code>: the export action button
+ * <li><code>.ui-datatable-actions .ui-splitbutton.export .ui-button.ui-splitbutton-menubutton</code>: the export menu button
+ * </ul>
+ * <p>
+ * Further, the <code>&lt;op:dataTable&gt;</code> adds three new custom classes to the table and the column:
+ * <ul>
+ * <li><code>.ui-datatable.empty</code>: when the data table is empty
+ * <li><code>.ui-datatable .ui-sortable-column.desc</code>: when <code>sortDescending=true</code>
+ * <li><code>.ui-datatable .ui-filter-column.global</code>: when global search input field is focused (so you can e.g. highlight background)
+ *
+ * globalFilter
+ * </ul>
+ * <p>
+ * Finally, the <code>&lt;op:column&gt;</code> puts the entire cell content in a <code>&lt;span&gt;</code> which also
+ * holds the tooltip. This allows more flexible CSS control of "entire cell content" via just
+ * <code>.ui-datatable tbody td &gt; span</code>.
+ *
+ *
+ * <h3 id="setting-attributes"><a href="#setting-attributes">Setting PrimeFaces-specific attributes</a></h3>
+ * <p>
+ * In case you'd like to finetune the underlying <code>&lt;p:dataTable&gt;</code> further with additional attributes
+ * which are in turn not supported by <code>&lt;op:dataTable&gt;</code>, then you could always use
+ * <code>&lt;f:attribute&gt;</code> for that.
+ * <pre>
+ * &lt;op:dataTable ...&gt;
+ *     &lt;f:attribute name="caseSensitiveSort" value="true" /&gt;
+ *     &lt;f:attribute name="reflow" value="true" /&gt;
+ *     ...
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ * <p>
+ * Note that you can also just nest any <code>&lt;p:ajax&gt;</code> and even a plain <code>&lt;p:column&gt;</code> the
+ * usual way.
+ * <pre>
+ * &lt;op:dataTable ...&gt;
+ *     &lt;p:ajax event="page" ... /&gt;
+ *     ...
+ *     &lt;p:column&gt;&lt;p:commandLink value="Delete" ... /&gt;&lt;/p:column&gt;
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ *
+ *
+ * <h3 id="extending-tagfiles"><a href="#extending-tagfiles">Extending tagfiles</a></h3>
+ * <p>
+ * In case you'd like to change the defaults of <code>&lt;op:dataTable&gt;</code>, then you can always extend it into
+ * your own tagfile like below with desired defaults supplied via <code>&lt;ui:param&gt;</code>. The below example
+ * extends it to always turn on global search and turn off column filtering.
+ * <pre>
+ * &lt;ui:composition template="/optimusfaces/tags/dataTable.xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"&gt;
+ *     &lt;!-- Override default attribute values of op:dataTable. --&gt;
+ *     &lt;ui:param name="searchable" value="true" /&gt;
+ *     &lt;ui:param name="filterable" value="false" /&gt;
+ * &lt;/ui:composition&gt;
+ * </pre>
+ * <p>
+ * The below example shows elaborately how you could add a new <code>type</code> attribute to the
+ * <code>&lt;op:column&gt;</code> which allows fine grained control over default formatting of cell content.
+ * <pre>
+ * &lt;ui:composition template="/optimusfaces/tags/column.xhtml"
+ *     xmlns="http://www.w3.org/1999/xhtml"
+ *     xmlns:f="http://xmlns.jcp.org/jsf/core"
+ *     xmlns:h="http://xmlns.jcp.org/jsf/html"
+ *     xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+ *     xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
+ *     xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+ *     xmlns:o="http://omnifaces.org/ui"
+ *     xmlns:of="http://omnifaces.org/functions"
+ *     xmlns:p="http://primefaces.org/ui"
+ * &gt;
+ *     &lt;!-- New custom attribute. --&gt;
+ *     &lt;ui:param name="type" value="#{empty type ? 'text' : type}" /&gt; &lt;!-- Value MAY NOT be an EL expression referencing #{item}! --&gt;
+ *     &lt;ui:param name="emptyValue" value="#{empty emptyValue ? 'n/a' : emptyValue}" /&gt;
+ *
+ *     &lt;!-- Override default attribute values. --&gt;
+ *     &lt;ui:param name="head" value="#{empty head ? i18n['general.' += field] : head}" /&gt; &lt;!-- #{i18n} refers to the resource bundle. --&gt;
+ *     &lt;ui:param name="styleClass" value="#{type}" /&gt;
+ *
+ *     &lt;ui:define name="cell"&gt;
+ *         &lt;c:choose&gt;
+ *             &lt;c:when test="#{type eq 'date'}"&gt;#{empty value ? emptyValue : of:formatDate(value, 'dd-MM-yyyy')}&lt;/c:when&gt;
+ *             &lt;c:when test="#{type eq 'timestamp'}"&gt;#{empty value ? emptyValue : of:formatDate(value, 'dd-MM-yyyy HH:mm:ss')}&lt;/c:when&gt;
+ *             &lt;c:when test="#{type eq 'currency'}"&gt;#{empty value ? emptyValue : of:formatCurrency(value, '$')}&lt;/c:when&gt;
+ *             &lt;c:when test="#{type eq 'percent'}"&gt;#{empty value ? emptyValue : of:formatPercent(value)}&lt;/c:when&gt;
+ *             &lt;c:when test="#{type eq 'boolean'}"&gt;#{value ? 'Y' : 'N'}&lt;/c:when&gt;
+ *             &lt;c:when test="#{type eq 'enum'}"&gt;#{empty value ? emptyValue : i18n[value['class'].simpleName += '.' += value]}&lt;/c:when&gt;
+ *             &lt;c:when test="#{type eq 'custom'}"&gt;&lt;ui:insert /&gt;&lt;/c:when&gt;
+ *
+ *             &lt;!-- Add more types here! --&gt;
+ *
+ *             &lt;c:otherwise&gt;#{of:coalesce(value, emptyValue)}&lt;/c:otherwise&gt;
+ *         &lt;/c:choose&gt;
+ *     &lt;/ui:define&gt;
+ * &lt;/ui:composition&gt;
+ * </pre>
+ * <p>
+ * With both tagfiles in place, you could use them like below:
+ * <pre>
+ * &lt;x:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}"&gt;
+ *     &lt;x:column field="id" type="custom"&gt;&lt;a href="edit/#{item.id}" title="Edit this item"&gt;#{item.id}&lt;/a&gt;&lt;/x:column&gt;
+ *     &lt;x:column field="created" type="date" /&gt;
+ *     &lt;x:column field="name" type="text" /&gt;
+ *     &lt;x:column field="type" type="enum" /&gt;
+ *     &lt;x:column field="deleted" type="boolean" /&gt;
+ * &lt;/x:dataTable&gt;
+ * </pre>
+ * <p>
+ * Note that the name of the EL variable representing the current item, <code>#{item}</code>, is predefined and cannot
+ * be changed.
+ * <p>
+ * Also note that the <code>type</code> attribute is in above example set as a style class, so you could for example
+ * define a CSS rule to always right-align the "number" and "currency" columns.
+ * <pre>
+ * .ui-datatable th.number, .ui-datatable th.currency {
+ *     text-align: right;
+ * }
+ * </pre>
+ *
+ *
+ * @author Bauke Scholtz
+ *
+ */
+public interface PagedDataModel<E extends Identifiable<?>> extends Serializable {
+
+	// Constants ------------------------------------------------------------------------------------------------------
+
+	/** The query parameter name representing the value of the global search query. */
+	public static final String QUERY_PARAMETER_SEARCH = "q";
+
+	/** The query parameter name representing the current page number. */
+	public static final String QUERY_PARAMETER_PAGE = "p";
+
+	/** The query parameter name representing the current sort order. */
+	public static final String QUERY_PARAMETER_ORDER = "o";
+
+	/** The query parameter name representing the current selection. */
+	public static final String QUERY_PARAMETER_SELECTION = "s";
+
+	// Note that those names are intentionally kept single-char in order to not potentially clash with field names.
+
+
+	// Default methods ------------------------------------------------------------------------------------------------
 
 	/**
-	 * Invoked on page load.
-	 * TODO: Ugly. This must be improved.
+	 * Invoked when <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code> is provided.
+	 * Problem is, the underlying <code>&lt;p:column&gt;</code> only supports <code>SelectItem[]</code> or
+	 * <code>List&lt;SelectItem&gt;</code>.
+	 * @param filterOptions The filter options.
+	 * @return The filter options converted to <code>SelectItem[]</code>.
 	 */
-	default boolean isVisible(String field, boolean defaultVisible) {
-		getVisibleColumns().putIfAbsent(field, defaultVisible);
-		return getVisibleColumns().get(field);
+	default SelectItem[] convertFilterOptionsIfNecessary(Object filterOptions) {
+		Stream<SelectItem> stream;
+
+		if (filterOptions instanceof SelectItem[]) {
+			stream = stream(filterOptions);
+		}
+		if (filterOptions instanceof Object[]) {
+			stream = stream(filterOptions).map(SelectItem::new);
+		}
+		else if (filterOptions instanceof Collection<?>) {
+			stream = stream(filterOptions).map(item -> (item instanceof SelectItem) ? (SelectItem) item : new SelectItem(item));
+		}
+		else if (filterOptions instanceof Map<?, ?>) {
+			stream = stream((Map<?, ?>) filterOptions).map(entry -> new SelectItem(entry.getKey(), String.valueOf(entry.getValue())));
+		}
+		else {
+			throw new IllegalArgumentException("filterOptions must be an instance of SelectItem[], Object[], Collection or Map");
+		}
+
+		return Stream.concat(Stream.of(new SelectItem("")), stream).toArray(SelectItem[]::new);
 	}
 
 	/**
 	 * Invoked when "Columns" is adjusted.
+	 * @param event Toggle event.
 	 */
 	default void toggleColumn(ToggleEvent event) {
-		getVisibleColumns().put(getDataTable(((ColumnToggler) event.getComponent()).getDatasource()).getColumns().get((Integer) event.getData()).getField(), event.getVisibility() == Visibility.VISIBLE);
+		String tableId = ((ColumnToggler) event.getComponent()).getDatasource();
+		DataTable table = (DataTable) getCurrentComponent().findComponent(tableId);
+		((Column) table.getColumns().get((Integer) event.getData())).setVisible(event.getVisibility() == Visibility.VISIBLE);
 	}
 
 	/**
 	 * Invoked when "Export Visible Columns" is chosen.
+	 * @param tableId Table ID.
 	 */
 	default void prepareExportVisible(String tableId) {
-		getDataTable(tableId).getColumns().forEach(c -> ((Column) c).setExportable(getVisibleColumns().get(c.getField())));
+		DataTable table = (DataTable) getCurrentComponent().findComponent(tableId);
+		table.getColumns().forEach(column -> ((Column) column).setExportable(column.isVisible()));
 	}
 
 	/**
 	 * Invoked when "Export All Columns" is chosen.
+	 * @param tableId Table ID.
 	 */
 	default void prepareExportAll(String tableId) {
-		getDataTable(tableId).getColumns().forEach(c -> ((Column) c).setExportable(true));
+		DataTable table = (DataTable) getCurrentComponent().findComponent(tableId);
+		table.getColumns().forEach(column -> ((Column) column).setExportable(true));
 	}
 
-	// Internal properties --------------------------------------------------------------------------------------------
 
-	Map<String, Boolean> getVisibleColumns();
+	// op:dataTable properties ----------------------------------------------------------------------------------------
+
 	Map<String, Object> getFilters();
 
-	// p:dataTable properties -----------------------------------------------------------------------------------------
+	List<E> getFilteredValue();
+	void setFilteredValue(List<E> filteredValue);
 
-	String getSortField();
-	void setSortField(String sortField);
+	List<E> getSelection();
+	void setSelection(List<E> selection);
 
-	String getSortOrder();
-	void setSortOrder(String sortOrder);
-
-	List<T> getFilteredValue();
-	void setFilteredValue(List<T> filteredValue);
-
-	List<T> getSelection();
-	void setSelection(List<T> selection);
-
-	// Helpers --------------------------------------------------------------------------------------------------------
-
-	public static DataTable getDataTable(String tableId) {
-		return (DataTable) getCurrentComponent().findComponent(tableId);
-	}
 
 	// Builder --------------------------------------------------------------------------------------------------------
 
-	public static <T> PagedDataModelBuilder<T> forClass(Class<T> forClass) {
+	@FunctionalInterface
+	public static interface PartialResultListLoader<E extends Identifiable<?>> {
+		PartialResultList<E> getPage(Page page, boolean estimateTotalNumberOfResults);
+	}
+
+	/**
+	 * Use this if you want to build a lazy paged data model using a {@link BaseEntityService}.
+	 * @param <I> The generic ID type.
+	 * @param <E> The generic base entity type.
+	 * @param entityService The entity service.
+	 * @return A new paged data model builder.
+	 */
+	public static <I extends Comparable<I> & Serializable, E extends BaseEntity<I>> Builder<E> lazy(BaseEntityService<I, E> entityService) {
+		return new Builder<>(entityService::getPage);
+	}
+
+	/**
+	 * Use this if you want to build a lazy paged data model using a custom
+	 * {@link BaseEntityService#getPage(Page, boolean)} implementation.
+	 * @param <E> The generic base entity type.
+	 * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
+	 * @return A new paged data model builder.
+	 */
+	public static <E extends Identifiable<?>> Builder<E> lazy(PartialResultListLoader<E> loader) {
+		return new Builder<>(loader);
+	}
+
+	/**
+	 * Use this if you want to build a non-lazy paged data model based on given list.
+	 * @param <E> The generic base entity type.
+	 * @param allData List of all data.
+	 * @return A new paged data model builder.
+	 */
+	public static <E extends Identifiable<?>> Builder<E> nonLazy(List<E> allData) {
+		return new Builder<>(allData);
+	}
+
+	/**
+	 * The paged data model builder.
+	 *
+	 * @param <E> The generic base entity type.
+	 * @author Bauke Scholtz
+	 */
+	public static class Builder<E extends Identifiable<?>> {
+
+		private List<E> allData;
+		private PartialResultListLoader<E> loader;
+
+		private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
+		private Supplier<Map<Getter<?>, Object>> criteria;
+
+		private Builder(List<E> allData) {
+			this.allData = allData;
+		}
+
+		private Builder(PartialResultListLoader<E> loader) {
+			this.loader = loader;
+		}
+
+		/**
+		 * <p>
+		 * Set the criteria supplier.
+		 * <p>
+		 * You can optionally wrap the value in {@link Like}, {@link Not}, {@link Between} or {@link Order} constraint.
+		 * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you
+		 * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> constraint. Or in case you'd like
+		 * to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
+		 * <p>
+		 * This can be set in this builder only once.
+		 *
+		 * @param criteria The criteria supplier.
+		 * @return This builder.
+		 * @throws IllegalStateException When this is already set in this builder.
+		 */
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		public Builder<E> criteria(Supplier<Map<Getter<E>, Object>> criteria) {
+			if (this.criteria != null) {
+				throw new IllegalStateException("Criteria supplier is already set");
+			}
+
+			Supplier rawCriteria = criteria;
+			this.criteria = rawCriteria;
+			return this;
+		}
+
+		/**
+		 * <p>
+		 * Set the ordering.
+		 * <p>
+		 * This can be invoked multiple times and will be remembered in same order.
+		 * The default ordering is <code>BaseEntity::getId, false</code>.
+		 *
+		 * @param sortField The sort field getter.
+		 * @param sortAscending Whether to sort ascending.
+		 * @return This builder.
+		 */
+		public Builder<E> orderBy(Getter<E> sortField, boolean sortAscending) {
+			ordering.put(sortField.getPropertyName(), sortAscending);
+			return this;
+		}
+
+		/**
+		 * <p>
+		 * Build the paged data model.
+		 *
+		 * @return The built paged data model.
+		 */
+		public PagedDataModel<E> build() {
+			ordering.putIfAbsent(ID, false);
+
+			if (loader != null) {
+				return new LazyPagedDataModel<>(loader, ordering, criteria);
+			}
+			else if (allData != null) {
+				return new NonLazyPagedDataModel<>(allData, ordering, criteria);
+			}
+			else {
+				throw new IllegalStateException("You must provide non-null loader or allData.");
+			}
+		}
+	}
+
+
+	// Old builder ----------------------------------------------------------------------------------------------------
+
+	/**
+	 * @param <T> The generic base entity type.
+	 * @param forClass The entity class.
+	 * @return The builder.
+	 * @deprecated Use {@link PagedDataModel#lazy(BaseEntityService)} instead.
+	 */
+	@Deprecated
+	public static <T extends BaseEntity<?>> PagedDataModelBuilder<T> forClass(Class<T> forClass) {
 		return new PagedDataModelBuilder<>(forClass);
 	}
 
-	public static <T> PagedDataModelBuilder<T> forDataLoader(DataLoader<T> dataLoader) {
+	/**
+	 * @param <T> The generic base entity type.
+	 * @param dataLoader The data loader.
+	 * @return The builder.
+	 * @deprecated Use {@link PagedDataModel#lazy(PartialResultListLoader)} instead.
+	 */
+	@Deprecated
+	public static <T extends BaseEntity<?>> PagedDataModelBuilder<T> forDataLoader(DataLoader<T> dataLoader) {
 		return new PagedDataModelBuilder<>(dataLoader);
 	}
 
-	public static <T> PagedDataModelBuilder<T> forDataLoader(Function<SortFilterPage, List<T>> dataLoader) {
+	/**
+	 * @param <T> The generic base entity type.
+	 * @param dataLoader The sort filter page data loader.
+	 * @return The builder.
+	 * @deprecated Use {@link PagedDataModel#lazy(PartialResultListLoader)} instead.
+	 */
+	@Deprecated
+	public static <T extends BaseEntity<?>> PagedDataModelBuilder<T> forDataLoader(Function<SortFilterPage, List<T>> dataLoader) {
 		return new PagedDataModelBuilder<>((page, count) -> dataLoader.apply(page));
 	}
 
-	public static <T> PagedDataModelBuilder<T> forAllData(List<T> allData) {
+	/**
+	 * @param <T> The generic base entity type.
+	 * @param allData List of all data.
+	 * @return The builder.
+	 * @deprecated Use {@link PagedDataModel#nonLazy(List)} instead.
+	 */
+	@Deprecated
+	public static <T extends BaseEntity<?>> PagedDataModelBuilder<T> forAllData(List<T> allData) {
 		return new PagedDataModelBuilder<>(allData);
 	}
 
+	/**
+	 * @param <T> The generic base entity type.
+	 * @deprecated Use {@link PartialResultListLoader} instead.
+	 */
+	@Deprecated
 	public static interface DataLoader<T> {
 		List<T> load(SortFilterPage page, boolean count);
 	}
 
-	public static class PagedDataModelBuilder<T> {
+	/**
+	 * @param <T> The generic base entity type.
+	 * @deprecated Use {@link PagedDataModel#lazy(BaseEntityService)}, {@link PagedDataModel#lazy(PartialResultListLoader)} or {@link PagedDataModel#nonLazy(List)} instead.
+	 */
+	@Deprecated
+	public static class PagedDataModelBuilder<T extends BaseEntity<?>> {
 
 		private Class<T> forClass;
 		private DataLoader<T> dataLoader;
 		private List<T> allData;
 
-		private String defaultSortField = "id";
+		private String defaultSortField = ID;
 		private SortOrder defaultSortOrder = DESCENDING;
 
 		private PagedDataModelBuilder(Class<T> forClass) {
@@ -146,8 +979,11 @@ public interface PagedDataModel<T> extends Serializable {
 		}
 
 		public PagedDataModel<T> build() {
+			LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(1);
+			ordering.put(defaultSortField, defaultSortOrder == ASCENDING);
+
 			if (allData != null) {
-				return new NonLazyPagedDataModel<>(allData, defaultSortField, defaultSortOrder);
+				return new NonLazyPagedDataModel<>(allData, ordering, () -> emptyMap());
 			}
 
 			if (dataLoader == null) {
@@ -164,12 +1000,15 @@ public interface PagedDataModel<T> extends Serializable {
 				dataLoader = (page, count) -> entityService.getAllPagedAndSortedByType(forClass, page, count);
 			}
 
-			return new LazyPagedDataModel<T>(defaultSortField, defaultSortOrder) {
+			return new LazyPagedDataModel<T>(null, ordering, () -> emptyMap()) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public List<T> load(SortFilterPage page, boolean count) {
-					return dataLoader.load(page, count);
+				public PartialResultList<T> load(Page page, boolean count) {
+					Map<String, Object> filterValues = new HashMap<>(page.getRequiredCriteria());
+					filterValues.putAll(page.getOptionalCriteria());
+					Entry<String, Boolean> orderBy = page.getOrdering().entrySet().iterator().next();
+					return (PartialResultList<T>) dataLoader.load(new SortFilterPage(page.getOffset(), page.getLimit(), orderBy.getKey(), (orderBy.getValue() ? ASCENDING : DESCENDING).name(), emptyList(), filterValues, !page.getOptionalCriteria().isEmpty()), count);
 				}
 			};
 		}

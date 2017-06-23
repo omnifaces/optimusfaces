@@ -13,120 +13,66 @@
 package org.omnifaces.optimusfaces.model;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static java.util.Collections.unmodifiableSet;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static javax.faces.component.UINamingContainer.getSeparatorChar;
+import static org.omnifaces.persistence.model.Identifiable.ID;
 import static org.omnifaces.util.Ajax.oncomplete;
 import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.omnifaces.util.Faces.getContext;
-import static org.omnifaces.util.Faces.isAjaxRequest;
 import static org.omnifaces.util.FacesLocal.getRequestParameter;
+import static org.omnifaces.util.FacesLocal.getRequestParameterValues;
+import static org.omnifaces.util.FacesLocal.isAjaxRequest;
+import static org.omnifaces.utils.Lang.coalesce;
 import static org.omnifaces.utils.Lang.isEmpty;
+import static org.omnifaces.utils.stream.Collectors.toLinkedMap;
+import static org.omnifaces.utils.stream.Collectors.toLinkedSet;
+import static org.omnifaces.utils.stream.Streams.stream;
+import static org.primefaces.model.SortOrder.ASCENDING;
+import static org.primefaces.model.SortOrder.DESCENDING;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
+import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
 import org.omnifaces.component.ParamHolder;
 import org.omnifaces.component.SimpleParam;
+import org.omnifaces.persistence.constraint.Constraint;
+import org.omnifaces.persistence.constraint.Like;
 import org.omnifaces.persistence.model.BaseEntity;
-import org.omnifaces.persistence.model.dto.SortFilterPage;
-import org.omnifaces.persistence.service.GenericEntityService;
+import org.omnifaces.persistence.model.Identifiable;
+import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.persistence.service.BaseEntityService;
 import org.omnifaces.util.Servlets;
+import org.omnifaces.utils.Lang;
 import org.omnifaces.utils.collection.PartialResultList;
+import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.api.UIColumn;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
 
 /**
- * <p>
- * Lazy paged data model for <code>&lt;op:dataTable&gt;</code> which utilizes {@link GenericEntityService} from
- * OmniPersistence project.
+ * Use {@link PagedDataModel#lazy(BaseEntityService)} or {@link PagedDataModel#lazy(PagedDataModel.PartialResultListLoader)} to build one.
  *
- * <h3>Usage:</h3>
- * <p>
- * First create your generic entity service extending {@link GenericEntityService} from OmniPersistence project.
- * <pre>
- * {@code @Stateless}
- * {@code @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)}
- * public class YourGenericEntityService extends org.omnifaces.persistence.service.GenericEntityService {
- *
- *     {@code @PersistenceContext}
- *     private EntityManager entityManager;
- *
- *     {@code @PersistenceUnit}
- *     private EntityManagerFactory entityManagerFactory;
- *
- *     {@code @PostConstruct}
- *     public void init() {
- *         setEntityManager(entityManager);
- *         setEntityManagerFactory(entityManagerFactory);
- *     }
- *
- * }
- * </pre>
- * <p>
- * And make sure your entity extends {@link BaseEntity} from OmniPersistence project.
- * <pre>
- *
- * {@code @Entity}
- * public class YourEntity extends org.omnifaces.persistence.model.BaseEntity&lt;Long&gt; {
- *
- *     {@code @Id} {@code @GeneratedValue(strategy = IDENTITY)}
- *     private Long id;
- *     private Instant created;
- *     private String name;
- *     private String description;
- *
- *     // ...
- * }
- * </pre>
- * <p>
- * Then utilize any of the {@link GenericEntityService#getAllPagedAndSorted(Class, SortFilterPage)} methods in your
- * backing bean. Imagine that the returned results should be sorted descending on {@code created} column and only the
- * {@code name} and {@code description} fields are (text)searchable, then you could use it as below.
- * <pre>
- * {@code @Named}
- * {@code @ViewScoped}
- * public class YourBackingBean {
- *
- *     private org.omnifaces.optimusfaces.model.PagedDataModel&lt;YourEntity&gt; model;
- *
- *     {@code @PostConstruct}
- *     public void init() {
- *         model = PagedDataModel.forClass(YourEntity.class).build();
- *     }
- *
- *     public PagedDataModel&lt;YourEntity&gt; getModel() {
- *         return model;
- *     }
- *
- * }
- * </pre>
- * <p>
- * Finally use <code>&lt;op:dataTable&gt;</code> to have a semi-dynamic lazy-loaded, searchable, sortable and filterable
- * <code>&lt;p:dataTable&gt;</code> without much hassle.
- * <pre>
- * &lt;... xmlns:op="http://omnifaces.org/optimusfaces"&gt;
- *
- * &lt;h:form&gt;
- *     &lt;op:dataTable id="yourEntitiesTable" value="#{bean.model}" searchable="true"&gt;
- *         &lt;op:column field="id" /&gt;
- *         &lt;op:column field="created" /&gt;
- *         &lt;op:column field="name" /&gt;
- *         &lt;op:column field="description" /&gt;
- *     &lt;/op:dataTable&gt;
- * &lt;/h:form&gt;
- * </pre>
- *
+ * @see PagedDataModel
  * @author Bauke Scholtz
  */
-public abstract class LazyPagedDataModel<T> extends LazyDataModel<T> implements PagedDataModel<T> {
+public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel<E> implements PagedDataModel<E> {
 
 	// Constants ------------------------------------------------------------------------------------------------------
 
@@ -135,187 +81,277 @@ public abstract class LazyPagedDataModel<T> extends LazyDataModel<T> implements 
 
 	// Internal properties --------------------------------------------------------------------------------------------
 
-	private Map<String, Object> filters;
-	private Map<String, Boolean> visibleColumns;
-	private Map<String, Object> remappedFilters;
-	private String globalFilter;
-	private boolean filterWithAND;
+	private final PartialResultListLoader<E> loader;
+	private final LinkedHashMap<String, Boolean> defaultOrdering;
+	private final Supplier<Map<Getter<?>, Object>> criteria;
 
-	// p:dataTable properties -----------------------------------------------------------------------------------------
+	protected String queryParameterPrefix;
+	protected LinkedHashMap<String, Boolean> ordering;
+	protected LinkedHashMap<String, Object> filters;
+	protected String globalFilter;
+	protected Page page;
 
-	private String sortField;
-	private String sortOrder;
-	private List<T> selection;
-	private List<T> filteredValue;
+	// op:dataTable properties ----------------------------------------------------------------------------------------
+
+	private List<E> filteredValue;
+	private List<E> selection;
 
 	// Constructors ---------------------------------------------------------------------------------------------------
 
-	/**
-	 * Use PagedDataModel.forXxx() to build one.
-	 */
-	LazyPagedDataModel(String defaultSortField, SortOrder defaultSortOrder) {
+	LazyPagedDataModel(PartialResultListLoader<E> loader, LinkedHashMap<String, Boolean> defaultOrdering, Supplier<Map<Getter<?>, Object>> criteria) {
+		this.loader = loader;
+		this.defaultOrdering = defaultOrdering;
+		this.criteria = criteria;
+		filters = new LinkedHashMap<>();
+		page = Page.ALL;
 		setRowCount(-1);
-
-		filters = new HashMap<>();
-		visibleColumns = new HashMap<>();
-
-		sortField = defaultSortField;
-		sortOrder = defaultSortOrder.name();
-		selection = emptyList();
 	}
 
 	// Actions --------------------------------------------------------------------------------------------------------
 
 	@Override
-	public List<T> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, Object> tableFilters) {
-		if (sortField != null) {
-			setSortField(sortField);
-			setSortOrder(sortOrder.name());
-		}
+	public List<E> load(int offset, int limit, String tableSortField, SortOrder tableSortOrder, Map<String, Object> tableFilters) {
+		FacesContext context = getContext();
+		DataTable table = getTable();
+		List<UIColumn> processableColumns = table.getColumns().stream().filter(this::isProcessableColumn).collect(toList());
 
-		List<String> filterableFields = ((DataTable) getCurrentComponent()).getColumns().stream()
-			.filter(UIColumn::isFilterable)
-			.map(UIColumn::getField)
-			.filter(Objects::nonNull)
-			.collect(toList());
-		Map<String, Object> allFilters = mergeWithQueryParameters(filterableFields, tableFilters);
-		Map<String, Object> remappedFilters = remapGlobalFilter(filterableFields, allFilters);
-		boolean countNeedsUpdate = getRowCount() <= 0 || !remappedFilters.equals(this.remappedFilters);
-		this.remappedFilters = remappedFilters;
-		filters = allFilters;
+		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
+		ordering = processPageAndOrderQueryParametersIfNecessary(context, table, limit, tableSortField, tableSortOrder);
+		filters = processFilterQueryParametersIfNecessary(context, processableColumns, tableFilters);
+		globalFilter = processGlobalFilterQueryParameterIfNecessary(context, tableFilters);
+		selection = processSelectionQueryParametersIfNecessary(context, selection);
 
-		List<T> list = load(new SortFilterPage(first, pageSize, getSortField(), getSortOrder(), filterableFields, remappedFilters, filterWithAND), countNeedsUpdate);
+		Map<String, Object> requiredCriteria = new HashMap<>();
+		Map<String, Object> optionalCriteria = new HashMap<>();
+		processCriteria(processableColumns, requiredCriteria, optionalCriteria);
 
-		if (countNeedsUpdate && list instanceof PartialResultList) {
-			setRowCount(((PartialResultList<T>) list).getEstimatedTotalNumberOfResults());
-		}
+		PartialResultList<E> list = loadPage(table, limit, requiredCriteria, optionalCriteria);
+		updateQueryStringIfNecessary(context);
 
-		if (isAjaxRequest()) {
-			updateQueryStringIfNecessary();
+		return list;
+	}
+
+	private PartialResultList<E> loadPage(DataTable table, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
+		boolean countNeedsUpdate = getRowCount() <= 0 || !requiredCriteria.equals(page.getRequiredCriteria()) || !optionalCriteria.equals(page.getOptionalCriteria());
+		page = new Page(table.getFirst(), limit, ordering, requiredCriteria, optionalCriteria);
+		PartialResultList<E> list = load(page, countNeedsUpdate);
+
+		if (countNeedsUpdate) {
+			int count = list.getEstimatedTotalNumberOfResults();
+			setRowCount(count);
+
+			if (count != 0 && table.getFirst() > count) { // Can happen when user has paginated too far and then changed criteria which returned fewer results.
+				table.setFirst(table.getFirst() - ((((table.getFirst() - count) / table.getRows()) + 1) * table.getRows()));
+				list = loadPage(table, limit, requiredCriteria, optionalCriteria);
+			}
 		}
 
 		return list;
 	}
 
-	public abstract List<T> load(SortFilterPage page, boolean countNeedsUpdate);
-
-	@Override
-	public Object getRowKey(T entity) {
-		return ((BaseEntity<?>) entity).getId();
+	protected PartialResultList<E> load(Page page, boolean estimateTotalNumberOfResults) {
+		return loader.getPage(page, estimateTotalNumberOfResults);
 	}
 
-	@Override
-	public T getRowData(String rowKey) {
-		return load(new SortFilterPage(0, 1, getSortField(), getSortOrder(), emptyList(), singletonMap("id", rowKey), true), false).get(0);
+	protected DataTable getTable() {
+		UIComponent currentComponent = getCurrentComponent();
+
+		if (currentComponent instanceof DataTable) {
+			return (DataTable) currentComponent;
+		}
+		else {
+			String tableId = currentComponent.getId().split("_", 2)[0];
+			return (DataTable) currentComponent.findComponent(tableId);
+		}
 	}
 
-	// Helpers --------------------------------------------------------------------------------------------------------
+	protected boolean isProcessableColumn(UIColumn column) {
+		if (column.getField() == null) {
+			return false;
+		}
 
-	private static Map<String, Object> mergeWithQueryParameters(List<String> filterableFields, Map<String, Object> filters) {
-		FacesContext context = getContext();
-		Map<String, Object> mergedFilters = new HashMap<>(filters);
+		if (column.isFilterable()) {
+			return true;
+		}
 
-		for (String filterableField : filterableFields) {
-			if (!mergedFilters.containsKey(filterableField)) {
-				String value = getQueryParameter(context, filterableField);
+		DataTable table = (DataTable) ((UIComponent) column).getParent();
+		return Boolean.parseBoolean(String.valueOf(table.getAttributes().get("searchable")));
+	}
 
-				if (value != null) {
-					mergedFilters.put(filterableField, value);
+	protected LinkedHashMap<String, Boolean> processPageAndOrderQueryParametersIfNecessary(FacesContext context, DataTable table, int limit, String tableSortField, SortOrder tableSortOrder) {
+		LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
+
+		if (!isEmpty(tableSortField)) {
+			ordering.put(tableSortField, tableSortOrder == ASCENDING);
+		}
+
+		if (!context.isPostback()) {
+			String page = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_PAGE);
+
+			if (!isEmpty(page)) {
+				try {
+					table.setFirst((Integer.valueOf(page) - 1) * limit);
 				}
+				catch (NumberFormatException ignore) {
+					//
+				}
+			}
+
+			String sort = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_ORDER);
+			String sortField = null;
+			SortOrder sortOrder = null;
+
+			if (!isEmpty(sort)) {
+				String field;
+
+				if (sort.startsWith("-")) {
+					field = sort.substring(1);
+					sortOrder = DESCENDING;
+				}
+				else {
+					field = sort;
+					sortOrder = ASCENDING;
+				}
+
+				if (!isEmpty(sort) && table.getColumns().stream().anyMatch(column -> field.equals(column.getField()))) {
+					sortField = field;
+					ordering.put(sortField, sortOrder == ASCENDING);
+				}
+			}
+
+			Entry<String, Boolean> defaultOrder = defaultOrdering.entrySet().iterator().next();
+			table.setSortField(coalesce(sortField, tableSortField, defaultOrder.getKey()));
+			table.setSortOrder(coalesce(sortOrder, sortField != null ? tableSortOrder : defaultOrder.getValue() ? ASCENDING : DESCENDING).name());
+		}
+
+		defaultOrdering.forEach((defaultSortField, defaultSortAscending) -> ordering.putIfAbsent(defaultSortField, defaultSortAscending));
+		return ordering;
+	}
+
+	protected LinkedHashMap<String, Object> processFilterQueryParametersIfNecessary(FacesContext context, List<UIColumn> processableColumns, Map<String, Object> tableFilters) {
+		LinkedHashMap<String, Object> mergedFilters = new LinkedHashMap<>();
+
+		for (UIColumn column : processableColumns) {
+			String field = column.getField();
+			Object value = tableFilters.get(field);
+
+			if (isEmpty(value) && !context.isPostback()) {
+				value = getTrimmedQueryParameters(context, queryParameterPrefix + field);
+			}
+
+			if (!isEmpty(value)) {
+				mergedFilters.put(field, normalizeCriteriaValue(value));
 			}
 		}
 
 		return mergedFilters;
 	}
 
-	private Map<String, Object> remapGlobalFilter(List<String> filterableFields, Map<String, Object> filters) {
-		globalFilter = (String) filters.get(GLOBAL_FILTER);
+	protected List<E> processSelectionQueryParametersIfNecessary(FacesContext context, List<E> currentSelection) {
+		if (currentSelection != null || context.isPostback()) {
+			return currentSelection;
+		}
+
+		List<String> selection = getTrimmedQueryParameters(context, queryParameterPrefix + QUERY_PARAMETER_SELECTION);
+		return selection.isEmpty() ? emptyList() : new ArrayList<>(load(new Page(0, selection.size(), null, singletonMap(ID, selection), null), false));
+	}
+
+	protected String processGlobalFilterQueryParameterIfNecessary(FacesContext context, Map<String, Object> tableFilters) {
+		String globalFilter = (String) tableFilters.get(GLOBAL_FILTER);
 
 		if (globalFilter != null) {
 			globalFilter = globalFilter.trim();
-
-			if (globalFilter.isEmpty()) {
-				filters.remove(GLOBAL_FILTER);
-			}
-			else {
-				filters.put(GLOBAL_FILTER, globalFilter);
-			}
 		}
 
-		if (!filters.containsKey(GLOBAL_FILTER)) {
-			FacesContext context = getContext();
-			String q = getQueryParameter(context, "q");
-
-			if (q == null) {
-				q = getQueryParameter(context, getCurrentComponent().getClientId(context) + getSeparatorChar(context) + GLOBAL_FILTER);
-			}
-
-			if (q != null) {
-				filters.put(GLOBAL_FILTER, q);
-			}
+		if (isEmpty(globalFilter) && !context.isPostback()) {
+			globalFilter = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_SEARCH);
 		}
 
-		filterWithAND = !filters.containsKey(GLOBAL_FILTER);
-		globalFilter = (String) filters.remove(GLOBAL_FILTER);
-
-		Map<String, Object> remappedFilters = new HashMap<>(filters);
-		remappedFilters.values().remove(null);
-
-		for (String filterableField : filterableFields) {
-			Object filterableFieldValue = filters.get(filterableField);
-
-			if (!isEmpty(filterableFieldValue)) {
-				remappedFilters.put(filterableField, filterableFieldValue);
-			}
-			else if (globalFilter != null) {
-				remappedFilters.put(filterableField, globalFilter);
-			}
+		if (isEmpty(globalFilter)) {
+			globalFilter = getTrimmedQueryParameter(context, getCurrentComponent().getClientId(context) + getSeparatorChar(context) + GLOBAL_FILTER);
 		}
 
-		return remappedFilters;
+		return isEmpty(globalFilter) ? null : globalFilter;
 	}
 
-	private static String getQueryParameter(FacesContext context, String name) {
-		String param = getRequestParameter(context, name);
-
-		if (param != null) {
-			param = param.trim();
-
-			if (!param.isEmpty()) {
-				return param;
-			}
+	protected void processCriteria(List<UIColumn> processableColumns, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
+		if (criteria != null) {
+			ofNullable(criteria.get()).orElse(emptyMap()).forEach((getter, value) -> {
+				String field = getter.getPropertyName();
+				Object normalizedValue = normalizeCriteriaValue(value);
+				requiredCriteria.put(field, normalizedValue);
+			});
 		}
 
-		return null;
+		for (UIColumn column : processableColumns) {
+			String field = column.getField();
+			Object value = filters.get(field);
+
+			if (!isEmpty(value)) {
+				String filterMatchMode = column.getFilterMatchMode();
+
+				if ("startsWith".equals(filterMatchMode)) {
+					value = Like.startsWith(value.toString());
+				}
+				else if ("endsWith".equals(filterMatchMode)) {
+					value = Like.endsWith(value.toString());
+				}
+				else if ("contains".equals(filterMatchMode)) {
+					value = Like.contains(value.toString());
+				}
+
+				requiredCriteria.merge(field, value, LazyPagedDataModel::mergeCriteriaValue);
+			}
+
+			if (!isEmpty(globalFilter)) {
+				optionalCriteria.put(field, Like.contains(globalFilter));
+			}
+		}
 	}
 
-	private void updateQueryStringIfNecessary() {
-		if (!isAjaxRequest()) {
+	protected void updateQueryStringIfNecessary(FacesContext context) {
+		if (!isAjaxRequest(context)) {
 			return;
 		}
 
 		List<ParamHolder> params = new ArrayList<>();
 
 		if (!isEmpty(globalFilter)) {
-			params.add(new SimpleParam("q", globalFilter));
+			params.add(new SimpleParam(queryParameterPrefix + QUERY_PARAMETER_SEARCH, globalFilter));
 		}
 
-		filters.forEach((key, value) -> {
-			params.add(new SimpleParam(key, value));
-		});
+		int currentPage = (page.getOffset() / page.getLimit()) + 1;
 
-		selection.stream().filter(item -> item instanceof BaseEntity<?>).forEach(item -> {
-			params.add(new SimpleParam("selected", ((BaseEntity<?>) item).getId()));
-		});
+		if (currentPage > 1) {
+			params.add(new SimpleParam(queryParameterPrefix + QUERY_PARAMETER_PAGE, currentPage));
+		}
 
-		oncomplete("OptimusFaces.Util.historyPushQueryString('" + Servlets.toQueryString(params) + "')");
+		if (!page.getOrdering().equals(defaultOrdering)) {
+			Entry<String, Boolean> order = page.getOrdering().entrySet().iterator().next();
+			params.add(new SimpleParam(queryParameterPrefix + QUERY_PARAMETER_ORDER, (order.getValue() ? "" : "-") + order.getKey()));
+		}
+
+		page.getRequiredCriteria().entrySet().stream()
+			.forEach(entry -> stream(normalizeCriteriaValue(stream(entry.getValue()).map(Constraint::unwrap)))
+				.forEach(value -> params.add(new SimpleParam(queryParameterPrefix + entry.getKey(), value))));
+
+		if (selection != null) {
+			selection.stream().sorted().forEach(entity -> params.add(new SimpleParam(queryParameterPrefix + QUERY_PARAMETER_SELECTION, entity.getId())));
+		}
+
+		oncomplete("OptimusFaces.Util.historyReplaceQueryString('" + Servlets.toQueryString(params) + "')");
 	}
 
-	// Getters+setters ------------------------------------------------------------------------------------------------
+	// Getters+setters for op:dataTable and op:column -----------------------------------------------------------------
 
 	@Override
-	public Map<String, Boolean> getVisibleColumns() {
-		return visibleColumns;
+	public Object getRowKey(E entity) {
+		return ((BaseEntity<?>) entity).getId();
+	}
+
+	@Override
+	public E getRowData(String rowKey) {
+		return load(new Page(0, 1, null, singletonMap(ID, rowKey), null), false).get(0);
 	}
 
 	@Override
@@ -324,46 +360,56 @@ public abstract class LazyPagedDataModel<T> extends LazyDataModel<T> implements 
 	}
 
 	@Override
-	public String getSortField() {
-		return sortField;
-	}
-
-	@Override
-	public void setSortField(String sortField) {
-		this.sortField = sortField;
-	}
-
-	@Override
-	public String getSortOrder() {
-		return sortOrder;
-	}
-
-	@Override
-	public void setSortOrder(String sortOrder) {
-		this.sortOrder = sortOrder;
-	}
-
-	@Override
-	public List<T> getFilteredValue() {
+	public List<E> getFilteredValue() {
 		return filteredValue;
 	}
 
 	@Override
-	public void setFilteredValue(List<T> filteredValue) {
+	public void setFilteredValue(List<E> filteredValue) {
 		this.filteredValue = filteredValue;
 	}
 
 	@Override
-	public List<T> getSelection() {
+	public List<E> getSelection() {
 		return selection;
 	}
 
 	@Override
-	public void setSelection(List<T> selection) {
+	public void setSelection(List<E> selection) {
 		if (!Objects.equals(selection, this.selection)) {
 			this.selection = selection;
-			updateQueryStringIfNecessary();
+			updateQueryStringIfNecessary(getContext());
 		}
+	}
+
+
+	// Helpers ---------------------------------------------------------------------------------------------------------
+
+	private static Object normalizeCriteriaValue(Object value) {
+		Set<Object> set = stream(value).collect(toLinkedSet());
+		return set.size() == 1 ? set.iterator().next() : unmodifiableSet(set);
+	}
+
+	private static Object mergeCriteriaValue(Object oldValue, Object newValue) {
+		Map<String, Object> newValues = stream(newValue).collect(toLinkedMap(Object::toString));
+		newValues.keySet().removeAll(stream(oldValue).map(Object::toString).collect(toSet()));
+
+		if (newValues.isEmpty()) {
+			return oldValue;
+		}
+		else {
+			return normalizeCriteriaValue(Stream.concat(stream(oldValue), stream(newValues.values())));
+		}
+	}
+
+	private static String getTrimmedQueryParameter(FacesContext context, String name) {
+		String param = getRequestParameter(context, name);
+		return (param != null) ? param.trim() : null;
+	}
+
+	private static List<String> getTrimmedQueryParameters(FacesContext context, String name) {
+		String[] params = getRequestParameterValues(context, name);
+		return params != null ? stream(params).filter(Lang::isNotBlank).collect(toList()) : emptyList();
 	}
 
 }

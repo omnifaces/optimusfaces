@@ -99,26 +99,21 @@
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnifaces</artifactId>
-			<version>2.6</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.omnifaces</groupId>
-			<artifactId>omniutils</artifactId>
-			<version>0.3</version>
+			<version>2.2</version><!-- minimum version for o:tagAttribute and Servlets#toQueryString() -->
+			<scope>provided</scope><!-- by enduser -->
 		</dependency>
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnipersistence</artifactId>
-			<version>0.1</version>
+			<version>0.2-SNAPSHOT</version>
 		</dependency>
 
 		<!-- PrimeFaces dependencies. -->
 		<dependency>
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
-			<version>6.0</version>
-			<scope>provided</scope>
+			<version>5.2</version><!-- minimum version for DataTable#isFilterable() and DataTable#getNullSortOrder() -->
+			<scope>provided</scope><!-- by enduser -->
 		</dependency>
 	</dependencies>
 

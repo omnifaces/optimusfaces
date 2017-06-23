@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 /**
  * The OptimusFaces namespace.
  * 
@@ -39,6 +40,20 @@ OptimusFaces.Util = (function(window, document) {
 		if (window.history && window.history.pushState) {
 			var url = self.updateQueryStringParameter(window.location.href, name, value);
 			window.history.pushState(null, document.title, url);
+		}
+	}
+
+	self.historyReplaceQueryString = function(queryString) {
+		if (window.history && window.history.replaceState) {
+			var url = window.location.href.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
+			window.history.replaceState(null, document.title, url);
+		}
+	}
+
+	self.historyReplaceQueryStringParameter = function(name, value) {
+		if (window.history && window.history.replaceState) {
+			var url = self.updateQueryStringParameter(window.location.href, name, value);
+			window.history.replaceState(null, document.title, url);
 		}
 	}
 
