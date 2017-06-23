@@ -115,7 +115,7 @@ public class YourBackingBean implements Serializable {
 ```
 
 Finally use `<op:dataTable>` to have a semi-dynamic lazy-loaded, pageable, sortable and filterable 
-`<p:dataTable` without much hassle.
+`<p:dataTable>` without much hassle.
 
 ```
 <... xmlns:op="http://omnifaces.org/optimusfaces">
