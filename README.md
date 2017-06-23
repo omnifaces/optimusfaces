@@ -3,11 +3,11 @@
 Utility library for OmniFaces + PrimeFaces combined.
 
 
-##This project is currently still in development stage!
+## This project is currently still in development stage!
 
-This project basically combines best of [OmniFaces](http://omnifaces.org/) and [PrimeFaces](http://www.primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for JPA and [Hibernate](http://hibernate.org/). This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a JPA model and a generic entity service.
+This project basically combines best of [OmniFaces](http://omnifaces.org/) and [PrimeFaces](http://www.primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for JPA (and [Hibernate](http://hibernate.org/)). This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a JPA model and a generic entity service.
 
-###Installation
+### Installation
 
 `pom:xml`
 
@@ -46,21 +46,21 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>2.5.1</version>
+        <version>2.6.3</version>
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
-        <version>6.0</version>
+        <version>6.1</version>
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.2-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```
 
-###Usage
+### Usage
 
-[Check `LazyPagedDataModel` javadoc](https://github.com/omnifaces/optimusfaces/blob/develop/src/main/java/org/omnifaces/optimusfaces/model/LazyPagedDataModel.java).
+[Check `PagedDataModel` javadoc](https://github.com/omnifaces/optimusfaces/blob/develop/src/main/java/org/omnifaces/optimusfaces/model/PagedDataModel.java).
