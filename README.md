@@ -135,7 +135,7 @@ The `field` attribute of `<op:column>` represents the entity property path. This
 in turn be used in `id`, `field`, `headerText` and `filterBy` attributes
 of `<p:column>`.
 
-Here's how it looks like with default PrimeFaces UI and all. This example uses **exactly** the above XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `Instant dateOfBirth` fields.
+Here's how it looks like with default PrimeFaces UI and all. This example uses **exactly** the above XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `LocalDate dateOfBirth` fields.
 
 ![example of op:dataTable](http://i.imgur.com/nnB6RJZ.png)
 
