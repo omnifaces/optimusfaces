@@ -83,6 +83,9 @@
 		<maven.compiler.source>${javase.version}</maven.compiler.source>
 		<maven.compiler.target>${javase.version}</maven.compiler.target>
 		<maven.source.excludeResources>true</maven.source.excludeResources>
+
+		<!-- Test server versions. -->
+		<test.wildfly.version>10.1.0.Final</test.wildfly.version>
 	</properties>
 
 	<dependencies>
@@ -115,7 +118,55 @@
 			<version>5.2</version><!-- minimum version for DataTable#isFilterable() and DataTable#getNullSortOrder() -->
 			<scope>provided</scope><!-- by enduser -->
 		</dependency>
+
+		<!-- Test dependencies.	-->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.junit</groupId>
+			<artifactId>arquillian-junit-container</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.graphene</groupId>
+			<artifactId>graphene-webdriver</artifactId>
+			<version>2.1.0.Final</version>
+			<type>pom</type>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<!-- Test dependencies.	-->
+			<dependency>
+				<groupId>org.jboss.arquillian</groupId>
+				<artifactId>arquillian-bom</artifactId>
+				<version>1.1.11.Final</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.arquillian.extension</groupId>
+				<artifactId>arquillian-drone-bom</artifactId>
+				<version>2.0.0.Final</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.arquillian.selenium</groupId>
+				<artifactId>selenium-bom</artifactId>
+				<version>2.53.1</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
  	<build>
 		<resources>
@@ -311,11 +362,99 @@
 						</lifecycleMappingMetadata>
 					</configuration>
 				</plugin>
+
+				<!-- Global configuration for integration test profiles. -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>2.10</version>
+					<executions>
+						<execution>
+							<phase>process-test-classes</phase>
+							<goals>
+								<goal>unpack</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<outputDirectory>${project.build.directory}</outputDirectory>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<version>2.19.1</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>integration-test</goal>
+								<goal>verify</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<systemPropertyVariables>
+							<profile.id>${project.activeProfiles[0].id}</profile.id>
+							<optimusfaces.jar>${project.build.directory}/${project.build.finalName}.jar</optimusfaces.jar>
+						</systemPropertyVariables>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
 
 	<profiles>
+		<!-- NOTE: If Eclipse+M2E shows "Plugin execution not covered by lifecycle configuration" error in one of -->
+		<!-- below sections, then you need to add a default lifecycle mapping as instructed in M2E documentation: -->
+		<!-- https://www.eclipse.org/m2e/documentation/m2e-execution-not-covered.html#common-problems -->
+
+		<!-- WildFly integration test profile: mvn verify -P wildfly -->
+		<profile>
+			<id>wildfly</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.wildfly.arquillian</groupId>
+					<artifactId>wildfly-arquillian-container-managed</artifactId>
+					<version>2.0.0.Final</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.wildfly</groupId>
+											<artifactId>wildfly-dist</artifactId>
+											<version>${test.wildfly.version}</version>
+											<type>zip</type>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<jboss.home>${project.build.directory}/wildfly-${test.wildfly.version}</jboss.home>
+								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 
 		<!-- Release deploy: mvn clean deploy -P release -->
 		<profile>
