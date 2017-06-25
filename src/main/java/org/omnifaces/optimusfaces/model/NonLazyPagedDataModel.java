@@ -16,7 +16,6 @@ import static java.lang.Math.min;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.omnifaces.util.Faces.getELContext;
 import static org.omnifaces.utils.reflect.Reflections.invokeMethod;
 import static org.omnifaces.utils.stream.Streams.stream;
 
@@ -35,8 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Supplier;
-
-import javax.el.MethodExpression;
 
 import org.omnifaces.persistence.constraint.Constraint;
 import org.omnifaces.persistence.model.Identifiable;
@@ -57,9 +54,11 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 	private static final long serialVersionUID = 1L;
 
+
 	// Internal properties --------------------------------------------------------------------------------------------
 
 	private List<E> allData;
+
 
 	// Constructors ---------------------------------------------------------------------------------------------------
 
@@ -114,7 +113,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 		public boolean matches(E entity) {
 			if (entity == null) {
-				return true;
+				return true; // Not our problem.
 			}
 
 			for (Entry<Method, Object> criteria : requiredCriteria.entrySet()) {
@@ -148,18 +147,16 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 	 */
 	private class BeanPropertyComparator implements Comparator<E> {
 
-		private final MethodExpression sortFunction;
-		private final boolean caseSensitive;
 		private final Locale locale;
 		private final Collator collator;
+		private final boolean caseSensitive;
 		private final boolean nullsLast;
 		private final Map<Method, Boolean> ordering;
 
 		public BeanPropertyComparator(DataTable table, Map<Method, Boolean> ordering) {
-	        this.sortFunction = table.getSortFunction();
+			this.locale = table.resolveDataLocale();
+			this.collator = Collator.getInstance(locale);
 	        this.caseSensitive = table.isCaseSensitiveSort();
-	        this.locale = table.resolveDataLocale();
-	        this.collator = Collator.getInstance(locale);
 	        this.nullsLast = table.getNullSortOrder() == 1;
 			this.ordering = ordering;
 		}
@@ -176,12 +173,12 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 				}
 			}
 
-            return 0;
+			return 0;
 		}
 
 		@SuppressWarnings("unchecked")
 		private int compareProperties(Object left, Object right) {
-			if (left == right) {
+			if (Objects.equals(left, right)) {
 				return 0;
 			}
 			else if (left == null) {
@@ -190,22 +187,23 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			else if (right == null) {
 				return nullsLast ? -1 : 1;
 			}
-			else if (sortFunction != null) {
-				return (int) sortFunction.invoke(getELContext(), new Object[] { left, right });
-			}
 			else if (left instanceof String && right instanceof String) {
-		        if (caseSensitive) {
-		            return collator.compare(left, right);
-		        }
-		        else {
-		            return collator.compare(lower(left, locale), lower(right, locale));
-		        }
+				if (caseSensitive) {
+					return collator.compare(left, right);
+				}
+				else {
+					return collator.compare(lower(left, locale), lower(right, locale));
+				}
+			}
+			else if (left instanceof Comparable && right instanceof Comparable) {
+				return ((Comparable<Object>) left).compareTo(right);
 			}
 			else {
-				return ((Comparable<Object>) left).compareTo(right);
+				return compareProperties(left.toString(), right.toString());
 			}
 		}
 	}
+
 
 	// Helpers --------------------------------------------------------------------------------------------------------
 

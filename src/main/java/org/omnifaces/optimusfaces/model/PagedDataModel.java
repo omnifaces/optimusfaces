@@ -82,8 +82,6 @@ import org.primefaces.model.Visibility;
  * &#64;Entity
  * public class YourEntity extends BaseEntity&lt;Long&gt; {
  *
- *     &#64;Id &#64;GeneratedValue(strategy = IDENTITY)
- *     private Long id;
  *     private Instant created;
  *     private String name;
  *     private Type type;
@@ -480,7 +478,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <p>
  * The selection is available as a {@link List} by {@link PagedDataModel#getSelection()}. The row select and unselect
- * events will automatically update components matching PrimeFaces selector <code>@(.updateOnDataTableSelection)</code>.
+ * events will automatically update components matching PrimeFaces Selector <code>@(.updateOnDataTableSelect)</code>.
  * So you could automatically show the selection as below:
  * <pre>
  * &lt;h:form id="yourEntitiesForm"&gt;
@@ -491,7 +489,7 @@ import org.primefaces.model.Visibility;
  *         &lt;op:column field="type" /&gt;
  *         &lt;op:column field="deleted" /&gt;
  *     &lt;/op:dataTable&gt;
- *     &lt;p:dataTable id="selectionTable" value="#{yourBackingBean.model.selection}" var="item" styleClass="updateOnDataTableSelection"&gt;
+ *     &lt;p:dataTable id="selectionTable" value="#{yourBackingBean.model.selection}" var="item" styleClass="updateOnDataTableSelect"&gt;
  *         &lt;op:column field="id" /&gt;
  *         &lt;op:column field="created" /&gt;
  *         &lt;op:column field="name" /&gt;
@@ -503,6 +501,19 @@ import org.primefaces.model.Visibility;
  * <p>
  * Note that you can't show the selection in a <code>&lt;op:dataTable&gt;</code> as the selection returns a {@link List}
  * not a {@link PagedDataModel}. You can however keep using <code>&lt;op:column&gt;</code> the usual way as shown above.
+ *
+ *
+ * <h3 id="ajax-events"><a href="#ajax-events">Ajax events</a></h3>
+ * <p>
+ * On every paging, sorting, filtering, searching and selection action, an ajax event will be fired. The
+ * <code>&lt;op:dataTable&gt;</code> makes use of PrimeFaces Selectors (PFS) to find components which need to be updated
+ * during those events. Below is an overview of all PFS classes recognized by <code>&lt;op:dataTable&gt;</code>.
+ * <ul>
+ * <li><code>updateOnDataTablePage</code>: any JSF component with this style class will be updated on paging
+ * <li><code>updateOnDataTableSort</code>: any JSF component with this style class will be updated on sorting
+ * <li><code>updateOnDataTableFilter</code>: any JSF component with this style class will be updated on filtering/searching
+ * <li><code>updateOnDataTableSelect</code>: any JSF component with this style class will be updated on selection
+ * </ul>
  *
  *
  * <h3 id="query-parameters"><a href="#query-parameters">Query parameters</a></h3>

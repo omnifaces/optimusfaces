@@ -12,6 +12,7 @@
  */
 package org.omnifaces.optimusfaces.model;
 
+import static java.lang.Boolean.parseBoolean;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -53,7 +54,6 @@ import org.omnifaces.component.ParamHolder;
 import org.omnifaces.component.SimpleParam;
 import org.omnifaces.persistence.constraint.Constraint;
 import org.omnifaces.persistence.constraint.Like;
-import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
@@ -79,22 +79,26 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	private static final long serialVersionUID = 1L;
 	private static final String GLOBAL_FILTER = "globalFilter";
 
+
 	// Internal properties --------------------------------------------------------------------------------------------
 
 	private final PartialResultListLoader<E> loader;
 	private final LinkedHashMap<String, Boolean> defaultOrdering;
 	private final Supplier<Map<Getter<?>, Object>> criteria;
 
+	protected boolean updateQueryString;
 	protected String queryParameterPrefix;
 	protected LinkedHashMap<String, Boolean> ordering;
 	protected LinkedHashMap<String, Object> filters;
 	protected String globalFilter;
 	protected Page page;
 
+
 	// op:dataTable properties ----------------------------------------------------------------------------------------
 
 	private List<E> filteredValue;
 	private List<E> selection;
+
 
 	// Constructors ---------------------------------------------------------------------------------------------------
 
@@ -107,6 +111,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		setRowCount(-1);
 	}
 
+
 	// Actions --------------------------------------------------------------------------------------------------------
 
 	@Override
@@ -115,10 +120,11 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		DataTable table = getTable();
 		List<UIColumn> processableColumns = table.getColumns().stream().filter(this::isProcessableColumn).collect(toList());
 
+		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
 		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
-		ordering = processPageAndOrderQueryParametersIfNecessary(context, table, limit, tableSortField, tableSortOrder);
-		filters = processFilterQueryParametersIfNecessary(context, processableColumns, tableFilters);
-		globalFilter = processGlobalFilterQueryParameterIfNecessary(context, tableFilters);
+		ordering = processPageAndOrderQueryParameters(context, table, limit, tableSortField, tableSortOrder);
+		filters = processFilterQueryParameters(context, processableColumns, tableFilters);
+		globalFilter = processGlobalFilterQueryParameter(context, tableFilters);
 		selection = processSelectionQueryParametersIfNecessary(context, selection);
 
 		Map<String, Object> requiredCriteria = new HashMap<>();
@@ -178,7 +184,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return Boolean.parseBoolean(String.valueOf(table.getAttributes().get("searchable")));
 	}
 
-	protected LinkedHashMap<String, Boolean> processPageAndOrderQueryParametersIfNecessary(FacesContext context, DataTable table, int limit, String tableSortField, SortOrder tableSortOrder) {
+	protected LinkedHashMap<String, Boolean> processPageAndOrderQueryParameters(FacesContext context, DataTable table, int limit, String tableSortField, SortOrder tableSortOrder) {
 		LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
 
 		if (!isEmpty(tableSortField)) {
@@ -228,7 +234,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return ordering;
 	}
 
-	protected LinkedHashMap<String, Object> processFilterQueryParametersIfNecessary(FacesContext context, List<UIColumn> processableColumns, Map<String, Object> tableFilters) {
+	protected LinkedHashMap<String, Object> processFilterQueryParameters(FacesContext context, List<UIColumn> processableColumns, Map<String, Object> tableFilters) {
 		LinkedHashMap<String, Object> mergedFilters = new LinkedHashMap<>();
 
 		for (UIColumn column : processableColumns) {
@@ -256,7 +262,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return selection.isEmpty() ? emptyList() : new ArrayList<>(load(new Page(0, selection.size(), null, singletonMap(ID, selection), null), false));
 	}
 
-	protected String processGlobalFilterQueryParameterIfNecessary(FacesContext context, Map<String, Object> tableFilters) {
+	protected String processGlobalFilterQueryParameter(FacesContext context, Map<String, Object> tableFilters) {
 		String globalFilter = (String) tableFilters.get(GLOBAL_FILTER);
 
 		if (globalFilter != null) {
@@ -310,7 +316,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	}
 
 	protected void updateQueryStringIfNecessary(FacesContext context) {
-		if (!isAjaxRequest(context)) {
+		if (!updateQueryString || !isAjaxRequest(context)) {
 			return;
 		}
 
@@ -342,11 +348,12 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		oncomplete("OptimusFaces.Util.historyReplaceQueryString('" + Servlets.toQueryString(params) + "')");
 	}
 
+
 	// Getters+setters for op:dataTable and op:column -----------------------------------------------------------------
 
 	@Override
 	public Object getRowKey(E entity) {
-		return ((BaseEntity<?>) entity).getId();
+		return entity.getId();
 	}
 
 	@Override

@@ -61,8 +61,8 @@
 					<p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" placeholder="#{searchPlaceholder}"
 						styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
 					</p:inputText>
-					<p:button id="search" value="#{searchButtonLabel}" styleClass="search"
-						onclick="return false" a:data-tablewidgetid="#{id}">
+					<p:button id="search" type="button" value="#{searchButtonLabel}"
+						styleClass="search" a:data-tablewidgetid="#{id}">
 					</p:button>
 				</div>
 				<o:moveComponent for="#{id}" destination="FACET" facet="header">
@@ -107,11 +107,20 @@
 		<f:attribute name="sortable" value="#{sortable}" />
 		<f:attribute name="filterable" value="#{filterable}" />
 		<f:attribute name="searchable" value="#{searchable}" />
+		<c:if test="#{paginable}">
+			<p:ajax event="page" update="@(.updateOnDataTablePage)" />
+		</c:if>
+		<c:if test="#{sortable}">
+			<p:ajax event="sort" update="@(.updateOnDataTableSort)" />
+		</c:if>
+		<c:if test="#{filterable or searchable}">
+			<p:ajax event="filter" update="@(.updateOnDataTableFilter)" />
+		</c:if>
 		<c:if test="#{selectable}">
 			<f:attribute name="selection" value="#{value.selection}" />
 			<f:attribute name="selectionMode" value="multiple" /><!-- TODO: support single selection -->
-			<p:ajax event="rowSelect" update="@(.updateOnDataTableSelection)" />
-			<p:ajax event="rowUnselect" update="@(.updateOnDataTableSelection)" />
+			<p:ajax event="rowSelect" update="@(.updateOnDataTableSelect)" />
+			<p:ajax event="rowUnselect" update="@(.updateOnDataTableSelect)" />
 		</c:if>
 		<ui:insert />
 	</p:dataTable>
