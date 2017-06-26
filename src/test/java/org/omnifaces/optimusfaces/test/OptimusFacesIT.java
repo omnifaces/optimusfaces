@@ -48,6 +48,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.omnifaces.util.Servlets;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -148,6 +149,10 @@ public class OptimusFacesIT {
 		return null;
 	}
 
+	protected int getRowCount() {
+		return Integer.parseInt(browser.findElement(By.id("rowCount")).getText());
+	}
+
 
 	// Elements -------------------------------------------------------------------------------------------------------
 
@@ -220,8 +225,17 @@ public class OptimusFacesIT {
 	@FindBy(css="#form\\:table_paginator_bottom a.ui-paginator-last")
 	private WebElement pageLast;
 
-	@FindBy(id="rowCount")
-	private WebElement rowCount;
+	@FindBy(id="form:criteria:0")
+	private WebElement criteriaIdBetween50And150;
+
+	@FindBy(id="form:criteria:1")
+	private WebElement criteriaEmailLikeName1;
+
+	@FindBy(id="form:criteria:2")
+	private WebElement criteriaGenderIsFemale;
+
+	@FindBy(id="form:criteria:3")
+	private WebElement criteriaDateOfBirthBefore2000;
 
 
 	// Tests ----------------------------------------------------------------------------------------------------------
@@ -296,6 +310,41 @@ public class OptimusFacesIT {
 		testQueryStringLoading("NonLazy");
 	}
 
+	@Test
+	public void testLazyWithCriteria() {
+		open("LazyWithCriteria", null);
+		guardAjax(criteriaIdBetween50And150).click();
+		assertPaginatorState(1, 101);
+
+		guardAjax(criteriaEmailLikeName1).click();
+		int rowCount1 = getRowCount();
+		assertTrue("rowcount is less than 101", rowCount1 < 101);
+		assertFilteredState("email", "name1", true);
+
+		guardAjax(criteriaGenderIsFemale).click();
+		int rowCount2 = getRowCount();
+		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
+		assertFilteredState("gender", "FEMALE", true);
+
+		guardAjax(criteriaDateOfBirthBefore2000).click();
+		int rowCount3 = getRowCount();
+		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
+
+		guardAjax(criteriaIdBetween50And150).click(); // Uncheck
+		int rowCount4 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount4 > rowCount3);
+
+		guardAjax(criteriaEmailLikeName1).click(); // Uncheck
+		int rowCount5 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount5 > rowCount4);
+
+		guardAjax(criteriaGenderIsFemale).click(); // Uncheck
+		int rowCount6 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount6 > rowCount5);
+
+		guardAjax(criteriaDateOfBirthBefore2000).click(); // Uncheck
+		assertPaginatorState(1, TOTAL_RECORDS);
+	}
 
 	// Testers --------------------------------------------------------------------------------------------------------
 
@@ -387,12 +436,12 @@ public class OptimusFacesIT {
 		assertPaginatorState(1, TOTAL_RECORDS);
 
 		guardAjax(genderColumnFilter).sendKeys("FEMALE");
-		int totalRecords1 = Integer.parseInt(rowCount.getText());
+		int totalRecords1 = getRowCount();
 		assertPaginatorState(1);
 		assertFilteredState("gender", "FEMALE");
 
 		guardAjax(emailColumnFilter).sendKeys("1");
-		int totalRecords2 = Integer.parseInt(rowCount.getText());
+		int totalRecords2 = getRowCount();
 		assertTrue(totalRecords2 + " is less than " + totalRecords1, totalRecords2 < totalRecords1);
 		assertPaginatorState(1);
 		assertFilteredState("email", "1");
@@ -450,11 +499,11 @@ public class OptimusFacesIT {
 	// Assertions -----------------------------------------------------------------------------------------------------
 
 	protected void assertPaginatorState(int currentPage) {
-		assertPaginatorState(currentPage, Integer.parseInt(rowCount.getText()));
+		assertPaginatorState(currentPage, getRowCount());
 	}
 
 	protected void assertPaginatorState(int currentPage, int expectedTotalRecords) {
-		int totalRecords = Integer.parseInt(rowCount.getText());
+		int totalRecords = getRowCount();
 		int startRecord = ((currentPage - 1) * ROWS_PER_PAGE) + 1;
 		int endRecord = min(startRecord + ROWS_PER_PAGE - 1, totalRecords);
 		int pageCount = (totalRecords / ROWS_PER_PAGE) + ((totalRecords % ROWS_PER_PAGE > 0) ? 1 : 0);
@@ -505,26 +554,33 @@ public class OptimusFacesIT {
 	}
 
 	protected void assertFilteredState(String field, String filterValue) {
+		assertFilteredState(field, filterValue, false);
+	}
+
+	protected void assertFilteredState(String field, String filterValue, boolean criteria) {
 		if ("id".equals(field)) {
-			assertFilteredState(field, idCells, idColumnFilter, filterValue);
+			assertFilteredState(field, idCells, idColumnFilter, filterValue, criteria);
 		}
 		else if ("email".equals(field)) {
-			assertFilteredState(field, emailCells, emailColumnFilter, filterValue);
+			assertFilteredState(field, emailCells, emailColumnFilter, filterValue, criteria);
 		}
 		else if ("gender".equals(field)) {
-			assertFilteredState(field, genderCells, genderColumnFilter, filterValue);
+			assertFilteredState(field, genderCells, genderColumnFilter, filterValue, criteria);
 		}
 		else if ("dateOfBirth".equals(field)) {
-			assertFilteredState(field, dateOfBirthCells, dateOfBirthColumnFilter, filterValue);
+			assertFilteredState(field, dateOfBirthCells, dateOfBirthColumnFilter, filterValue, criteria);
 		}
 	}
 
-	private void assertFilteredState(String field, List<WebElement> cells, WebElement filter, String expectedFilterValue) {
-		String filterValue = filter.getAttribute("value");
+	private void assertFilteredState(String field, List<WebElement> cells, WebElement filter, String expectedFilterValue, boolean criteria) {
+		if (!criteria) {
+			String filterValue = filter.getAttribute("value");
+			assertEquals("filter value", expectedFilterValue, filterValue);
+			assertEquals("filter query string", filterValue, getQueryParameter(field));
+		}
+
 		List<String> actualValues = cells.stream().map(WebElement::getText).collect(toList());
-		assertEquals("filter value", expectedFilterValue, filterValue);
-		assertTrue(field + " filtering " + actualValues + " matches " + filterValue, actualValues.stream().allMatch(value -> value.contains(filterValue)));
-		assertEquals("filter query string", filterValue, getQueryParameter(field));
+		assertTrue(field + " filtering " + actualValues + " matches " + expectedFilterValue, actualValues.stream().allMatch(value -> value.contains(expectedFilterValue)));
 	}
 
 }
