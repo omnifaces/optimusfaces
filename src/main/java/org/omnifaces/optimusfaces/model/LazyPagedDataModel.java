@@ -337,7 +337,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 			params.add(new SimpleParam(queryParameterPrefix + QUERY_PARAMETER_ORDER, (order.getValue() ? "" : "-") + order.getKey()));
 		}
 
-		page.getRequiredCriteria().entrySet().stream()
+		filters.entrySet().stream()
 			.forEach(entry -> stream(normalizeCriteriaValue(stream(entry.getValue()).map(Constraint::unwrap)))
 				.forEach(value -> params.add(new SimpleParam(queryParameterPrefix + entry.getKey(), value))));
 
