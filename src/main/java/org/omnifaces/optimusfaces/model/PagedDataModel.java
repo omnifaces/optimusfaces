@@ -567,8 +567,6 @@ import org.primefaces.model.Visibility;
  * <li><code>.ui-datatable.empty</code>: when the data table is empty
  * <li><code>.ui-datatable .ui-sortable-column.desc</code>: when <code>sortDescending=true</code>
  * <li><code>.ui-datatable .ui-filter-column.global</code>: when global search input field is focused (so you can e.g. highlight background)
- *
- * globalFilter
  * </ul>
  * <p>
  * Finally, the <code>&lt;op:column&gt;</code> puts the entire cell content in a <code>&lt;span&gt;</code> which also
@@ -627,7 +625,7 @@ import org.primefaces.model.Visibility;
  *     xmlns:of="http://omnifaces.org/functions"
  *     xmlns:p="http://primefaces.org/ui"
  * &gt;
- *     &lt;!-- New custom attribute. --&gt;
+ *     &lt;!-- New custom attributes. --&gt;
  *     &lt;ui:param name="type" value="#{empty type ? 'text' : type}" /&gt; &lt;!-- Value MAY NOT be an EL expression referencing #{item}! --&gt;
  *     &lt;ui:param name="emptyValue" value="#{empty emptyValue ? 'n/a' : emptyValue}" /&gt;
  *
