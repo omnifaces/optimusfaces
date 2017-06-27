@@ -28,7 +28,7 @@
 	<c:set var="exporting" value="#{not empty param.export}" scope="request" />
 
 	<o:tagAttribute name="field" />
-		<o:tagAttribute name="id" default="#{field}" />
+		<o:tagAttribute name="id" default="#{field.replace(46,95)}" /> <!-- Replaces '.' by '_'. Note that fn:replace is insuitable as it uses regex in Oracle JSTL but not in Apache JSTL, and that using chars instead of codepoints causes Oracle EL not being able to resolve the ambiguous method (char vs string). -->
 		<o:tagAttribute name="head" default="#{field}" />
 		<o:tagAttribute name="value" default="#{requestScope[dataTable.var][field]}" />
 		<o:tagAttribute name="tooltip" />
@@ -48,8 +48,8 @@
 
 
 	<p:column
-		field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" filterable="#{filterable}"
-		filterBy="#{value}" filterValue="#{pagedDataModel.filters[field]}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
+		field="#{field}" id="#{id}" headerText="#{head}" sortable="#{true}" sortBy="#{value}"
+		filterable="#{filterable}" filterBy="#{value}" filterValue="#{pagedDataModel.filters[field]}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
 		styleClass="#{styleClass}#{sortable and dataTable.sortField eq field ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
 		rendered="#{rendered}" visible="#{visible}"
 	>
