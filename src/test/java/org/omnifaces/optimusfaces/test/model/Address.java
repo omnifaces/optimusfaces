@@ -15,6 +15,7 @@ package org.omnifaces.optimusfaces.test.model;
 import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.Formula;
 import org.omnifaces.persistence.model.BaseEntity;
 
 @Entity
@@ -27,6 +28,9 @@ public class Address extends BaseEntity<Long> {
 	private @NotNull String postcode;
 	private @NotNull String city;
 	private @NotNull String country;
+
+	@Formula("CONCAT(street, ' ', houseNumber, ', ', postcode, ' ', city, ', ', country)")
+	private String string;
 
 	public String getStreet() {
 		return street;
@@ -66,6 +70,14 @@ public class Address extends BaseEntity<Long> {
 
 	public void setCountry(String country) {
 		this.country = country;
+	}
+
+	public String getString() {
+		return string;
+	}
+
+	public void setString(String string) {
+		this.string = string;
 	}
 
 }

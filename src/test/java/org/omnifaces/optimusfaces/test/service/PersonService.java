@@ -30,4 +30,10 @@ public class PersonService extends BaseEntityService<Long, Person> {
 		});
 	}
 
+	public PartialResultList<Person> getPageWithAddress(Page page, boolean count) {
+		return getPage(page, count, (builder, query, root) -> {
+			root.fetch("address");
+		});
+	}
+
 }

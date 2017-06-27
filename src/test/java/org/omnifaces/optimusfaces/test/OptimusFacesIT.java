@@ -174,6 +174,12 @@ public class OptimusFacesIT {
 	@FindBy(id="form:table:dateOfBirth")
 	private WebElement dateOfBirthColumn;
 
+	@FindBy(id="form:table:address_houseNumber")
+	private WebElement addressHouseNumberColumn;
+
+	@FindBy(id="form:table:address_string")
+	private WebElement addressStringColumn;
+
 	@FindBy(css="#form\\:table th.ui-state-active")
 	private WebElement activeColumn;
 
@@ -189,20 +195,14 @@ public class OptimusFacesIT {
 	@FindBy(id="form:table:dateOfBirth:filter")
 	private WebElement dateOfBirthColumnFilter;
 
+	@FindBy(id="form:table:address_houseNumber:filter")
+	private WebElement addressHouseNumberColumnFilter;
+
+	@FindBy(id="form:table:address_string:filter")
+	private WebElement addressStringColumnFilter;
+
 	@FindBy(css="#form\\:table_data tr")
 	private List<WebElement> rows;
-
-	@FindBy(css="#form\\:table_data td:nth-child(1)")
-	private List<WebElement> idCells;
-
-	@FindBy(css="#form\\:table_data td:nth-child(2)")
-	private List<WebElement> emailCells;
-
-	@FindBy(css="#form\\:table_data td:nth-child(3)")
-	private List<WebElement> genderCells;
-
-	@FindBy(css="#form\\:table_data td:nth-child(4)")
-	private List<WebElement> dateOfBirthCells;
 
 	@FindBy(css="#form\\:table_paginator_bottom span.ui-paginator-current")
 	private WebElement pageReport;
@@ -319,12 +319,12 @@ public class OptimusFacesIT {
 		guardAjax(criteriaEmailLikeName1).click();
 		int rowCount1 = getRowCount();
 		assertTrue("rowcount is less than 101", rowCount1 < 101);
-		assertFilteredState("email", "name1", true);
+		assertFilteredState(emailColumnFilter, "name1", true);
 
 		guardAjax(criteriaGenderIsFemale).click();
 		int rowCount2 = getRowCount();
 		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
-		assertFilteredState("gender", "FEMALE", true);
+		assertFilteredState(genderColumnFilter, "FEMALE", true);
 
 		guardAjax(criteriaDateOfBirthBefore2000).click();
 		int rowCount3 = getRowCount();
@@ -346,82 +346,107 @@ public class OptimusFacesIT {
 		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
+	@Test
+	public void testLazyWithOneToOne() {
+		open("LazyWithOneToOne", null);
+		guardAjax(addressHouseNumberColumn).click();
+		assertSortedState(addressHouseNumberColumn, true);
+
+		guardAjax(addressHouseNumberColumnFilter).sendKeys("11");
+		assertPaginatorState(1, 11);
+		assertFilteredState(addressHouseNumberColumnFilter, "11");
+
+		guardAjax(addressStringColumn).click();
+		assertPaginatorState(1, 11);
+		assertSortedState(addressStringColumn, true);
+
+		addressHouseNumberColumnFilter.clear();
+		guardAjax(addressHouseNumberColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, TOTAL_RECORDS);
+		assertSortedState(addressStringColumn, true);
+
+		guardAjax(addressStringColumnFilter).sendKeys("11");
+		assertPaginatorState(1, 11);
+		assertFilteredState(addressStringColumnFilter, "11");
+	}
+
+
 	// Testers --------------------------------------------------------------------------------------------------------
 
 	protected void testDefaultState() {
 		assertEquals("row count", ROWS_PER_PAGE, rows.size());
 		assertPaginatorState(1);
-		assertSortedState("id", false);
+		assertSortedState(idColumn, false);
 	}
 
 	protected void testPaging() {
 		guardAjax(pageNext).click();
 		assertPaginatorState(2);
-		assertSortedState("id", false);
+		assertSortedState(idColumn, false);
 
 		guardAjax(pagePrevious).click();
 		assertPaginatorState(1);
-		assertSortedState("id", false);
+		assertSortedState(idColumn, false);
 
 		guardAjax(pageLast).click();
 		assertPaginatorState(TOTAL_RECORDS / ROWS_PER_PAGE);
-		assertSortedState("id", false);
+		assertSortedState(idColumn, false);
 
 		guardAjax(pagePrevious).click();
 		assertPaginatorState((TOTAL_RECORDS / ROWS_PER_PAGE) - 1);
-		assertSortedState("id", false);
+		assertSortedState(idColumn, false);
 
 		guardAjax(pageNext).click();
 		assertPaginatorState(TOTAL_RECORDS / ROWS_PER_PAGE);
-		assertSortedState("id", false);
+		assertSortedState(idColumn, false);
 
 		guardAjax(pageFirst).click();
 		assertPaginatorState(1);
-		assertSortedState("id", false);
+		assertSortedState(idColumn, false);
 	}
 
 	protected void testSorting() {
 		guardAjax(idColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("id", true);
+		assertSortedState(idColumn, true);
 
 		guardAjax(idColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("id", false);
+		assertSortedState(idColumn, false);
 
 		guardAjax(idColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("id", true);
+		assertSortedState(idColumn, true);
 
 		guardAjax(emailColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("email", true);
+		assertSortedState(emailColumn, true);
 
 		guardAjax(emailColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("email", false);
+		assertSortedState(emailColumn, false);
 
 		guardAjax(genderColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("gender", true);
+		assertSortedState(genderColumn, true);
 
 		guardAjax(emailColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("email", true);
+		assertSortedState(emailColumn, true);
 
 		guardAjax(dateOfBirthColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("dateOfBirth", true);
+		assertSortedState(dateOfBirthColumn, true);
 
 		guardAjax(dateOfBirthColumn).click();
 		assertPaginatorState(1);
-		assertSortedState("dateOfBirth", false);
+		assertSortedState(dateOfBirthColumn, false);
 	}
 
 	protected void testFiltering() {
 		guardAjax(idColumnFilter).sendKeys("2");
 		assertPaginatorState(1, 39);
-		assertFilteredState("id", "2");
+		assertFilteredState(idColumnFilter, "2");
 
 		idColumnFilter.clear();
 		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
@@ -429,7 +454,7 @@ public class OptimusFacesIT {
 
 		guardAjax(idColumnFilter).sendKeys("3");
 		assertPaginatorState(1, 38);
-		assertFilteredState("id", "3");
+		assertFilteredState(idColumnFilter, "3");
 
 		idColumnFilter.clear();
 		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
@@ -438,19 +463,19 @@ public class OptimusFacesIT {
 		guardAjax(genderColumnFilter).sendKeys("FEMALE");
 		int totalRecords1 = getRowCount();
 		assertPaginatorState(1);
-		assertFilteredState("gender", "FEMALE");
+		assertFilteredState(genderColumnFilter, "FEMALE");
 
 		guardAjax(emailColumnFilter).sendKeys("1");
 		int totalRecords2 = getRowCount();
 		assertTrue(totalRecords2 + " is less than " + totalRecords1, totalRecords2 < totalRecords1);
 		assertPaginatorState(1);
-		assertFilteredState("email", "1");
-		assertFilteredState("gender", "FEMALE");
+		assertFilteredState(emailColumnFilter, "1");
+		assertFilteredState(genderColumnFilter, "FEMALE");
 
 		genderColumnFilter.clear();
 		guardAjax(genderColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, 119);
-		assertFilteredState("email", "1");
+		assertFilteredState(emailColumnFilter, "1");
 
 		emailColumnFilter.clear();
 		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
@@ -463,22 +488,22 @@ public class OptimusFacesIT {
 
 		guardAjax(emailColumnFilter).sendKeys("1");
 		assertPaginatorState(1, 119);
-		assertFilteredState("email", "1");
+		assertFilteredState(emailColumnFilter, "1");
 
 		guardAjax(genderColumn).click();
 		assertPaginatorState(1, 119);
-		assertFilteredState("email", "1");
-		assertSortedState("gender", true);
+		assertFilteredState(emailColumnFilter, "1");
+		assertSortedState(genderColumn, true);
 
 		guardAjax(pageNext).click();
 		assertPaginatorState(2, 119);
-		assertFilteredState("email", "1");
-		assertSortedState("gender", true);
+		assertFilteredState(emailColumnFilter, "1");
+		assertSortedState(genderColumn, true);
 
 		emailColumnFilter.clear();
 		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
-		assertSortedState("gender", true);
+		assertSortedState(genderColumn, true);
 	}
 
 	protected void testQueryStringLoading(String type) {
@@ -487,12 +512,12 @@ public class OptimusFacesIT {
 
 		open(type, "p=4&email=5");
 		assertPaginatorState(4, 38);
-		assertFilteredState("email", "5");
+		assertFilteredState(emailColumnFilter, "5");
 
 		open(type, "p=3&o=-dateOfBirth&gender=MALE");
 		assertPaginatorState(3);
-		assertSortedState("dateOfBirth", false);
-		assertFilteredState("gender", "MALE");
+		assertSortedState(dateOfBirthColumn, false);
+		assertFilteredState(genderColumnFilter, "MALE");
 	}
 
 
@@ -515,12 +540,15 @@ public class OptimusFacesIT {
 		assertEquals("page query string", (currentPage == 1) ? null : String.valueOf(currentPage), getQueryParameter(QUERY_PARAMETER_PAGE));
 	}
 
-	protected void assertSortedState(String field, boolean ascending) {
+	protected void assertSortedState(WebElement column, boolean ascending) {
+		String field = column.getText();
 		String direction = ascending ? "ascending" : "descending";
 
 		assertTrue(field + "Column must be active", activeColumn.getText().equals(field));
 		assertTrue(field + "Column must be sorted " + direction, activeColumn.getAttribute("aria-sort").equals(direction));
 		assertEquals("order query string", ("id".equals(field) && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
+
+		List<WebElement> cells = getCells(column);
 
 		if ("id".equals(field)) {
 			int currentPage = Integer.parseInt(pageCurrent.getText());
@@ -528,59 +556,42 @@ public class OptimusFacesIT {
 
 			for (int i = 0; i < rows.size(); i++) {
 				int id = ascending ? (1 + offset + i) : (TOTAL_RECORDS - offset - i);
-				assertEquals("idCell contents of row " + (i + 1), String.valueOf(id), idCells.get(i).getText());
+				assertEquals("idCell contents of row " + (i + 1), String.valueOf(id), cells.get(i).getText());
 			}
 		}
-		else if ("email".equals(field)) {
-			assertSortedState(field, emailCells, ascending);
-		}
-		else if ("gender".equals(field)) {
-			assertSortedState(field, genderCells, ascending);
-		}
-		else if ("dateOfBirth".equals(field)) {
-			assertSortedState(field, dateOfBirthCells, ascending);
+		else {
+			List<String> actualValues = cells.stream().map(WebElement::getText).collect(toList());
+			List<String> expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
+
+			if (!expectedValues.equals(actualValues)) {
+				expectedValues.sort(Collator.getInstance(Locale.ENGLISH)); // TODO: find a better way. Problem is, lazy model sorts by H2 collation and non-lazy model sorts by Java collation, however they don't agree on each other (e.g. @ before 0).
+			}
+
+			assertEquals(field + " ordering", expectedValues, actualValues);
 		}
 	}
 
-	private void assertSortedState(String field, List<WebElement> cells, boolean ascending) {
-		List<String> actualValues = cells.stream().map(WebElement::getText).collect(toList());
-		List<String> expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
-
-		if (!expectedValues.equals(actualValues)) {
-			expectedValues.sort(Collator.getInstance(Locale.ENGLISH)); // TODO: find a better way. Problem is, lazy model sorts by H2 collation and non-lazy model sorts by Java collation, however they don't agree on each other.
-		}
-
-		assertEquals(field + " ordering", expectedValues, actualValues);
+	protected void assertFilteredState(WebElement filter, String filterValue) {
+		assertFilteredState(filter, filterValue, false);
 	}
 
-	protected void assertFilteredState(String field, String filterValue) {
-		assertFilteredState(field, filterValue, false);
-	}
+	protected void assertFilteredState(WebElement filter, String filterValue, boolean criteria) {
+		WebElement column = filter.findElement(By.xpath(".."));
+		String field = column.getText();
 
-	protected void assertFilteredState(String field, String filterValue, boolean criteria) {
-		if ("id".equals(field)) {
-			assertFilteredState(field, idCells, idColumnFilter, filterValue, criteria);
-		}
-		else if ("email".equals(field)) {
-			assertFilteredState(field, emailCells, emailColumnFilter, filterValue, criteria);
-		}
-		else if ("gender".equals(field)) {
-			assertFilteredState(field, genderCells, genderColumnFilter, filterValue, criteria);
-		}
-		else if ("dateOfBirth".equals(field)) {
-			assertFilteredState(field, dateOfBirthCells, dateOfBirthColumnFilter, filterValue, criteria);
-		}
-	}
-
-	private void assertFilteredState(String field, List<WebElement> cells, WebElement filter, String expectedFilterValue, boolean criteria) {
 		if (!criteria) {
-			String filterValue = filter.getAttribute("value");
-			assertEquals("filter value", expectedFilterValue, filterValue);
-			assertEquals("filter query string", filterValue, getQueryParameter(field));
+			String actualFilterValue = filter.getAttribute("value");
+			assertEquals("filter value", filterValue, actualFilterValue);
+			assertEquals("filter query string", actualFilterValue, getQueryParameter(field));
 		}
 
-		List<String> actualValues = cells.stream().map(WebElement::getText).collect(toList());
-		assertTrue(field + " filtering " + actualValues + " matches " + expectedFilterValue, actualValues.stream().allMatch(value -> value.contains(expectedFilterValue)));
+		List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
+		assertTrue(field + " filtering " + actualValues + " matches " + filterValue, actualValues.stream().allMatch(value -> value.contains(filterValue)));
+	}
+
+	private List<WebElement> getCells(WebElement column) {
+		int columnIndex = column.findElement(By.xpath("..")).findElements(By.tagName("th")).stream().map(WebElement::getText).collect(toList()).indexOf(column.getText()); // Awkward.
+		return browser.findElements(By.cssSelector("#form\\:table_data td:nth-child(" + (columnIndex + 1) + ")"));
 	}
 
 }
