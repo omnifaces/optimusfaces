@@ -12,12 +12,7 @@
  */
 package org.omnifaces.optimusfaces.test;
 
-import static java.lang.System.currentTimeMillis;
-import static java.time.ZonedDateTime.now;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -55,7 +50,7 @@ public class OptimusFacesITStartup {
 			Person person = new Person();
 			person.setEmail("name" + i + "@example.com");
 			person.setGender(genders[random.nextInt(genders.length)]);
-			person.setDateOfBirth(LocalDateTime.ofInstant(Instant.ofEpochMilli(random.nextLong(now().minusYears(100).toInstant().toEpochMilli(), currentTimeMillis())), ZoneOffset.UTC).toLocalDate());
+			person.setDateOfBirth(LocalDate.ofEpochDay(random.nextLong(LocalDate.of(1900, 1, 1).toEpochDay(), LocalDate.of(2000, 1, 1).toEpochDay())));
 
 			Address address = new Address();
 			address.setStreet("Street" + i);

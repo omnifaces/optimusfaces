@@ -49,7 +49,7 @@ public class OptimusFacesITLazyWithCriteriaBean implements Serializable {
 		AVAILABLE_CRITERIA.put("Id BETWEEN 50 AND 150", new SimpleEntry<>(Person::getId, Between.range(50L, 150L)));
 		AVAILABLE_CRITERIA.put("Email LIKE name1%", new SimpleEntry<>(Person::getEmail, Like.startsWith("name1")));
 		AVAILABLE_CRITERIA.put("Gender = FEMALE", new SimpleEntry<>(Person::getGender, Gender.FEMALE));
-		AVAILABLE_CRITERIA.put("DateOfBirth < 2000", new SimpleEntry<>(Person::getDateOfBirth, Order.lessThan(LocalDate.of(2000, 1, 1))));
+		AVAILABLE_CRITERIA.put("DateOfBirth < 1950", new SimpleEntry<>(Person::getDateOfBirth, Order.lessThan(LocalDate.of(1950, 1, 1))));
 	}
 
 	private PagedDataModel<Person> lazyPersonsWithCriteria;
