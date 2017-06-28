@@ -15,11 +15,9 @@ package org.omnifaces.optimusfaces.model;
 import static java.lang.Math.min;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 import static org.omnifaces.utils.reflect.Reflections.invokeMethod;
 import static org.omnifaces.utils.stream.Streams.stream;
 
-import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -78,14 +76,14 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 			if (type != null) {
 				if (!page.getRequiredCriteria().isEmpty() || !page.getOptionalCriteria().isEmpty()) {
-					Map<Method, Object> requiredCriteria = resolveGetters(type, page.getRequiredCriteria());
-					Map<Method, Object> optionalCriteria = resolveGetters(type, page.getOptionalCriteria());
+					Map<List<Method>, Object> requiredCriteria = resolveGetters(type, page.getRequiredCriteria());
+					Map<List<Method>, Object> optionalCriteria = resolveGetters(type, page.getOptionalCriteria());
 					BeanPropertyFilter filter = new BeanPropertyFilter(table, requiredCriteria, optionalCriteria);
 					data = data.stream().filter(filter::matches).collect(toList());
 				}
 
 				if (data.size() > 1) {
-					Map<Method, Boolean> ordering = resolveGetters(type, page.getOrdering());
+					Map<List<Method>, Boolean> ordering = resolveGetters(type, page.getOrdering());
 					data.sort(new BeanPropertyComparator(table, ordering));
 				}
 			}
@@ -102,10 +100,10 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 	private class BeanPropertyFilter {
 
 		private final Locale locale;
-		private final Map<Method, Object> requiredCriteria;
-		private final Map<Method, Object> optionalCriteria;
+		private final Map<List<Method>, Object> requiredCriteria;
+		private final Map<List<Method>, Object> optionalCriteria;
 
-		public BeanPropertyFilter(DataTable table, Map<Method, Object> requiredCriteria, Map<Method, Object> optionalCriteria) {
+		public BeanPropertyFilter(DataTable table, Map<List<Method>, Object> requiredCriteria, Map<List<Method>, Object> optionalCriteria) {
 	        this.locale = table.resolveDataLocale();
 			this.requiredCriteria = requiredCriteria;
 			this.optionalCriteria = optionalCriteria;
@@ -116,13 +114,13 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 				return true; // Not our problem.
 			}
 
-			for (Entry<Method, Object> criteria : requiredCriteria.entrySet()) {
+			for (Entry<List<Method>, Object> criteria : requiredCriteria.entrySet()) {
 				if (!matches(entity, criteria)) {
 					return false;
 				}
 			}
 
-			for (Entry<Method, Object> criteria : optionalCriteria.entrySet()) {
+			for (Entry<List<Method>, Object> criteria : optionalCriteria.entrySet()) {
 				if (matches(entity, criteria)) {
 					return true;
 				}
@@ -131,8 +129,8 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			return optionalCriteria.isEmpty();
 		}
 
-		private boolean matches(E entity, Entry<Method, Object> criteria) {
-			Object propertyValue = invokeMethod(entity, criteria.getKey());
+		private boolean matches(E entity, Entry<List<Method>, Object> criteria) {
+			Object propertyValue = invokeMethods(entity, criteria.getKey());
 
 			return stream(criteria.getValue()).anyMatch(criteriaValue -> {
 				return (criteriaValue instanceof Constraint && ((Constraint<?>) criteriaValue).applies(propertyValue))
@@ -151,9 +149,9 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 		private final Collator collator;
 		private final boolean caseSensitive;
 		private final boolean nullsLast;
-		private final Map<Method, Boolean> ordering;
+		private final Map<List<Method>, Boolean> ordering;
 
-		public BeanPropertyComparator(DataTable table, Map<Method, Boolean> ordering) {
+		public BeanPropertyComparator(DataTable table, Map<List<Method>, Boolean> ordering) {
 			this.locale = table.resolveDataLocale();
 			this.collator = Collator.getInstance(locale);
 	        this.caseSensitive = table.isCaseSensitiveSort();
@@ -163,9 +161,9 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 		@Override
 		public int compare(E left, E right) {
-			for (Entry<Method, Boolean> getter : ordering.entrySet()) {
-				Object leftProperty = left != null ? invokeMethod(left, getter.getKey()) : null;
-				Object rightProperty = right != null ? invokeMethod(right, getter.getKey()) : null;
+			for (Entry<List<Method>, Boolean> getter : ordering.entrySet()) {
+				Object leftProperty = left != null ? invokeMethods(left, getter.getKey()) : null;
+				Object rightProperty = right != null ? invokeMethods(right, getter.getKey()) : null;
 				int result = compareProperties(leftProperty, rightProperty) * (getter.getValue() ? 1 : -1);
 
 				if (result != 0) {
@@ -207,19 +205,45 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 	// Helpers --------------------------------------------------------------------------------------------------------
 
-	private static <T> Map<Method, T> resolveGetters(Class<?> type, Map<String, T> properties) {
-		BeanInfo beanInfo;
+	private static <T> Map<List<Method>, T> resolveGetters(Class<?> type, Map<String, T> properties) {
+		Map<List<Method>, T> getters = new LinkedHashMap<>();
 
+		for (Entry<String, T> entry : properties.entrySet()) {
+			Class<?> beanClass = type;
+			List<Method> methods = new ArrayList<>(2);
+
+			for (String propertyName : entry.getKey().split("\\.")) {
+				Method getter = resolveGetter(beanClass, propertyName);
+				methods.add(getter);
+				beanClass = getter.getReturnType();
+			}
+
+			getters.put(methods, entry.getValue());
+		}
+
+		return getters;
+	}
+
+	private static Method resolveGetter(Class<?> beanClass, String propertyName) {
 		try {
-			beanInfo = Introspector.getBeanInfo(type);
+			return stream(Introspector.getBeanInfo(beanClass).getPropertyDescriptors())
+				.filter(property -> property.getName().equals(propertyName))
+				.map(PropertyDescriptor::getReadMethod)
+				.findFirst().orElse(null);
 		}
 		catch (IntrospectionException e) {
 			throw new UnsupportedOperationException(e);
 		}
+	}
 
-		return stream(beanInfo.getPropertyDescriptors())
-			.filter(property -> properties.containsKey(property.getName()))
-			.collect(toMap(PropertyDescriptor::getReadMethod, property -> properties.get(property.getName()), (l, r) -> l, LinkedHashMap::new));
+	private static Object invokeMethods(Object instance, List<Method> methods) {
+		Object result = instance;
+
+		for (Method getter : methods) {
+			result = invokeMethod(result, getter);
+		}
+
+		return result;
 	}
 
 	private static String lower(Object value, Locale locale) {
