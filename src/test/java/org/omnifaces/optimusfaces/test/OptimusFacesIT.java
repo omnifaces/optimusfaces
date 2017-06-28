@@ -47,12 +47,14 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.omnifaces.optimusfaces.test.model.Gender;
 import org.omnifaces.util.Servlets;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.ui.Select;
 
 @RunWith(Arquillian.class)
 public class OptimusFacesIT {
@@ -334,6 +336,18 @@ public class OptimusFacesIT {
 		testOneToOne();
 	}
 
+	@Test
+	public void testLazyWithFilterOptions() {
+		open("LazyWithFilterOptions", null);
+		testFilterOptions();
+	}
+
+	@Test
+	public void testNonLazyWithFilterOptions() {
+		open("NonLazyWithFilterOptions", null);
+		testFilterOptions();
+	}
+
 
 	// Testers --------------------------------------------------------------------------------------------------------
 
@@ -540,6 +554,19 @@ public class OptimusFacesIT {
 		assertFilteredState(addressStringColumnFilter, "11");
 	}
 
+	protected void testFilterOptions() {
+		Select genderColumnFilterOptions = new Select(genderColumnFilter);
+		int matches = 0;
+
+		for (Gender gender : Gender.values()) {
+			guardAjax(genderColumnFilterOptions).selectByValue(gender.name());
+			assertFilteredState(genderColumnFilter, gender.name());
+			matches += getRowCount();
+		}
+
+		assertEquals("total matches", TOTAL_RECORDS, matches);
+	}
+
 
 	// Assertions -----------------------------------------------------------------------------------------------------
 
@@ -597,10 +624,11 @@ public class OptimusFacesIT {
 
 	protected void assertFilteredState(WebElement filter, String filterValue, boolean criteria) {
 		WebElement column = filter.findElement(By.xpath(".."));
-		String field = column.getText();
+		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 
 		if (!criteria) {
-			String actualFilterValue = filter.getAttribute("value");
+			WebElement input = "select".equals(filter.getTagName()) ? new Select(filter).getFirstSelectedOption() : filter;
+			String actualFilterValue = input.getAttribute("value");
 			assertEquals("filter value", filterValue, actualFilterValue);
 			assertEquals("filter query string", actualFilterValue, getQueryParameter(field));
 		}
