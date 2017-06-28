@@ -36,4 +36,8 @@ public class PersonService extends BaseEntityService<Long, Person> {
 		});
 	}
 
+	public PartialResultList<Person> getAllWithAddress() {
+		return getPageWithAddress(Page.ALL, false);
+	}
+
 }

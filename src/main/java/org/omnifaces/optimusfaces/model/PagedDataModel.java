@@ -69,7 +69,7 @@ import org.primefaces.model.Visibility;
  * First create your entity service extending {@link BaseEntityService} from OmniPersistence project.
  * <pre>
  * &#64;Stateless
- * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
+ * public class YourEntityService extends BaseEntityService&lt;Long, YourEntity&gt; {
  *
  *     // ...
  *

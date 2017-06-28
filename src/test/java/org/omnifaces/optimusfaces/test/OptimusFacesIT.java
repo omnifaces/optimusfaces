@@ -349,25 +349,13 @@ public class OptimusFacesIT {
 	@Test
 	public void testLazyWithOneToOne() {
 		open("LazyWithOneToOne", null);
-		guardAjax(addressHouseNumberColumn).click();
-		assertSortedState(addressHouseNumberColumn, true);
+		testOneToOne();
+	}
 
-		guardAjax(addressHouseNumberColumnFilter).sendKeys("11");
-		assertPaginatorState(1, 11);
-		assertFilteredState(addressHouseNumberColumnFilter, "11");
-
-		guardAjax(addressStringColumn).click();
-		assertPaginatorState(1, 11);
-		assertSortedState(addressStringColumn, true);
-
-		addressHouseNumberColumnFilter.clear();
-		guardAjax(addressHouseNumberColumnFilter).sendKeys(Keys.TAB);
-		assertPaginatorState(1, TOTAL_RECORDS);
-		assertSortedState(addressStringColumn, true);
-
-		guardAjax(addressStringColumnFilter).sendKeys("11");
-		assertPaginatorState(1, 11);
-		assertFilteredState(addressStringColumnFilter, "11");
+	@Test
+	public void testNonLazyWithOneToOne() {
+		open("NonLazyWithOneToOne", null);
+		testOneToOne();
 	}
 
 
@@ -518,6 +506,28 @@ public class OptimusFacesIT {
 		assertPaginatorState(3);
 		assertSortedState(dateOfBirthColumn, false);
 		assertFilteredState(genderColumnFilter, "MALE");
+	}
+
+	protected void testOneToOne() {
+		guardAjax(addressHouseNumberColumn).click();
+		assertSortedState(addressHouseNumberColumn, true);
+
+		guardAjax(addressHouseNumberColumnFilter).sendKeys("11");
+		assertPaginatorState(1, 11);
+		assertFilteredState(addressHouseNumberColumnFilter, "11");
+
+		guardAjax(addressStringColumn).click();
+		assertPaginatorState(1, 11);
+		assertSortedState(addressStringColumn, true);
+
+		addressHouseNumberColumnFilter.clear();
+		guardAjax(addressHouseNumberColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, TOTAL_RECORDS);
+		assertSortedState(addressStringColumn, true);
+
+		guardAjax(addressStringColumnFilter).sendKeys("11");
+		assertPaginatorState(1, 11);
+		assertFilteredState(addressStringColumnFilter, "11");
 	}
 
 
