@@ -68,7 +68,7 @@ First create your entity service extending `org.omnifaces.omnipersistence.servic
 
 ```
 @Stateless
-public class YourEntityService extends BaseEntityService<YourEntity> {
+public class YourEntityService extends BaseEntityService<Long, YourEntity> {
 
    // ...
 
