@@ -313,37 +313,13 @@ public class OptimusFacesIT {
 	@Test
 	public void testLazyWithCriteria() {
 		open("LazyWithCriteria", null);
-		guardAjax(criteriaIdBetween50And150).click();
-		assertPaginatorState(1, 101);
+		testCriteria();
+	}
 
-		guardAjax(criteriaEmailLikeName1).click();
-		int rowCount1 = getRowCount();
-		assertTrue("rowcount is less than 101", rowCount1 < 101);
-		assertFilteredState(emailColumnFilter, "name1", true);
-
-		guardAjax(criteriaGenderIsFemale).click();
-		int rowCount2 = getRowCount();
-		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
-		assertFilteredState(genderColumnFilter, "FEMALE", true);
-
-		guardAjax(criteriaDateOfBirthBefore2000).click();
-		int rowCount3 = getRowCount();
-		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
-
-		guardAjax(criteriaIdBetween50And150).click(); // Uncheck
-		int rowCount4 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount4 > rowCount3);
-
-		guardAjax(criteriaEmailLikeName1).click(); // Uncheck
-		int rowCount5 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount5 > rowCount4);
-
-		guardAjax(criteriaGenderIsFemale).click(); // Uncheck
-		int rowCount6 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount6 > rowCount5);
-
-		guardAjax(criteriaDateOfBirthBefore2000).click(); // Uncheck
-		assertPaginatorState(1, TOTAL_RECORDS);
+	@Test
+	public void testNonLazyWithCriteria() {
+		open("NonLazyWithCriteria", null);
+		testCriteria();
 	}
 
 	@Test
@@ -506,6 +482,40 @@ public class OptimusFacesIT {
 		assertPaginatorState(3);
 		assertSortedState(dateOfBirthColumn, false);
 		assertFilteredState(genderColumnFilter, "MALE");
+	}
+
+	protected void testCriteria() {
+		guardAjax(criteriaIdBetween50And150).click();
+		assertPaginatorState(1, 101);
+
+		guardAjax(criteriaEmailLikeName1).click();
+		int rowCount1 = getRowCount();
+		assertTrue("rowcount is less than 101", rowCount1 < 101);
+		assertFilteredState(emailColumnFilter, "name1", true);
+
+		guardAjax(criteriaGenderIsFemale).click();
+		int rowCount2 = getRowCount();
+		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
+		assertFilteredState(genderColumnFilter, "FEMALE", true);
+
+		guardAjax(criteriaDateOfBirthBefore2000).click();
+		int rowCount3 = getRowCount();
+		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
+
+		guardAjax(criteriaIdBetween50And150).click(); // Uncheck
+		int rowCount4 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount4 > rowCount3);
+
+		guardAjax(criteriaEmailLikeName1).click(); // Uncheck
+		int rowCount5 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount5 > rowCount4);
+
+		guardAjax(criteriaGenderIsFemale).click(); // Uncheck
+		int rowCount6 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount6 > rowCount5);
+
+		guardAjax(criteriaDateOfBirthBefore2000).click(); // Uncheck
+		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
 	protected void testOneToOne() {
