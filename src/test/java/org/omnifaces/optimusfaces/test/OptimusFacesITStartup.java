@@ -12,8 +12,9 @@
  */
 package org.omnifaces.optimusfaces.test;
 
+import static java.lang.Math.abs;
+
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.PostConstruct;
@@ -44,6 +45,7 @@ public class OptimusFacesITStartup {
 
 	private void createTestPersons() {
 		Gender[] genders = Gender.values();
+		Phone.Type[] phoneTypes = Phone.Type.values();
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 
 		for (int i = 0; i < TOTAL_RECORDS; i++) {
@@ -60,13 +62,13 @@ public class OptimusFacesITStartup {
 			address.setCountry("Country" + i);
 			person.setAddress(address);
 
-			Phone mobile = new Phone();
-			mobile.setType(Phone.Type.MOBILE);
-			mobile.setNumber("" + random.nextInt());
-			Phone home = new Phone();
-			home.setType(Phone.Type.HOME);
-			home.setNumber("" + random.nextInt());
-			person.setTelephones(Arrays.asList(mobile, home));
+			int totalPhones = random.nextInt(1, 6);
+			for (int j = 0; j < totalPhones; j++) {
+				Phone phone = new Phone();
+				phone.setType(phoneTypes[random.nextInt(phoneTypes.length)]);
+				phone.setNumber("0" + abs(random.nextInt()));
+				person.getPhones().add(phone);
+			}
 
 			personService.save(person);
 		}

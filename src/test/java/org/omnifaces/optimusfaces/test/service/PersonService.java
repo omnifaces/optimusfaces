@@ -14,12 +14,20 @@ package org.omnifaces.optimusfaces.test.service;
 
 import static org.omnifaces.optimusfaces.test.model.Gender.FEMALE;
 
-import javax.ejb.Stateless;
+import java.util.LinkedHashMap;
 
+import javax.ejb.Stateless;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+
+import org.omnifaces.optimusfaces.test.model.Address;
 import org.omnifaces.optimusfaces.test.model.Person;
+import org.omnifaces.optimusfaces.test.model.Phone;
+import org.omnifaces.optimusfaces.test.model.dto.PersonCard;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
 import org.omnifaces.utils.collection.PartialResultList;
+import org.omnifaces.utils.reflect.Getter;
 
 @Stateless
 public class PersonService extends BaseEntityService<Long, Person> {
@@ -33,6 +41,21 @@ public class PersonService extends BaseEntityService<Long, Person> {
 	public PartialResultList<Person> getPageWithAddress(Page page, boolean count) {
 		return getPage(page, count, (builder, query, root) -> {
 			root.fetch("address");
+		});
+	}
+
+	public PartialResultList<PersonCard> getPageOfPersonCards(Page page, boolean count) {
+		return getPage(page, count, PersonCard.class, (builder, query, person) -> {
+			Join<Person, Address> personAddress = person.join("address");
+			Join<Person, Phone> personPhones = person.join("phones");
+
+			LinkedHashMap<Getter<PersonCard>, Expression<?>> mapping = new LinkedHashMap<>();
+			mapping.put(PersonCard::getId, person.get("id"));
+			mapping.put(PersonCard::getEmail, person.get("email"));
+			mapping.put(PersonCard::getAddressString, personAddress.get("string"));
+			mapping.put(PersonCard::getTotalPhones, builder.count(personPhones));
+
+			return mapping;
 		});
 	}
 

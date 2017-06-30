@@ -75,6 +75,7 @@ public class OptimusFacesIT {
 			.addPackage(packageName)
 			.deleteClass(testClass)
 			.addPackage(packageName + ".model")
+			.addPackage(packageName + ".model.dto")
 			.addPackage(packageName + ".service")
 			.addAsResource("META-INF/persistence.xml/" + System.getProperty("profile.id") + ".xml", "META-INF/persistence.xml")
 			.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
@@ -177,10 +178,16 @@ public class OptimusFacesIT {
 	private WebElement dateOfBirthColumn;
 
 	@FindBy(id="form:table:address_houseNumber")
-	private WebElement addressHouseNumberColumn;
+	private WebElement address_houseNumberColumn;
 
 	@FindBy(id="form:table:address_string")
+	private WebElement address_stringColumn;
+
+	@FindBy(id="form:table:addressString")
 	private WebElement addressStringColumn;
+
+	@FindBy(id="form:table:totalPhones")
+	private WebElement totalPhonesColumn;
 
 	@FindBy(css="#form\\:table th.ui-state-active")
 	private WebElement activeColumn;
@@ -198,10 +205,16 @@ public class OptimusFacesIT {
 	private WebElement dateOfBirthColumnFilter;
 
 	@FindBy(id="form:table:address_houseNumber:filter")
-	private WebElement addressHouseNumberColumnFilter;
+	private WebElement address_houseNumberColumnFilter;
 
 	@FindBy(id="form:table:address_string:filter")
+	private WebElement address_stringColumnFilter;
+
+	@FindBy(id="form:table:addressString:filter")
 	private WebElement addressStringColumnFilter;
+
+	@FindBy(id="form:table:totalPhones:filter")
+	private WebElement totalPhonesColumnFilter;
 
 	@FindBy(css="#form\\:table_data tr")
 	private List<WebElement> rows;
@@ -346,6 +359,12 @@ public class OptimusFacesIT {
 	public void testNonLazyWithFilterOptions() {
 		open("NonLazyWithFilterOptions", null);
 		testFilterOptions();
+	}
+
+	@Test
+	public void testLazyWithDTO() {
+		open("LazyWithDTO", null);
+		testDTO();
 	}
 
 
@@ -533,25 +552,25 @@ public class OptimusFacesIT {
 	}
 
 	protected void testOneToOne() {
-		guardAjax(addressHouseNumberColumn).click();
-		assertSortedState(addressHouseNumberColumn, true);
+		guardAjax(address_houseNumberColumn).click();
+		assertSortedState(address_houseNumberColumn, true);
 
-		guardAjax(addressHouseNumberColumnFilter).sendKeys("11");
+		guardAjax(address_houseNumberColumnFilter).sendKeys("11");
 		assertPaginatorState(1, 11);
-		assertFilteredState(addressHouseNumberColumnFilter, "11");
+		assertFilteredState(address_houseNumberColumnFilter, "11");
 
-		guardAjax(addressStringColumn).click();
+		guardAjax(address_stringColumn).click();
 		assertPaginatorState(1, 11);
-		assertSortedState(addressStringColumn, true);
+		assertSortedState(address_stringColumn, true);
 
-		addressHouseNumberColumnFilter.clear();
-		guardAjax(addressHouseNumberColumnFilter).sendKeys(Keys.TAB);
+		address_houseNumberColumnFilter.clear();
+		guardAjax(address_houseNumberColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
-		assertSortedState(addressStringColumn, true);
+		assertSortedState(address_stringColumn, true);
 
-		guardAjax(addressStringColumnFilter).sendKeys("11");
+		guardAjax(address_stringColumnFilter).sendKeys("11");
 		assertPaginatorState(1, 11);
-		assertFilteredState(addressStringColumnFilter, "11");
+		assertFilteredState(address_stringColumnFilter, "11");
 	}
 
 	protected void testFilterOptions() {
@@ -565,6 +584,27 @@ public class OptimusFacesIT {
 		}
 
 		assertEquals("total matches", TOTAL_RECORDS, matches);
+	}
+
+	protected void testDTO() {
+		guardAjax(addressStringColumn).click();
+		assertSortedState(addressStringColumn, true);
+
+		guardAjax(addressStringColumnFilter).sendKeys("11");
+		assertPaginatorState(1, 11);
+		assertFilteredState(addressStringColumnFilter, "11");
+
+		guardAjax(totalPhonesColumn).click();
+		assertPaginatorState(1, 11);
+		assertSortedState(totalPhonesColumn, true);
+
+		addressStringColumnFilter.clear();
+		guardAjax(addressStringColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, TOTAL_RECORDS);
+		assertSortedState(totalPhonesColumn, true);
+
+		guardAjax(totalPhonesColumnFilter).sendKeys("3");
+		assertFilteredState(totalPhonesColumnFilter, "3");
 	}
 
 

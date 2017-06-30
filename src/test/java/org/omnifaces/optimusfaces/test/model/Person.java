@@ -17,6 +17,7 @@ import static javax.persistence.EnumType.STRING;
 import static javax.persistence.FetchType.LAZY;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -40,7 +41,7 @@ public class Person extends BaseEntity<Long> {
 	private @NotNull Address address;
 
 	@OneToMany(cascade=PERSIST)
-	private @NotNull List<Phone> telephones;
+	private @NotNull List<Phone> phones = new ArrayList<>();
 
 	public String getEmail() {
 		return email;
@@ -74,12 +75,12 @@ public class Person extends BaseEntity<Long> {
 		this.address = address;
 	}
 
-	public List<Phone> getTelephones() {
-		return telephones;
+	public List<Phone> getPhones() {
+		return phones;
 	}
 
-	public void setTelephones(List<Phone> telephones) {
-		this.telephones = telephones;
+	public void setTelephones(List<Phone> phones) {
+		this.phones = phones;
 	}
 
 }
