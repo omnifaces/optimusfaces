@@ -367,6 +367,12 @@ public class OptimusFacesIT {
 		testDTO();
 	}
 
+	@Test
+	public void testNonLazyWithDTO() {
+		open("NonLazyWithDTO", null);
+		testDTO();
+	}
+
 
 	// Testers --------------------------------------------------------------------------------------------------------
 
