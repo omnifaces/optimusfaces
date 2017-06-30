@@ -250,7 +250,7 @@ public class OptimusFacesIT {
 	private WebElement criteriaGenderIsFemale;
 
 	@FindBy(id="form:criteria:3")
-	private WebElement criteriaDateOfBirthBefore2000;
+	private WebElement criteriaDateOfBirthBefore1950;
 
 
 	// Tests ----------------------------------------------------------------------------------------------------------
@@ -262,8 +262,20 @@ public class OptimusFacesIT {
 	}
 
 	@Test
+	public void testNonLazyDefaultState() {
+		open("NonLazy", null);
+		testDefaultState();
+	}
+
+	@Test
 	public void testLazyPaging() {
 		open("Lazy", null);
+		testPaging();
+	}
+
+	@Test
+	public void testNonLazyPaging() {
+		open("NonLazy", null);
 		testPaging();
 	}
 
@@ -274,8 +286,20 @@ public class OptimusFacesIT {
 	}
 
 	@Test
+	public void testNonLazySorting() {
+		open("NonLazy", null);
+		testSorting();
+	}
+
+	@Test
 	public void testLazyFiltering() {
 		open("Lazy", null);
+		testFiltering();
+	}
+
+	@Test
+	public void testNonLazyFiltering() {
+		open("NonLazy", null);
 		testFiltering();
 	}
 
@@ -286,38 +310,14 @@ public class OptimusFacesIT {
 	}
 
 	@Test
-	public void testLazyQueryStringLoading() {
-		testQueryStringLoading("Lazy");
-	}
-
-	@Test
-	public void testNonLazyDefaultState() {
-		open("NonLazy", null);
-		testDefaultState();
-	}
-
-	@Test
-	public void testNonLazyPaging() {
-		open("NonLazy", null);
-		testPaging();
-	}
-
-	@Test
-	public void testNonLazySorting() {
-		open("NonLazy", null);
-		testSorting();
-	}
-
-	@Test
-	public void testNonLazyFiltering() {
-		open("NonLazy", null);
-		testFiltering();
-	}
-
-	@Test
 	public void testNonLazyPagingSortingAndFiltering() {
 		open("NonLazy", null);
 		testPagingSortingAndFiltering();
+	}
+
+	@Test
+	public void testLazyQueryStringLoading() {
+		testQueryStringLoading("Lazy");
 	}
 
 	@Test
@@ -537,7 +537,7 @@ public class OptimusFacesIT {
 		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
 		assertFilteredState(genderColumnFilter, "FEMALE", true);
 
-		guardAjax(criteriaDateOfBirthBefore2000).click();
+		guardAjax(criteriaDateOfBirthBefore1950).click();
 		int rowCount3 = getRowCount();
 		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
 
@@ -553,7 +553,7 @@ public class OptimusFacesIT {
 		int rowCount6 = getRowCount();
 		assertTrue("rowcount is more than previous", rowCount6 > rowCount5);
 
-		guardAjax(criteriaDateOfBirthBefore2000).click(); // Uncheck
+		guardAjax(criteriaDateOfBirthBefore1950).click(); // Uncheck
 		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
@@ -634,7 +634,7 @@ public class OptimusFacesIT {
 	}
 
 	protected void assertSortedState(WebElement column, boolean ascending) {
-		String field = column.getText();
+		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 		String direction = ascending ? "ascending" : "descending";
 
 		assertTrue(field + "Column must be active", activeColumn.getText().equals(field));
