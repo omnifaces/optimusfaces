@@ -189,6 +189,9 @@ public class OptimusFacesIT {
 	@FindBy(id="form:table:totalPhones")
 	private WebElement totalPhonesColumn;
 
+	@FindBy(id="form:table:phones_number")
+	private WebElement phones_numberColumn;
+
 	@FindBy(css="#form\\:table th.ui-state-active")
 	private WebElement activeColumn;
 
@@ -215,6 +218,9 @@ public class OptimusFacesIT {
 
 	@FindBy(id="form:table:totalPhones:filter")
 	private WebElement totalPhonesColumnFilter;
+
+	@FindBy(id="form:table:phones_number:filter")
+	private WebElement phones_numberColumnFilter;
 
 	@FindBy(css="#form\\:table_data tr")
 	private List<WebElement> rows;
@@ -371,6 +377,12 @@ public class OptimusFacesIT {
 	public void testNonLazyWithDTO() {
 		open("NonLazyWithDTO", null);
 		testDTO();
+	}
+
+	@Test
+	public void testLazyWithOneToMany() {
+		open("LazyWithOneToMany", null);
+		testOneToMany();
 	}
 
 
@@ -611,6 +623,40 @@ public class OptimusFacesIT {
 
 		guardAjax(totalPhonesColumnFilter).sendKeys("3");
 		assertFilteredState(totalPhonesColumnFilter, "3");
+	}
+
+	protected void testOneToMany() {
+		guardAjax(phones_numberColumn).click();
+		assertSortedState(phones_numberColumn, true);
+
+		guardAjax(phones_numberColumnFilter).sendKeys("11");
+		assertFilteredState(phones_numberColumnFilter, "11");
+		int rowCount1 = getRowCount();
+		assertTrue("rowcount is less than total", rowCount1 < TOTAL_RECORDS);
+
+		guardAjax(phones_numberColumn).click();
+		assertSortedState(phones_numberColumn, false);
+		int rowCount2 = getRowCount();
+		assertEquals("rowcount is still the same", rowCount1, rowCount2);
+
+		guardAjax(emailColumnFilter).sendKeys("1");
+		assertFilteredState(emailColumnFilter, "1");
+		assertFilteredState(phones_numberColumnFilter, "11");
+		int rowCount3 = getRowCount();
+		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
+
+		phones_numberColumnFilter.clear();
+		guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, 119);
+		assertSortedState(phones_numberColumn, false);
+
+		guardAjax(phones_numberColumn).click();
+		assertSortedState(phones_numberColumn, true);
+
+		emailColumnFilter.clear();
+		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, TOTAL_RECORDS);
+		assertSortedState(phones_numberColumn, true);
 	}
 
 

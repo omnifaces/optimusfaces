@@ -33,14 +33,20 @@ import org.omnifaces.utils.reflect.Getter;
 public class PersonService extends BaseEntityService<Long, Person> {
 
 	public PartialResultList<Person> getPageOfFemales(Page page, boolean count) {
-		return getPage(page, count, (builder, query, root) -> {
-			query.where(builder.equal(root.get("gender"), FEMALE));
+		return getPage(page, count, (builder, query, person) -> {
+			query.where(builder.equal(person.get("gender"), FEMALE));
 		});
 	}
 
 	public PartialResultList<Person> getPageWithAddress(Page page, boolean count) {
-		return getPage(page, count, (builder, query, root) -> {
-			root.fetch("address");
+		return getPage(page, count, (builder, query, person) -> {
+			person.fetch("address");
+		});
+	}
+
+	public PartialResultList<Person> getPageWithPhones(Page page, boolean count) {
+		return getPage(page, count, (builder, query, person) -> {
+			person.fetch("phones");
 		});
 	}
 
