@@ -13,6 +13,7 @@
 package org.omnifaces.optimusfaces.test;
 
 import static java.lang.Math.min;
+import static java.util.Arrays.stream;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
@@ -29,6 +30,7 @@ import static org.omnifaces.optimusfaces.test.OptimusFacesITStartup.TOTAL_RECORD
 import java.io.File;
 import java.net.URL;
 import java.text.Collator;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -385,6 +387,12 @@ public class OptimusFacesIT {
 		testOneToMany();
 	}
 
+	@Test
+	public void testNonLazyWithOneToMany() {
+		open("NonLazyWithOneToMany", null);
+		testOneToMany();
+	}
+
 
 	// Testers --------------------------------------------------------------------------------------------------------
 
@@ -699,7 +707,7 @@ public class OptimusFacesIT {
 			}
 		}
 		else {
-			List<String> actualValues = cells.stream().map(WebElement::getText).collect(toList());
+			List<String> actualValues = cells.stream().map(this::sortOneToManyIfNecessary).collect(toList());
 			List<String> expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
 
 			if (!expectedValues.equals(actualValues)) {
@@ -708,6 +716,17 @@ public class OptimusFacesIT {
 
 			assertEquals(field + " ordering", expectedValues, actualValues);
 		}
+	}
+
+	private String sortOneToManyIfNecessary(WebElement cell) {
+		String text = cell.getText();
+
+		if (text.startsWith("[") && text.endsWith("]")) {
+			Comparator<String> comparator = "ascending".equals(activeColumn.getAttribute("aria-sort")) ? naturalOrder() : reverseOrder();
+			text = stream(text.substring(1, text.length() - 1).split(", ")).sorted(comparator).collect(toList()).toString();
+		}
+
+		return text;
 	}
 
 	protected void assertFilteredState(WebElement filter, String filterValue) {

@@ -69,6 +69,10 @@ public class PersonService extends BaseEntityService<Long, Person> {
 		return getPageWithAddress(Page.ALL, false);
 	}
 
+	public PartialResultList<Person> getAllWithPhones() {
+		return getPageWithPhones(Page.ALL, false);
+	}
+
 	public PartialResultList<PersonCard> getAllPersonCards() {
 		return getPageOfPersonCards(Page.ALL, false);
 	}
