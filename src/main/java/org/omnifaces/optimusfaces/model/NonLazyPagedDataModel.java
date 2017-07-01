@@ -22,8 +22,11 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -164,6 +167,10 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			for (Entry<List<Method>, Boolean> getter : ordering.entrySet()) {
 				Object leftProperty = left != null ? invokeMethods(left, getter.getKey()) : null;
 				Object rightProperty = right != null ? invokeMethods(right, getter.getKey()) : null;
+
+				sortOneToManyIfNecessary(leftProperty, getter.getValue());
+				sortOneToManyIfNecessary(rightProperty, getter.getValue());
+
 				int result = compareProperties(leftProperty, rightProperty) * (getter.getValue() ? 1 : -1);
 
 				if (result != 0) {
@@ -172,6 +179,13 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			}
 
 			return 0;
+		}
+
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		private void sortOneToManyIfNecessary(Object property, boolean ascending) {
+			if (property instanceof List && ((List<?>) property).size() > 1) {
+				((List) property).sort(ascending ? Comparator.naturalOrder() : Comparator.reverseOrder());
+			}
 		}
 
 		@SuppressWarnings("unchecked")
@@ -216,6 +230,14 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 				Method getter = resolveGetter(beanClass, propertyName);
 				methods.add(getter);
 				beanClass = getter.getReturnType();
+
+				if (Collection.class.isAssignableFrom(beanClass)) {
+					Type genericReturnType = getter.getGenericReturnType();
+
+					if (genericReturnType instanceof ParameterizedType) {
+						beanClass = (Class<?>) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+					}
+				}
 			}
 
 			getters.put(methods, entry.getValue());
@@ -239,8 +261,14 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 	private static Object invokeMethods(Object instance, List<Method> methods) {
 		Object result = instance;
 
-		for (Method getter : methods) {
-			result = invokeMethod(result, getter);
+		for (int i = 0; i < methods.size(); i++) {
+			if (result instanceof Collection) {
+				List<Method> remainingMethods = methods.subList(i, methods.size());
+				return stream(result).map(item -> invokeMethods(item, remainingMethods)).collect(toList());
+			}
+			else {
+				result = invokeMethod(result, methods.get(i));
+			}
 		}
 
 		return result;
