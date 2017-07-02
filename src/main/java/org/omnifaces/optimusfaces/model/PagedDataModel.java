@@ -33,6 +33,10 @@ import java.util.stream.Stream;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.faces.model.SelectItem;
+import javax.persistence.ElementCollection;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.criteria.Expression;
 
 import org.omnifaces.persistence.constraint.Between;
 import org.omnifaces.persistence.constraint.Like;
@@ -133,6 +137,96 @@ import org.primefaces.model.Visibility;
  * The <code>field</code> attribute of <code>&lt;op:column&gt;</code> represents the entity property path. This will
  * in turn be used in <code>id</code>, <code>field</code>, <code>headerText</code> and <code>filterBy</code> attributes
  * of <code>&lt;p:column&gt;</code>.
+ *
+ *
+ * <h3 id="relationships"><a href="#relationships">Relationships</a></h3>
+ * <p>
+ * The <code>&lt;op:dataTable&gt;</code> supports models with {@link OneToOne}, {@link OneToMany} and
+ * {@link ElementCollection} relationships. The <code>field</code> attribute of <code>&lt;op:column&gt;</code> can take
+ * a JavaBean path, like as you would do in EL, <code>parent.child.subchild</code>. Below are some examples.
+ *
+ * <h4>OneToOne</h4>
+ * <p>
+ * Given an <code>Invoice</code> with <code>&#64;OneToOne private Order order;</code>
+ * <pre>
+ * &lt;op:dataTable id="invoicesTable" value="#{shop.invoices}"&gt;
+ *     &lt;op:column field="id" /&gt;
+ *     &lt;op:column field="seller" /&gt;
+ *     &lt;op:column field="order.buyer" /&gt;
+ *     &lt;op:column field="order.totalPrice" /&gt;
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ *
+ * <h4>OneToMany</h4>
+ * <p>
+ * Given a <code>Order</code> with <code>&#64;OneToMany List&lt;Product&gt; products;</code>
+ * <pre>
+ * &lt;op:dataTable id="ordersTable" value="#{shop.orders}"&gt;
+ *     &lt;op:column field="id" /&gt;
+ *     &lt;op:column field="buyer" /&gt;
+ *     &lt;op:column field="totalPrice" /&gt;
+ *     &lt;op:column field="products.name" /&gt;
+ *     &lt;op:column field="products.price" /&gt;
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ *
+ * <h4>ElementCollection</h4>
+ * <p>
+ * Given a <code>Product</code> with <code>&#64;ElementCollection List&lt;Tag&gt; tags;</code>
+ * <pre>
+ * &lt;op:dataTable id="productsTable" value="#{shop.products}"&gt;
+ *     &lt;op:column field="id" /&gt;
+ *     &lt;op:column field="name" /&gt;
+ *     &lt;op:column field="price" /&gt;
+ *     &lt;op:column field="tags" sortable="false" /&gt;
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ * <p>
+ * Note: the <code>&#64;ElementCollection</code> has currently one limitation, sorting is not supported in lazy models
+ * due to the task not being trivial in JPQL (for now). It's only supported in non-lazy models.
+ *
+ * <h4>DTO</h4>
+ * <p>
+ * DTO subclasses of entities are also supported by providing an additional <code>Class&lt;DTO&gt; resultType</code>
+ * argument to one of the protected {@link BaseEntityService#getPage(Page, boolean)} methods.
+ * <pre>
+ * public class YourEntityDTO extends YourEntity {
+ *
+ *     private BigDecimal totalPrice;
+ *
+ *     public YourEntityDTO(Long id, String name, BigDecimal totalPrice) {
+ *         setId(id);
+ *         setName(name);
+ *         this.totalPrice = totalPrice;
+ *     }
+ *
+ *     public BigDecimal getTotalPrice() {
+ *         return totalPrice;
+ *     }
+ *
+ * }
+ * </pre>
+ * <pre>
+ * &#64;Stateless
+ * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
+ *
+ *     public void getPageOfYourEntityDTO(Page page, boolean count) {
+ *         return getPage(page, count, YourEntityDTO.class (criteriaBuilder, query, root) -&gt; {
+ *             Join&lt;YourEntityDTO, YourChildEntity&gt; child = root.join("child");
+ *
+ *             LinkedHashMap&lt;Getter&lt;YourEntityDTO&gt;, Expression&lt;?&gt;&gt; mapping = new LinkedHashMap&lt;&gt;();
+ *             mapping.put(YourEntityDTO::getId, root.get("id"));
+ *             mapping.put(YourEntityDTO::getName, root.get("name"));
+ *             mapping.put(YourEntityDTO::getTotalPrice, builder.sum(child.get("price")));
+ *
+ *             return mapping;
+ *         });
+ *     }
+ *
+ * }
+ * </pre>
+ * Note that you must return a {@link LinkedHashMap} with {@link Getter} as key and {@link Expression} as value and
+ * that the mapping must be in exactly the same order as constructor arguments of your DTO.
  *
  *
  * <h3 id="criteria-backend"><a href="#criteria-backend">Providing specific criteria in backend</a></h3>
@@ -291,6 +385,12 @@ import org.primefaces.model.Visibility;
  * visible columns, or to export all columns including invisible (but not non-rendered) columns.
  * <pre>
  * &lt;op:dataTable ... exportable="true"&gt;
+ * </pre>
+ * <p>
+ * Any field property which represents a plural (i.e. when it ends with <code>s</code>) will automatically be wrapped
+ * in an <code>&lt;ui:repeat&gt;</code>. You can always explicitly toggle this via <code>iterable</code> attribute.
+ * <pre>
+ * &lt;op:column ... iterable="true" /&gt;
  * </pre>
  *
  *

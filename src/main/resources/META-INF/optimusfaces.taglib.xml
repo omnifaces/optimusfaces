@@ -38,6 +38,42 @@
 			<required>true</required>
 			<type>org.omnifaces.optimusfaces.model.PagedDataModel</type>
 		</attribute>
+		<attribute>
+			<description>Whether the table is sortable. Defaults to true. This can be overriden on a per-column basis when same attribute is also set in op:column.</description>
+			<name>sortable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description>Whether the table is filterable. Defaults to true. This can be overriden on a per-column basis when same attribute is also set in op:column.</description>
+			<name>filterable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description>Whether the table is paginable. Defaults to true. This will show a paginator in bottom of table.</description>
+			<name>paginable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description>Number of rows to display per page. Defaults to 10.</description>
+			<name>rows</name>
+			<required>false</required>
+			<type>java.lang.Integer</type>
+		</attribute>
+		<attribute>
+			<description>Whether the table is searchable. Defaults to false. This will show a global filter input field in top of table.</description>
+			<name>searchable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
+		<attribute>
+			<description>Whether the table is exportable. Defaults to false. This will show a column toggler and export button in top of table.</description>
+			<name>exportable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
 	</tag>
 
 	<tag>
@@ -69,7 +105,7 @@
 			<type>boolean</type>
 		</attribute>
 		<attribute>
-			<description>Whether to sort column descending on first click. Defaults to false. This is ignored when sortable=false.</description>
+			<description>Whether to sort column descending on first click. Defaults to false. This attribute is ignored when sortable=false.</description>
 			<name>sortDescending</name>
 			<required>false</required>
 			<type>boolean</type>
@@ -81,16 +117,22 @@
 			<type>boolean</type>
 		</attribute>
 		<attribute>
-			<description>The filter mode of the field. Supported values are "contains", "startsWith", "endsWith", "exact", "none". Defaults to "contains" when filterOptions=null, else "exact". This is ignored when filterable=false.</description>
+			<description>The filter mode of the field. Supported values are "contains", "startsWith", "endsWith" and "exact". Defaults to "contains" when filterOptions=null, else "exact". Any unsupported value is interpreted as "exact". This attribute is ignored when filterable=false.</description>
 			<name>filterMode</name>
 			<required>false</required>
 			<type>java.lang.String</type>
 		</attribute>
 		<attribute>
-			<description>The filter options of the field. Supported values are Object[], Collection and Map. This is ignored when filterable=false.</description>
+			<description>The filter options of the field. Supported values are Object[], Collection and Map. This attribute is ignored when filterable=false.</description>
 			<name>filterOptions</name>
 			<required>false</required>
 			<type>java.lang.Object</type>
+		</attribute>
+		<attribute>
+			<description>Whether the value is iterable. Defaults to whether the field property represents a plural (i.e. whether it ends with "s").</description>
+			<name>iterable</name>
+			<required>false</required>
+			<type>boolean</type>
 		</attribute>
 	</tag>
 
