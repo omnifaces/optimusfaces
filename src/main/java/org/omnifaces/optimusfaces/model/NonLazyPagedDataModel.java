@@ -13,6 +13,7 @@
 package org.omnifaces.optimusfaces.model;
 
 import static java.lang.Math.min;
+import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static org.omnifaces.utils.Lang.isEmpty;
@@ -134,7 +135,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 		}
 
 		private boolean matches(E entity, Entry<List<Method>, Object> criteria) {
-			Object propertyValue = invokeMethods(entity, criteria.getKey());
+			Object propertyValue = invokeMethods(entity, criteria.getKey(), null, false);
 			Object criteriaValue = criteria.getValue();
 
 			if (propertyValue instanceof Collection && !(criteriaValue instanceof Constraint)) {
@@ -169,15 +170,19 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			this.ordering = ordering;
 		}
 
+		public BeanPropertyComparator(BeanPropertyComparator parent, Map<List<Method>, Boolean> remainingOrdering) {
+			this.locale = parent.locale;
+			this.collator = parent.collator;
+	        this.caseSensitive = parent.caseSensitive;
+	        this.nullsLast = parent.nullsLast;
+			this.ordering = remainingOrdering;
+		}
+
 		@Override
 		public int compare(E left, E right) {
 			for (Entry<List<Method>, Boolean> getter : ordering.entrySet()) {
-				Object leftProperty = left != null ? invokeMethods(left, getter.getKey()) : null;
-				Object rightProperty = right != null ? invokeMethods(right, getter.getKey()) : null;
-
-				sortOneToManyIfNecessary(leftProperty, getter.getValue());
-				sortOneToManyIfNecessary(rightProperty, getter.getValue());
-
+				Object leftProperty = left != null ? invokeMethods(left, getter.getKey(), this, getter.getValue()) : null;
+				Object rightProperty = right != null ? invokeMethods(right, getter.getKey(), this, getter.getValue()) : null;
 				int result = compareProperties(leftProperty, rightProperty) * (getter.getValue() ? 1 : -1);
 
 				if (result != 0) {
@@ -186,13 +191,6 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			}
 
 			return 0;
-		}
-
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		private void sortOneToManyIfNecessary(Object property, boolean ascending) {
-			if (property instanceof List && ((List<?>) property).size() > 1) {
-				((List) property).sort(ascending ? Comparator.naturalOrder() : Comparator.reverseOrder());
-			}
 		}
 
 		@SuppressWarnings("unchecked")
@@ -265,13 +263,19 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 		}
 	}
 
-	private static Object invokeMethods(Object instance, List<Method> methods) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private Object invokeMethods(Object instance, List<Method> methods, BeanPropertyComparator comparator, boolean ascending) {
 		Object result = instance;
 
 		for (int i = 0; i < methods.size(); i++) {
-			if (result instanceof Collection) {
+			if (result instanceof List) {
 				List<Method> remainingMethods = methods.subList(i, methods.size());
-				return stream(result).map(item -> invokeMethods(item, remainingMethods)).collect(toList());
+
+				if (comparator != null && ((List<?>) result).size() > 1) {
+					((List) result).sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, ascending)));
+				}
+
+				return stream(result).map(item -> invokeMethods(item, remainingMethods, comparator, ascending)).collect(toList());
 			}
 			else {
 				result = invokeMethod(result, methods.get(i));
