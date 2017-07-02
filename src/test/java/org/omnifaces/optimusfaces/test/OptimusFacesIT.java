@@ -719,33 +719,41 @@ public class OptimusFacesIT {
 		guardAjax(criteriaGroupUSER).click();
 		int rowCount1 = getRowCount();
 		assertTrue("rowcount is less than total", rowCount1 < TOTAL_RECORDS);
+		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupMANAGER).click();
 		int rowCount2 = getRowCount();
 		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
+		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupADMINISTRATOR).click();
 		int rowCount3 = getRowCount();
 		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
+		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupDEVELOPER).click();
 		int rowCount4 = getRowCount();
 		assertTrue("rowcount is less than previous", rowCount4 < rowCount3);
+		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupUSER).click(); // Uncheck
 		int rowCount5 = getRowCount();
 		assertTrue("rowcount is more than previous", rowCount5 > rowCount4);
+		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupMANAGER).click(); // Uncheck
 		int rowCount6 = getRowCount();
 		assertTrue("rowcount is more than previous", rowCount6 > rowCount5);
+		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupADMINISTRATOR).click(); // Uncheck
 		int rowCount7 = getRowCount();
 		assertTrue("rowcount is more than previous", rowCount7 > rowCount6);
+		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupDEVELOPER).click(); // Uncheck
 		assertPaginatorState(1, TOTAL_RECORDS);
+		assertNoCartesianProduct();
 	}
 
 
@@ -833,22 +841,9 @@ public class OptimusFacesIT {
 	}
 
 	private void assertNoCartesianProduct() {
-		String initialActiveColumnId = activeColumn.getAttribute("id");
-		boolean initialSortedAscending = isSortedAscending(activeColumn);
-
-		guardAjax(idColumn).click();
-		assertSortedState(idColumn, isSortedAscending(idColumn));
-		guardAjax(idColumn).click();
-		assertSortedState(idColumn, isSortedAscending(idColumn));
-
-		if (!initialActiveColumnId.endsWith(":id")) {
-			WebElement initialActiveColumn = browser.findElement(By.id(initialActiveColumnId));
-			guardAjax(initialActiveColumn).click();
-		}
-
-		if (isSortedAscending(activeColumn) != initialSortedAscending) {
-			guardAjax(activeColumn).click();
-		}
+		List<Integer> actualIds = getCells(idColumn).stream().map(WebElement::getText).map(Integer::valueOf).sorted().collect(toList());
+		List<Integer> expectedIds = actualIds.stream().distinct().collect(toList());
+		assertEquals("No cartesian product", expectedIds, actualIds);
 	}
 
 }
