@@ -578,6 +578,8 @@ public class OptimusFacesIT {
 	}
 
 	protected void testOneToOne() {
+		assertNoCartesianProduct();
+
 		guardAjax(address_houseNumberColumn).click();
 		assertSortedState(address_houseNumberColumn, true);
 
@@ -613,43 +615,56 @@ public class OptimusFacesIT {
 	}
 
 	protected void testDTO() {
+		assertNoCartesianProduct();
+
 		guardAjax(addressStringColumn).click();
 		assertSortedState(addressStringColumn, true);
+		assertNoCartesianProduct();
 
 		guardAjax(addressStringColumnFilter).sendKeys("11");
 		assertPaginatorState(1, 11);
 		assertFilteredState(addressStringColumnFilter, "11");
+		assertNoCartesianProduct();
 
 		guardAjax(totalPhonesColumn).click();
 		assertPaginatorState(1, 11);
 		assertSortedState(totalPhonesColumn, true);
+		assertNoCartesianProduct();
 
 		addressStringColumnFilter.clear();
 		guardAjax(addressStringColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
 		assertSortedState(totalPhonesColumn, true);
+		assertNoCartesianProduct();
 
 		guardAjax(totalPhonesColumnFilter).sendKeys("3");
 		assertFilteredState(totalPhonesColumnFilter, "3");
+		assertNoCartesianProduct();
 	}
 
 	protected void testOneToMany() {
+		assertNoCartesianProduct();
+
 		guardAjax(phones_numberColumn).click();
 		assertSortedState(phones_numberColumn, true);
+		assertNoCartesianProduct();
 
 		guardAjax(phones_numberColumnFilter).sendKeys("11");
 		assertFilteredState(phones_numberColumnFilter, "11");
+		assertNoCartesianProduct();
 		int rowCount1 = getRowCount();
 		assertTrue("rowcount is less than total", rowCount1 < TOTAL_RECORDS);
 
 		guardAjax(phones_numberColumn).click();
 		assertSortedState(phones_numberColumn, false);
+		assertNoCartesianProduct();
 		int rowCount2 = getRowCount();
 		assertEquals("rowcount is still the same", rowCount1, rowCount2);
 
 		guardAjax(emailColumnFilter).sendKeys("1");
 		assertFilteredState(emailColumnFilter, "1");
 		assertFilteredState(phones_numberColumnFilter, "11");
+		assertNoCartesianProduct();
 		int rowCount3 = getRowCount();
 		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
 
@@ -657,14 +672,17 @@ public class OptimusFacesIT {
 		guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, 119);
 		assertSortedState(phones_numberColumn, false);
+		assertNoCartesianProduct();
 
 		guardAjax(phones_numberColumn).click();
 		assertSortedState(phones_numberColumn, true);
+		assertNoCartesianProduct();
 
 		emailColumnFilter.clear();
 		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
 		assertSortedState(phones_numberColumn, true);
+		assertNoCartesianProduct();
 	}
 
 
@@ -696,37 +714,36 @@ public class OptimusFacesIT {
 		assertEquals("order query string", ("id".equals(field) && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
 
 		List<WebElement> cells = getCells(column);
+		List<String> actualValues = cells.stream().map(this::sortOneToManyIfNecessary).collect(toList());
+		List<String> expectedValues;
 
 		if ("id".equals(field)) {
-			int currentPage = Integer.parseInt(pageCurrent.getText());
-			int offset = (currentPage - 1) * ROWS_PER_PAGE;
-
-			for (int i = 0; i < rows.size(); i++) {
-				int id = ascending ? (1 + offset + i) : (TOTAL_RECORDS - offset - i);
-				assertEquals("idCell contents of row " + (i + 1), String.valueOf(id), cells.get(i).getText());
-			}
+			expectedValues = actualValues.stream().map(Integer::valueOf).sorted(ascending ? naturalOrder() : reverseOrder()).distinct().map(String::valueOf).collect(toList());
 		}
 		else {
-			List<String> actualValues = cells.stream().map(this::sortOneToManyIfNecessary).collect(toList());
-			List<String> expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
+			expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
 
 			if (!expectedValues.equals(actualValues)) {
 				expectedValues.sort(Collator.getInstance(Locale.ENGLISH)); // TODO: find a better way. Problem is, lazy model sorts by H2 collation and non-lazy model sorts by Java collation, however they don't agree on each other (e.g. @ before 0).
 			}
-
-			assertEquals(field + " ordering", expectedValues, actualValues);
 		}
+
+		assertEquals(field + " ordering", expectedValues, actualValues);
 	}
 
 	private String sortOneToManyIfNecessary(WebElement cell) {
 		String text = cell.getText();
 
 		if (text.startsWith("[") && text.endsWith("]")) {
-			Comparator<String> comparator = "ascending".equals(activeColumn.getAttribute("aria-sort")) ? naturalOrder() : reverseOrder();
+			Comparator<String> comparator = isSortedAscending(activeColumn) ? naturalOrder() : reverseOrder();
 			text = stream(text.substring(1, text.length() - 1).split(", ")).sorted(comparator).collect(toList()).toString();
 		}
 
 		return text;
+	}
+
+	private static boolean isSortedAscending(WebElement column) {
+		return "ascending".equals(column.getAttribute("aria-sort"));
 	}
 
 	protected void assertFilteredState(WebElement filter, String filterValue) {
@@ -751,6 +768,23 @@ public class OptimusFacesIT {
 	private List<WebElement> getCells(WebElement column) {
 		int columnIndex = column.findElement(By.xpath("..")).findElements(By.tagName("th")).stream().map(WebElement::getText).collect(toList()).indexOf(column.getText()); // Awkward.
 		return browser.findElements(By.cssSelector("#form\\:table_data td:nth-child(" + (columnIndex + 1) + ")"));
+	}
+
+	private void assertNoCartesianProduct() {
+		String initialActiveColumnId = activeColumn.getAttribute("id");
+		boolean initialSortedAscending = isSortedAscending(activeColumn);
+
+		guardAjax(idColumn).click();
+		assertSortedState(idColumn, isSortedAscending(idColumn));
+		guardAjax(idColumn).click();
+		assertSortedState(idColumn, isSortedAscending(idColumn));
+
+		WebElement initialActiveColumn = browser.findElement(By.id(initialActiveColumnId));
+		guardAjax(initialActiveColumn).click();
+
+		if (isSortedAscending(initialActiveColumn) != initialSortedAscending) {
+			guardAjax(initialActiveColumn).click();
+		}
 	}
 
 }
