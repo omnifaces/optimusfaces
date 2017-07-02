@@ -30,12 +30,13 @@
 	<o:tagAttribute name="field" />
 		<o:tagAttribute name="id" default="#{field.replace(46,95)}" /> <!-- Replaces '.' by '_'. Note that fn:replace is insuitable as it uses regex in Oracle JSTL but not in Apache JSTL, and that using chars instead of codepoints causes Oracle EL not being able to resolve the ambiguous method (char vs string). -->
 		<o:tagAttribute name="head" default="#{field}" />
-		<o:tagAttribute name="value" default="#{requestScope[dataTable.var][field]}" />
+		<o:tagAttribute name="value" default="#{item[field]}" />
 		<o:tagAttribute name="tooltip" />
 		<o:tagAttribute name="styleClass" />
 		<o:tagAttribute name="rendered" default="#{true}" />
 		<o:tagAttribute name="visible" default="#{true}" />
 		<o:tagAttribute name="width" />
+		<o:tagAttribute name="iterable" default="#{field.endsWith('s') or field.contains('s.')}" />
 
 	<o:tagAttribute name="sortable" default="#{dataTable.attributes.sortable}" />
 		<o:tagAttribute name="sortDescending" default="#{false}" />
@@ -62,7 +63,12 @@
 		<h:outputText rendered="#{exporting}" value="#{exportValue}" />
 
 		<ui:fragment rendered="#{not exporting}">
-			<span title="#{tooltip}"><ui:insert name="cell">#{value}</ui:insert></span>
+			<span title="#{tooltip}">
+				<ui:insert name="cell">
+					<ui:fragment rendered="#{not iterable}">#{value}</ui:fragment>
+					<ui:repeat rendered="#{iterable}" value="#{value}" var="_value">#{_value}<br/></ui:repeat>
+				</ui:insert>
+			</span>
 		</ui:fragment>
 	</p:column>
 </ui:composition>
