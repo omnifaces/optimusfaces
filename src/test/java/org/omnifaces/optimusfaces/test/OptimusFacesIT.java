@@ -414,6 +414,12 @@ public class OptimusFacesIT {
 		testElementCollection();
 	}
 
+	@Test
+	public void testNonLazyWithElementCollection() {
+		open("NonLazyWithElementCollection", null);
+		testElementCollection();
+	}
+
 
 	// Testers --------------------------------------------------------------------------------------------------------
 

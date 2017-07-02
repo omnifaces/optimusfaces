@@ -12,8 +12,6 @@
  */
 package org.omnifaces.optimusfaces.test.service;
 
-import static org.omnifaces.optimusfaces.test.model.Gender.FEMALE;
-
 import java.util.LinkedHashMap;
 
 import javax.ejb.Stateless;
@@ -31,12 +29,6 @@ import org.omnifaces.utils.reflect.Getter;
 
 @Stateless
 public class PersonService extends BaseEntityService<Long, Person> {
-
-	public PartialResultList<Person> getPageOfFemales(Page page, boolean count) {
-		return getPage(page, count, (builder, query, person) -> {
-			query.where(builder.equal(person.get("gender"), FEMALE));
-		});
-	}
 
 	public PartialResultList<Person> getPageWithAddress(Page page, boolean count) {
 		return getPage(page, count, (builder, query, person) -> {
@@ -77,6 +69,12 @@ public class PersonService extends BaseEntityService<Long, Person> {
 
 	public PartialResultList<Person> getAllWithPhones() {
 		return getPageWithPhones(Page.ALL, false);
+	}
+
+	public PartialResultList<Person> getAllWithGroups() {
+		return getPage(Page.ALL, false, (builder, query, person) -> {
+			person.fetch("groups");
+		});
 	}
 
 	public PartialResultList<PersonCard> getAllPersonCards() {

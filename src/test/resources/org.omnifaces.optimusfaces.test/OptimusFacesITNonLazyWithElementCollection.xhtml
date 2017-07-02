@@ -23,26 +23,26 @@
 	xmlns:op="http://omnifaces.org/optimusfaces"
 >
 	<h:head>
-		<title>OptimusFacesIT - lazy with element collection</title>
+		<title>OptimusFacesIT - non-lazy with element collection</title>
 	</h:head>
 
 	<h:body>
 		<o:importConstants type="org.omnifaces.optimusfaces.test.model.Group" />
 
 		<o:form id="form" useRequestURI="true">
-			<op:dataTable id="table" value="#{optimusFacesITLazyWithElementCollectionBean.lazyGroupies}">
+			<op:dataTable id="table" value="#{optimusFacesITNonLazyWithElementCollectionBean.nonLazyGroupies}">
 				<op:column field="id" />
 				<op:column field="email" />
 				<op:column field="gender" />
 				<op:column field="groups" sortable="false" filterable="false" /> <!-- TODO: support sorting as well. -->
 			</op:dataTable>
 
-			<h:selectManyCheckbox id="groups" value="#{optimusFacesITLazyWithElementCollectionBean.selectedGroups}" converter="omnifaces.GenericEnumConverter">
+			<h:selectManyCheckbox id="groups" value="#{optimusFacesITNonLazyWithElementCollectionBean.selectedGroups}" converter="omnifaces.GenericEnumConverter">
 				<f:selectItems value="#{Group}" />
 				<f:ajax render="table :rowCount" />
 			</h:selectManyCheckbox>
 		</o:form>
 
-		<h:outputText id="rowCount" value="#{optimusFacesITLazyWithElementCollectionBean.lazyGroupies.rowCount}" styleClass="updateOnDataTableFilter" />
+		<h:outputText id="rowCount" value="#{optimusFacesITNonLazyWithElementCollectionBean.nonLazyGroupies.rowCount}" styleClass="updateOnDataTableFilter" />
 	</h:body>
 </html>
