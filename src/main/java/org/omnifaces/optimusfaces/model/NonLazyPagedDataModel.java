@@ -137,7 +137,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			Object propertyValue = invokeMethods(entity, criteria.getKey());
 			Object criteriaValue = criteria.getValue();
 
-			if (propertyValue instanceof Collection) {
+			if (propertyValue instanceof Collection && !(criteriaValue instanceof Constraint)) {
 				return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
 			}
 			else {
