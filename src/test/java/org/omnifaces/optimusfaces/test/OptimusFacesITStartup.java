@@ -15,6 +15,9 @@ package org.omnifaces.optimusfaces.test;
 import static java.lang.Math.abs;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.annotation.PostConstruct;
@@ -24,6 +27,7 @@ import javax.inject.Inject;
 import org.omnifaces.cdi.Eager;
 import org.omnifaces.optimusfaces.test.model.Address;
 import org.omnifaces.optimusfaces.test.model.Gender;
+import org.omnifaces.optimusfaces.test.model.Group;
 import org.omnifaces.optimusfaces.test.model.Person;
 import org.omnifaces.optimusfaces.test.model.Phone;
 import org.omnifaces.optimusfaces.test.service.PersonService;
@@ -46,6 +50,7 @@ public class OptimusFacesITStartup {
 	private void createTestPersons() {
 		Gender[] genders = Gender.values();
 		Phone.Type[] phoneTypes = Phone.Type.values();
+		List<Group> groups = Arrays.asList(Group.values());
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 
 		for (int i = 0; i < TOTAL_RECORDS; i++) {
@@ -69,6 +74,9 @@ public class OptimusFacesITStartup {
 				phone.setNumber("0" + abs(random.nextInt()));
 				person.getPhones().add(phone);
 			}
+
+			Collections.shuffle(groups, random);
+			person.getGroups().addAll(groups.subList(0, random.nextInt(1, groups.size() + 1)));
 
 			personService.save(person);
 		}

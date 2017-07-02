@@ -50,6 +50,12 @@ public class PersonService extends BaseEntityService<Long, Person> {
 		});
 	}
 
+	public PartialResultList<Person> getPageWithGroups(Page page, boolean count) {
+		PartialResultList<Person> persons = super.getPage(page, count);
+		persons.forEach(p -> fetchLazyCollections(p, Person::getGroups)); // TODO: support person.fetch("groups") in BaseEntityService.
+		return persons;
+	}
+
 	public PartialResultList<PersonCard> getPageOfPersonCards(Page page, boolean count) {
 		return getPage(page, count, PersonCard.class, (builder, query, person) -> {
 			Join<Person, Address> personAddress = person.join("address");

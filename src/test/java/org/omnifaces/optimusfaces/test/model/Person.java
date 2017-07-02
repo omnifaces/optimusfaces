@@ -18,8 +18,11 @@ import static javax.persistence.FetchType.LAZY;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.OneToMany;
@@ -42,6 +45,9 @@ public class Person extends BaseEntity<Long> {
 
 	@OneToMany(cascade=PERSIST)
 	private @NotNull List<Phone> phones = new ArrayList<>();
+
+	@ElementCollection
+	private @Enumerated(STRING) Set<Group> groups = new HashSet<>();
 
 	public String getEmail() {
 		return email;
@@ -79,8 +85,16 @@ public class Person extends BaseEntity<Long> {
 		return phones;
 	}
 
-	public void setTelephones(List<Phone> phones) {
+	public void setPhones(List<Phone> phones) {
 		this.phones = phones;
+	}
+
+	public Set<Group> getGroups() {
+		return groups;
+	}
+
+	public void setGroups(Set<Group> groups) {
+		this.groups = groups;
 	}
 
 }

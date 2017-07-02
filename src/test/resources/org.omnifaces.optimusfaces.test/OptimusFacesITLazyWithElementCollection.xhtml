@@ -1,0 +1,53 @@
+<!--
+
+    Copyright 2017 OmniFaces
+
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+    the License. You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+    specific language governing permissions and limitations under the License.
+
+-->
+<!DOCTYPE html>
+<html lang="en"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:o="http://omnifaces.org/ui"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:op="http://omnifaces.org/optimusfaces"
+>
+	<h:head>
+		<title>OptimusFacesIT - lazy with element collection</title>
+	</h:head>
+
+	<h:body>
+		<o:importConstants type="org.omnifaces.optimusfaces.test.model.Group" />
+
+		<o:form id="form" useRequestURI="true">
+			<op:dataTable id="table" value="#{optimusFacesITLazyWithElementCollectionBean.lazyGroupies}">
+				<op:column field="id" />
+				<op:column field="email" />
+				<op:column field="gender" />
+				<op:column field="groups" sortable="false" filterable="false" /> <!-- TODO: support sorting as well. -->
+			</op:dataTable>
+
+			<h:selectManyCheckbox id="groups" value="#{optimusFacesITLazyWithElementCollectionBean.selectedGroups}" converter="omnifaces.GenericEnumConverter">
+				<f:selectItems value="#{Group}" />
+				<f:ajax render="table :rowCount" />
+			</h:selectManyCheckbox>
+		</o:form>
+
+		<h:outputText id="rowCount" value="#{optimusFacesITLazyWithElementCollectionBean.lazyGroupies.rowCount}" styleClass="updateOnDataTableFilter" />
+		
+		<script>
+	    window.onerror=function(msg){
+	        $("body").attr("JSError",msg);
+	    }</script>
+	</h:body>
+</html>

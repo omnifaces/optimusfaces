@@ -194,6 +194,9 @@ public class OptimusFacesIT {
 	@FindBy(id="form:table:phones_number")
 	private WebElement phones_numberColumn;
 
+	@FindBy(id="form:table:groups")
+	private WebElement groupsColumn;
+
 	@FindBy(css="#form\\:table th.ui-state-active")
 	private WebElement activeColumn;
 
@@ -259,6 +262,18 @@ public class OptimusFacesIT {
 
 	@FindBy(id="form:criteria:3")
 	private WebElement criteriaDateOfBirthBefore1950;
+
+	@FindBy(id="form:groups:0")
+	private WebElement criteriaGroupUSER;
+
+	@FindBy(id="form:groups:1")
+	private WebElement criteriaGroupMANAGER;
+
+	@FindBy(id="form:groups:2")
+	private WebElement criteriaGroupADMINISTRATOR;
+
+	@FindBy(id="form:groups:3")
+	private WebElement criteriaGroupDEVELOPER;
 
 
 	// Tests ----------------------------------------------------------------------------------------------------------
@@ -391,6 +406,12 @@ public class OptimusFacesIT {
 	public void testNonLazyWithOneToMany() {
 		open("NonLazyWithOneToMany", null);
 		testOneToMany();
+	}
+
+	@Test
+	public void testLazyWithElementCollection() {
+		open("LazyWithElementCollection", null);
+		testElementCollection();
 	}
 
 
@@ -685,6 +706,42 @@ public class OptimusFacesIT {
 		assertNoCartesianProduct();
 	}
 
+	protected void testElementCollection() {
+		assertNoCartesianProduct();
+		assertPaginatorState(1, TOTAL_RECORDS);
+
+		guardAjax(criteriaGroupUSER).click();
+		int rowCount1 = getRowCount();
+		assertTrue("rowcount is less than total", rowCount1 < TOTAL_RECORDS);
+
+		guardAjax(criteriaGroupMANAGER).click();
+		int rowCount2 = getRowCount();
+		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
+
+		guardAjax(criteriaGroupADMINISTRATOR).click();
+		int rowCount3 = getRowCount();
+		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
+
+		guardAjax(criteriaGroupDEVELOPER).click();
+		int rowCount4 = getRowCount();
+		assertTrue("rowcount is less than previous", rowCount4 < rowCount3);
+
+		guardAjax(criteriaGroupUSER).click(); // Uncheck
+		int rowCount5 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount5 > rowCount4);
+
+		guardAjax(criteriaGroupMANAGER).click(); // Uncheck
+		int rowCount6 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount6 > rowCount5);
+
+		guardAjax(criteriaGroupADMINISTRATOR).click(); // Uncheck
+		int rowCount7 = getRowCount();
+		assertTrue("rowcount is more than previous", rowCount7 > rowCount6);
+
+		guardAjax(criteriaGroupDEVELOPER).click(); // Uncheck
+		assertPaginatorState(1, TOTAL_RECORDS);
+	}
+
 
 	// Assertions -----------------------------------------------------------------------------------------------------
 
@@ -707,10 +764,9 @@ public class OptimusFacesIT {
 
 	protected void assertSortedState(WebElement column, boolean ascending) {
 		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
-		String direction = ascending ? "ascending" : "descending";
 
-		assertTrue(field + "Column must be active", activeColumn.getText().equals(field));
-		assertTrue(field + "Column must be sorted " + direction, activeColumn.getAttribute("aria-sort").equals(direction));
+		assertTrue(field + " column must be active", activeColumn.getText().equals(field));
+		assertEquals(field + " column must be sorted", ascending ? "ascending" : "descending", activeColumn.getAttribute("aria-sort"));
 		assertEquals("order query string", ("id".equals(field) && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
 
 		List<WebElement> cells = getCells(column);
@@ -779,11 +835,13 @@ public class OptimusFacesIT {
 		guardAjax(idColumn).click();
 		assertSortedState(idColumn, isSortedAscending(idColumn));
 
-		WebElement initialActiveColumn = browser.findElement(By.id(initialActiveColumnId));
-		guardAjax(initialActiveColumn).click();
-
-		if (isSortedAscending(initialActiveColumn) != initialSortedAscending) {
+		if (!initialActiveColumnId.endsWith(":id")) {
+			WebElement initialActiveColumn = browser.findElement(By.id(initialActiveColumnId));
 			guardAjax(initialActiveColumn).click();
+		}
+
+		if (isSortedAscending(activeColumn) != initialSortedAscending) {
+			guardAjax(activeColumn).click();
 		}
 	}
 
