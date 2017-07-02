@@ -15,6 +15,7 @@ package org.omnifaces.optimusfaces.model;
 import static java.lang.Math.min;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
+import static org.omnifaces.utils.Lang.isEmpty;
 import static org.omnifaces.utils.reflect.Reflections.invokeMethod;
 import static org.omnifaces.utils.stream.Streams.stream;
 
@@ -134,12 +135,18 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 		private boolean matches(E entity, Entry<List<Method>, Object> criteria) {
 			Object propertyValue = invokeMethods(entity, criteria.getKey());
+			Object criteriaValue = criteria.getValue();
 
-			return stream(criteria.getValue()).anyMatch(criteriaValue -> {
-				return (criteriaValue instanceof Constraint && ((Constraint<?>) criteriaValue).applies(propertyValue))
-					|| (Objects.equals(propertyValue, criteriaValue))
-					|| (Objects.equals(lower(propertyValue, locale), lower(criteriaValue, locale)));
-			});
+			if (propertyValue instanceof Collection) {
+				return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
+			}
+			else {
+				return stream(criteriaValue).anyMatch(value -> {
+					return (value instanceof Constraint && ((Constraint<?>) value).applies(propertyValue))
+							|| (Objects.equals(propertyValue, value))
+							|| (Objects.equals(lower(propertyValue, locale), lower(value, locale)));
+				});
+			}
 		}
 	}
 
