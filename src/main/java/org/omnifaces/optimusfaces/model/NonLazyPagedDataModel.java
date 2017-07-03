@@ -271,7 +271,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			if (result instanceof List) {
 				List<Method> remainingMethods = methods.subList(i, methods.size());
 
-				if (comparator != null && ((List<?>) result).size() > 1) {
+				if (!remainingMethods.isEmpty() && comparator != null && ((List<?>) result).size() > 1) {
 					((List) result).sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, ascending)));
 				}
 

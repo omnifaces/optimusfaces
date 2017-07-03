@@ -600,7 +600,8 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <p>
  * Note that you can't show the selection in a <code>&lt;op:dataTable&gt;</code> as the selection returns a {@link List}
- * not a {@link PagedDataModel}. You can however keep using <code>&lt;op:column&gt;</code> the usual way as shown above.
+ * not a {@link PagedDataModel}. You can however keep using <code>&lt;op:column&gt;</code> the usual way as long as you
+ * use <code>var="item"</code> as shown above.
  *
  *
  * <h3 id="ajax-events"><a href="#ajax-events">Ajax events</a></h3>
