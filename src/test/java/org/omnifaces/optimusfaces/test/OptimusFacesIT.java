@@ -16,6 +16,7 @@ import static java.lang.Math.min;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jboss.arquillian.graphene.Graphene.guardAjax;
 import static org.jboss.arquillian.graphene.Graphene.waitGui;
@@ -34,7 +35,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.junit.Arquillian;
@@ -361,18 +361,6 @@ public class OptimusFacesIT {
 	}
 
 	@Test
-	public void testLazyWithOneToOne() {
-		open("LazyWithOneToOne", null);
-		testOneToOne();
-	}
-
-	@Test
-	public void testNonLazyWithOneToOne() {
-		open("NonLazyWithOneToOne", null);
-		testOneToOne();
-	}
-
-	@Test
 	public void testLazyWithFilterOptions() {
 		open("LazyWithFilterOptions", null);
 		testFilterOptions();
@@ -394,6 +382,18 @@ public class OptimusFacesIT {
 	public void testNonLazyWithDTO() {
 		open("NonLazyWithDTO", null);
 		testDTO();
+	}
+
+	@Test
+	public void testLazyWithOneToOne() {
+		open("LazyWithOneToOne", null);
+		testOneToOne();
+	}
+
+	@Test
+	public void testNonLazyWithOneToOne() {
+		open("NonLazyWithOneToOne", null);
+		testOneToOne();
 	}
 
 	@Test
@@ -517,7 +517,7 @@ public class OptimusFacesIT {
 
 		guardAjax(emailColumnFilter).sendKeys("1");
 		int totalRecords2 = getRowCount();
-		assertTrue(totalRecords2 + " is less than " + totalRecords1, totalRecords2 < totalRecords1);
+		assertTrue(totalRecords2 + " must be less than " + totalRecords1, totalRecords2 < totalRecords1);
 		assertPaginatorState(1);
 		assertFilteredState(emailColumnFilter, "1");
 		assertFilteredState(genderColumnFilter, "FEMALE");
@@ -576,56 +576,32 @@ public class OptimusFacesIT {
 
 		guardAjax(criteriaEmailLikeName1).click();
 		int rowCount1 = getRowCount();
-		assertTrue("rowcount is less than 101", rowCount1 < 101);
+		assertTrue(rowCount1 + " must be less than 101", rowCount1 < 101);
 		assertFilteredState(emailColumnFilter, "name1", true);
 
 		guardAjax(criteriaGenderIsFemale).click();
 		int rowCount2 = getRowCount();
-		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
+		assertTrue(rowCount2 + " must be less than " + rowCount1, rowCount2 < rowCount1);
 		assertFilteredState(genderColumnFilter, "FEMALE", true);
 
 		guardAjax(criteriaDateOfBirthBefore1950).click();
 		int rowCount3 = getRowCount();
-		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
+		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
 
 		guardAjax(criteriaIdBetween50And150).click(); // Uncheck
 		int rowCount4 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount4 > rowCount3);
+		assertTrue(rowCount4 + " must be more than " + rowCount3, rowCount4 > rowCount3);
 
 		guardAjax(criteriaEmailLikeName1).click(); // Uncheck
 		int rowCount5 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount5 > rowCount4);
+		assertTrue(rowCount5 + " must be more than " + rowCount4, rowCount5 > rowCount4);
 
 		guardAjax(criteriaGenderIsFemale).click(); // Uncheck
 		int rowCount6 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount6 > rowCount5);
+		assertTrue(rowCount6 + " must be more than " + rowCount5, rowCount6 > rowCount5);
 
 		guardAjax(criteriaDateOfBirthBefore1950).click(); // Uncheck
 		assertPaginatorState(1, TOTAL_RECORDS);
-	}
-
-	protected void testOneToOne() {
-		assertNoCartesianProduct();
-
-		guardAjax(address_houseNumberColumn).click();
-		assertSortedState(address_houseNumberColumn, true);
-
-		guardAjax(address_houseNumberColumnFilter).sendKeys("11");
-		assertPaginatorState(1, 11);
-		assertFilteredState(address_houseNumberColumnFilter, "11");
-
-		guardAjax(address_stringColumn).click();
-		assertPaginatorState(1, 11);
-		assertSortedState(address_stringColumn, true);
-
-		address_houseNumberColumnFilter.clear();
-		guardAjax(address_houseNumberColumnFilter).sendKeys(Keys.TAB);
-		assertPaginatorState(1, TOTAL_RECORDS);
-		assertSortedState(address_stringColumn, true);
-
-		guardAjax(address_stringColumnFilter).sendKeys("11");
-		assertPaginatorState(1, 11);
-		assertFilteredState(address_stringColumnFilter, "11");
 	}
 
 	protected void testFilterOptions() {
@@ -669,6 +645,35 @@ public class OptimusFacesIT {
 		assertNoCartesianProduct();
 	}
 
+	protected void testOneToOne() {
+		assertNoCartesianProduct();
+
+		guardAjax(address_houseNumberColumn).click();
+		assertSortedState(address_houseNumberColumn, true);
+		assertNoCartesianProduct();
+
+		guardAjax(address_houseNumberColumnFilter).sendKeys("11");
+		assertPaginatorState(1, 11);
+		assertFilteredState(address_houseNumberColumnFilter, "11");
+		assertNoCartesianProduct();
+
+		guardAjax(address_stringColumn).click();
+		assertPaginatorState(1, 11);
+		assertSortedState(address_stringColumn, true);
+		assertNoCartesianProduct();
+
+		address_houseNumberColumnFilter.clear();
+		guardAjax(address_houseNumberColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, TOTAL_RECORDS);
+		assertSortedState(address_stringColumn, true);
+		assertNoCartesianProduct();
+
+		guardAjax(address_stringColumnFilter).sendKeys("11");
+		assertPaginatorState(1, 11);
+		assertFilteredState(address_stringColumnFilter, "11");
+		assertNoCartesianProduct();
+	}
+
 	protected void testOneToMany() {
 		assertNoCartesianProduct();
 
@@ -680,7 +685,7 @@ public class OptimusFacesIT {
 		assertFilteredState(phones_numberColumnFilter, "11");
 		assertNoCartesianProduct();
 		int rowCount1 = getRowCount();
-		assertTrue("rowcount is less than total", rowCount1 < TOTAL_RECORDS);
+		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 
 		guardAjax(phones_numberColumn).click();
 		assertSortedState(phones_numberColumn, false);
@@ -693,7 +698,7 @@ public class OptimusFacesIT {
 		assertFilteredState(phones_numberColumnFilter, "11");
 		assertNoCartesianProduct();
 		int rowCount3 = getRowCount();
-		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
+		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
 
 		phones_numberColumnFilter.clear();
 		guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
@@ -718,37 +723,37 @@ public class OptimusFacesIT {
 
 		guardAjax(criteriaGroupUSER).click();
 		int rowCount1 = getRowCount();
-		assertTrue("rowcount is less than total", rowCount1 < TOTAL_RECORDS);
+		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupMANAGER).click();
 		int rowCount2 = getRowCount();
-		assertTrue("rowcount is less than previous", rowCount2 < rowCount1);
+		assertTrue(rowCount2 + " must be less than " + rowCount1, rowCount2 < rowCount1);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupADMINISTRATOR).click();
 		int rowCount3 = getRowCount();
-		assertTrue("rowcount is less than previous", rowCount3 < rowCount2);
+		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupDEVELOPER).click();
 		int rowCount4 = getRowCount();
-		assertTrue("rowcount is less than previous", rowCount4 < rowCount3);
+		assertTrue(rowCount4 + " must be less than " + rowCount3, rowCount4 < rowCount3);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupUSER).click(); // Uncheck
 		int rowCount5 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount5 > rowCount4);
+		assertTrue(rowCount5 + " must be more than " + rowCount4, rowCount5 > rowCount4);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupMANAGER).click(); // Uncheck
 		int rowCount6 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount6 > rowCount5);
+		assertTrue(rowCount6 + " must be more than " + rowCount5, rowCount6 > rowCount5);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupADMINISTRATOR).click(); // Uncheck
 		int rowCount7 = getRowCount();
-		assertTrue("rowcount is more than previous", rowCount7 > rowCount6);
+		assertTrue(rowCount7 + " must be more than " + rowCount6, rowCount7 > rowCount6);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupDEVELOPER).click(); // Uncheck
@@ -784,11 +789,11 @@ public class OptimusFacesIT {
 		assertEquals("order query string", ("id".equals(field) && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
 
 		List<WebElement> cells = getCells(column);
-		List<String> actualValues = cells.stream().map(this::sortOneToManyIfNecessary).collect(toList());
+		List<String> actualValues = cells.stream().map(this::sortIterableIfNecessary).collect(toList());
 		List<String> expectedValues;
 
 		if ("id".equals(field)) {
-			expectedValues = actualValues.stream().map(Integer::valueOf).sorted(ascending ? naturalOrder() : reverseOrder()).distinct().map(String::valueOf).collect(toList());
+			expectedValues = actualValues.stream().map(Integer::valueOf).sorted(ascending ? naturalOrder() : reverseOrder()).map(String::valueOf).collect(toList());
 		}
 		else {
 			expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
@@ -801,12 +806,12 @@ public class OptimusFacesIT {
 		assertEquals(field + " ordering", expectedValues, actualValues);
 	}
 
-	private String sortOneToManyIfNecessary(WebElement cell) {
+	private String sortIterableIfNecessary(WebElement cell) {
 		String text = cell.getText();
 
-		if (text.startsWith("[") && text.endsWith("]")) {
+		if (text.contains("\n")) {
 			Comparator<String> comparator = isSortedAscending(activeColumn) ? naturalOrder() : reverseOrder();
-			text = stream(text.substring(1, text.length() - 1).split(", ")).sorted(comparator).collect(toList()).toString();
+			text = stream(text.split("\n")).sorted(comparator).collect(joining("\n"));
 		}
 
 		return text;
