@@ -38,7 +38,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import org.omnifaces.persistence.constraint.Constraint;
+import org.omnifaces.persistence.criteria.Criteria;
 import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
@@ -138,12 +138,12 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			Object propertyValue = invokeMethods(entity, criteria.getKey(), null, false);
 			Object criteriaValue = criteria.getValue();
 
-			if (propertyValue instanceof Collection && !(criteriaValue instanceof Constraint)) {
+			if (propertyValue instanceof Collection && !(criteriaValue instanceof Criteria)) {
 				return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
 			}
 			else {
 				return stream(criteriaValue).anyMatch(value -> {
-					return (value instanceof Constraint && ((Constraint<?>) value).applies(propertyValue))
+					return (value instanceof Criteria && ((Criteria<?>) value).applies(propertyValue))
 							|| (Objects.equals(propertyValue, value))
 							|| (Objects.equals(lower(propertyValue, locale), lower(value, locale)));
 				});

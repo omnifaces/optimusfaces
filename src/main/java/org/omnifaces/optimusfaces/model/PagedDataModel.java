@@ -21,6 +21,7 @@ import static org.primefaces.model.SortOrder.ASCENDING;
 import static org.primefaces.model.SortOrder.DESCENDING;
 
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,12 +37,19 @@ import javax.faces.model.SelectItem;
 import javax.persistence.ElementCollection;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 
-import org.omnifaces.persistence.constraint.Between;
-import org.omnifaces.persistence.constraint.Like;
-import org.omnifaces.persistence.constraint.Not;
-import org.omnifaces.persistence.constraint.Order;
+import org.omnifaces.persistence.criteria.Between;
+import org.omnifaces.persistence.criteria.Bool;
+import org.omnifaces.persistence.criteria.Criteria;
+import org.omnifaces.persistence.criteria.Criteria.ParameterBuilder;
+import org.omnifaces.persistence.criteria.Enumerated;
+import org.omnifaces.persistence.criteria.IgnoreCase;
+import org.omnifaces.persistence.criteria.Like;
+import org.omnifaces.persistence.criteria.Not;
+import org.omnifaces.persistence.criteria.Numeric;
+import org.omnifaces.persistence.criteria.Order;
 import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
@@ -312,9 +320,9 @@ import org.primefaces.model.Visibility;
  * }
  * </pre>
  * <p>
- * You can optionally wrap the value in {@link Like}, {@link Not}, {@link Between} or {@link Order} constraint. Note
+ * You can optionally wrap the value in {@link Like}, {@link Not}, {@link Between} or {@link Order} criteria. Note
  * that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you intend to search for
- * <code>IS NOT NULL</code>, use <code>Not(null)</code> constraint. Or in case you'd like to skip <code>IS NULL</code>,
+ * <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like to skip <code>IS NULL</code>,
  * then simply don't add a <code>null</code> value to the criteria.
  * <p>
  * Those <code>searchNameStartsWith</code>, <code>searchStartDate</code> and <code>searchTypes</code> in the above
@@ -919,7 +927,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		private PartialResultListLoader<E> loader;
 
 		private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
-		private Supplier<Map<Getter<?>, Object>> criteria;
+		private Supplier<Map<Getter<E>, Object>> criteria;
 
 		private Builder(List<E> allData) {
 			this.allData = allData;
@@ -933,25 +941,40 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 * <p>
 		 * Set the criteria supplier.
 		 * <p>
-		 * You can optionally wrap the value in {@link Like}, {@link Not}, {@link Between} or {@link Order} constraint.
+		 * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order},
+		 * {@link Enumerated}, {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
+		 * <p>
+		 * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
+		 * <ul>
+		 * <li>value = <code>null</code>, this will create IS NULL predicate.
+		 * <li>type = {@link Collection}, this will treat given value as enumerated and create an IN predicate.
+		 * <li>value = {@link Iterable} or {@link Array}, this will create an OR disjunction of multiple predicates.
+		 * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>value = {@link String}, this will delegate to {@link Like#contains()}.
+		 * </ul>
+		 * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value.
+		 * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked as first.
+		 * <p>
 		 * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you
-		 * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> constraint. Or in case you'd like
+		 * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like
 		 * to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
 		 * <p>
-		 * This can be set in this builder only once.
+		 * The criteria supplier can be set only once in this builder.
 		 *
 		 * @param criteria The criteria supplier.
 		 * @return This builder.
-		 * @throws IllegalStateException When this is already set in this builder.
+		 * @throws IllegalStateException When another criteria supplier is already set in this builder.
+		 * @see Criteria
 		 */
-		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public Builder<E> criteria(Supplier<Map<Getter<E>, Object>> criteria) {
 			if (this.criteria != null) {
 				throw new IllegalStateException("Criteria supplier is already set");
 			}
 
-			Supplier rawCriteria = criteria;
-			this.criteria = rawCriteria;
+			this.criteria = criteria;
 			return this;
 		}
 
@@ -977,14 +1000,16 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 *
 		 * @return The built paged data model.
 		 */
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public PagedDataModel<E> build() {
 			ordering.putIfAbsent(ID, false);
+			Supplier rawCriteria = criteria;
 
 			if (loader != null) {
-				return new LazyPagedDataModel<>(loader, ordering, criteria);
+				return new LazyPagedDataModel<>(loader, ordering, rawCriteria);
 			}
 			else if (allData != null) {
-				return new NonLazyPagedDataModel<>(allData, ordering, criteria);
+				return new NonLazyPagedDataModel<>(allData, ordering, rawCriteria);
 			}
 			else {
 				throw new IllegalStateException("You must provide non-null loader or allData.");

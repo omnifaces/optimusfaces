@@ -52,8 +52,8 @@ import javax.faces.context.FacesContext;
 
 import org.omnifaces.component.ParamHolder;
 import org.omnifaces.component.SimpleParam;
-import org.omnifaces.persistence.constraint.Constraint;
-import org.omnifaces.persistence.constraint.Like;
+import org.omnifaces.persistence.criteria.Criteria;
+import org.omnifaces.persistence.criteria.Like;
 import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
@@ -338,7 +338,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		}
 
 		filters.entrySet().stream()
-			.forEach(entry -> stream(normalizeCriteriaValue(stream(entry.getValue()).map(Constraint::unwrap)))
+			.forEach(entry -> stream(normalizeCriteriaValue(stream(entry.getValue()).map(Criteria::unwrap)))
 				.forEach(value -> params.add(new SimpleParam(queryParameterPrefix + entry.getKey(), value))));
 
 		if (selection != null) {

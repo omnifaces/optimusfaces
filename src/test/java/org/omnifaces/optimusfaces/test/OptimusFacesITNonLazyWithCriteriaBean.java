@@ -32,9 +32,9 @@ import org.omnifaces.optimusfaces.model.PagedDataModel;
 import org.omnifaces.optimusfaces.test.model.Gender;
 import org.omnifaces.optimusfaces.test.model.Person;
 import org.omnifaces.optimusfaces.test.service.PersonService;
-import org.omnifaces.persistence.constraint.Between;
-import org.omnifaces.persistence.constraint.Like;
-import org.omnifaces.persistence.constraint.Order;
+import org.omnifaces.persistence.criteria.Between;
+import org.omnifaces.persistence.criteria.Like;
+import org.omnifaces.persistence.criteria.Order;
 import org.omnifaces.utils.reflect.Getter;
 
 @Named
