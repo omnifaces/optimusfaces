@@ -320,10 +320,11 @@ import org.primefaces.model.Visibility;
  * }
  * </pre>
  * <p>
- * You can optionally wrap the value in {@link Like}, {@link Not}, {@link Between} or {@link Order} criteria. Note
- * that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you intend to search for
- * <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like to skip <code>IS NULL</code>,
- * then simply don't add a <code>null</code> value to the criteria.
+ * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between},
+ * {@link Order}, {@link Enumerated}, {@link Numeric}, {@link Bool} and {@link IgnoreCase}. You can even create your
+ * own ones by extending {@link Criteria}. Note that any <code>null</code> value is automatically interpreted as
+ * <code>IS NULL</code>. In case you intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria.
+ * Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
  * <p>
  * Those <code>searchNameStartsWith</code>, <code>searchStartDate</code> and <code>searchTypes</code> in the above
  * example can in turn be supplied via JSF input components in the same form the usual way. For example:
@@ -784,7 +785,9 @@ import org.primefaces.model.Visibility;
  *
  *
  * @author Bauke Scholtz
- *
+ * @see BaseEntityService
+ * @see Page
+ * @see Criteria
  */
 public interface PagedDataModel<E extends Identifiable<?>> extends Serializable {
 
@@ -1066,7 +1069,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
 	/**
 	 * @param <T> The generic base entity type.
-	 * @deprecated Use {@link PartialResultListLoader} instead.
+	 * @deprecated Use {@link PagedDataModel.PartialResultListLoader} instead.
 	 */
 	@Deprecated
 	public static interface DataLoader<T> {

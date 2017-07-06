@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.drone.api.annotation.Drone;
 import org.jboss.arquillian.junit.Arquillian;
@@ -845,7 +846,7 @@ public class OptimusFacesIT {
 		return browser.findElements(By.cssSelector("#form\\:table_data td:nth-child(" + (columnIndex + 1) + ")"));
 	}
 
-	private void assertNoCartesianProduct() {
+	protected void assertNoCartesianProduct() {
 		List<Integer> actualIds = getCells(idColumn).stream().map(WebElement::getText).map(Integer::valueOf).sorted().collect(toList());
 		List<Integer> expectedIds = actualIds.stream().distinct().collect(toList());
 		assertEquals("No cartesian product", expectedIds, actualIds);
