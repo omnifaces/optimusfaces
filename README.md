@@ -1,4 +1,4 @@
-# OptimusFaces [![Build Status](https://travis-ci.org/omnifaces/optimusfaces.svg?branch=develop)](https://travis-ci.org/omnifaces/optimusfaces)
+# OptimusFaces [![Build Status](https://travis-ci.org/omnifaces/optimusfaces.svg?branch=develop)](https://travis-ci.org/omnifaces/optimusfaces) [![Javadocs](http://javadoc.io/badge/org.omnifaces/optimusfaces.svg)](http://javadoc.io/doc/org.omnifaces/optimusfaces)
 
 Utility library for OmniFaces + PrimeFaces combined.
 
@@ -13,21 +13,6 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 `pom.xml`
 
 ```
-<repositories>
-    <!-- Enable retrieving OptimusFaces snapshot. -->
-    <repository>
-        <id>ossrh</id>
-        <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-        <releases>
-            <enabled>false</enabled>
-        </releases>
-        <snapshots>
-            <enabled>true</enabled>
-            <updatePolicy>always</updatePolicy>
-        </snapshots>
-    </repository>
-</repositories>
-
 <dependencies>
     <!-- Target Java EE 7 server with Hibernate. E.g. WildFly 10. -->
     <dependency>
@@ -57,7 +42,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.3-SNAPSHOT</version>
+        <version>0.3</version>
     </dependency>
 </dependencies>
 ```
@@ -142,4 +127,4 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 ### Advanced Usage
 
-[Check `PagedDataModel` javadoc](https://github.com/omnifaces/optimusfaces/blob/develop/src/main/java/org/omnifaces/optimusfaces/model/PagedDataModel.java).
+[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.3/org/omnifaces/optimusfaces/model/PagedDataModel.html).
