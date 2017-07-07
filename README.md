@@ -12,7 +12,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 
 `pom.xml`
 
-```
+```XML
 <dependencies>
     <!-- Target Java EE 7 server with Hibernate. E.g. WildFly 10. -->
     <dependency>
@@ -51,7 +51,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 
 First create your entity service extending `org.omnifaces.omnipersistence.service.BaseEntityService`. You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
 
-```
+```Java
 @Stateless
 public class YourEntityService extends BaseEntityService<Long, YourEntity> {
 
@@ -62,7 +62,7 @@ public class YourEntityService extends BaseEntityService<Long, YourEntity> {
 
 And make sure `YourEntity` extends `org.omnifaces.omnipersistence.model.BaseEntity`.
 
-```
+```Java
 @Entity
 public class YourEntity extends BaseEntity<Long> {
 
@@ -77,7 +77,7 @@ public class YourEntity extends BaseEntity<Long> {
 
 Then create a `org.omnifaces.optimusfaces.model.PagedDataModel` in your backing bean as below.
 
-```
+```Java
 @Named
 @ViewScoped
 public class YourBackingBean implements Serializable {
@@ -102,7 +102,7 @@ public class YourBackingBean implements Serializable {
 Finally use `<op:dataTable>` to have a semi-dynamic lazy-loaded, pageable, sortable and filterable 
 `<p:dataTable>` without much hassle.
 
-```
+```XHTML
 <... xmlns:op="http://omnifaces.org/optimusfaces">
 
 <h:form id="yourEntitiesForm">
@@ -128,3 +128,8 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 ### Advanced Usage
 
 [Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.3/org/omnifaces/optimusfaces/model/PagedDataModel.html).
+
+
+### Known Issues
+
+Not compatible with MyFaces yet. This will be worked on later. The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on WildFly 10.1.0 with Mojarra 2.2.13 only.
