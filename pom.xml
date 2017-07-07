@@ -420,9 +420,9 @@
 		<!-- below sections, then you need to add a default lifecycle mapping as instructed in M2E documentation: -->
 		<!-- https://www.eclipse.org/m2e/documentation/m2e-execution-not-covered.html#common-problems -->
 
-		<!-- WildFly integration test profile: mvn verify -P wildfly -->
+		<!-- WildFly/Hibernate integration test profile: mvn verify -P wildfly-hibernate -->
 		<profile>
-			<id>wildfly</id>
+			<id>wildfly-hibernate</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
@@ -450,6 +450,96 @@
 											<type>zip</type>
 										</artifactItem>
 									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<jboss.home>${project.build.directory}/wildfly-${test.wildfly.version}</jboss.home>
+								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- WildFly/EclipseLink integration test profile: mvn verify -P wildfly-eclipselink -->
+		<profile>
+			<id>wildfly-eclipselink</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.wildfly.arquillian</groupId>
+					<artifactId>wildfly-arquillian-container-managed</artifactId>
+					<version>2.0.2.Final</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.wildfly</groupId>
+											<artifactId>wildfly-dist</artifactId>
+											<version>${test.wildfly.version}</version>
+											<type>zip</type>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-eclipselink-in-wildfly</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.eclipse.persistence</groupId>
+											<artifactId>eclipselink</artifactId>
+											<version>2.6.4</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
+											<destFileName>eclipselink.jar</destFileName>
+											<overWrite>true</overWrite>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>3.0.2</version>
+						<executions>
+							<execution>
+								<id>copy-resources</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${project.basedir}/src/test/resources/wildfly-eclipselink</directory>
+											<includes>
+												<include>module.xml</include>
+											</includes>
+										</resource>
+									</resources>
 								</configuration>
 							</execution>
 						</executions>

@@ -159,6 +159,10 @@ public class OptimusFacesIT {
 		return Integer.parseInt(browser.findElement(By.id("rowCount")).getText());
 	}
 
+	protected static boolean isEclipseLink() {
+		return System.getProperty("profile.id").endsWith("-eclipselink");
+	}
+
 
 	// Elements -------------------------------------------------------------------------------------------------------
 
@@ -619,6 +623,10 @@ public class OptimusFacesIT {
 	}
 
 	protected void testDTO() {
+		if (isEclipseLink()) {
+			return; // EclipseLink can't deal with it. It basically requires DTO being mapped in persistence.xml :(
+		}
+
 		assertNoCartesianProduct();
 
 		guardAjax(addressStringColumn).click();

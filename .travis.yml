@@ -8,7 +8,7 @@ cache:
 
 # Do integration test on configured servers.
 env:
-   - SERVER=wildfly
+   - SERVER=wildfly-hibernate
 script: mvn verify -Dmaven.javadoc.skip=true -P $SERVER
 
 # Do snapshot deployment.
@@ -18,4 +18,4 @@ deploy:
    skip_cleanup: true
    on:
       branch: develop
-      condition: "$SERVER = wildfly"
+      condition: "$SERVER = wildfly-hibernate"

@@ -78,7 +78,7 @@ public class OptimusFacesITStartup {
 			Collections.shuffle(groups, random);
 			person.getGroups().addAll(groups.subList(0, random.nextInt(1, groups.size() + 1)));
 
-			personService.save(person);
+			personService.persist(person);
 		}
 	}
 

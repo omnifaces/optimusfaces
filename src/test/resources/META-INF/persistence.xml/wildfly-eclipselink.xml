@@ -20,6 +20,7 @@
 	version="2.1"
 >
 	<persistence-unit name="OptimusFacesIT">
+		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 		<jta-data-source>java:jboss/datasources/ExampleDS</jta-data-source>
 
         <class>org.omnifaces.optimusfaces.test.model.Address</class>
@@ -28,9 +29,9 @@
         <class>org.omnifaces.persistence.model.BaseEntity</class>
  
         <properties>
-            <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect" />
-            <property name="hibernate.hbm2ddl.auto" value="create" />
-            <property name="hibernate.show_sql" value="true" />
+			<property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
+			<property name="eclipselink.logging.level" value="FINE" />
+			<property name="eclipselink.logging.level.sql" value="FINE" />
         </properties>
 	</persistence-unit>
 </persistence>
