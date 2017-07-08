@@ -132,4 +132,4 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 ### Known Issues
 
-Not compatible with MyFaces yet. This will be worked on later. It's not yet tested with EclipseLink and others. The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on WildFly 10.1.0 with Mojarra 2.2.13 and Hibernate 5.0.10 only.
+Not compatible with MyFaces yet. This will be worked on later. It's not yet tested with other providers than Hibernate and EclipseLink. The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on WildFly 10.1.0 with Mojarra 2.2.13 and Hibernate 5.0.10 and EclipseLink 2.6.4. Hibernate passes all tests, and some have been disabled for EclipseLink until the underlying problem can be solved in OmniPersistence.
