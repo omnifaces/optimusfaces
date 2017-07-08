@@ -29,7 +29,7 @@ public class Address extends BaseEntity<Long> {
 	private @NotNull String city;
 	private @NotNull String country;
 
-	@Formula("CONCAT(street, ' ', houseNumber, ', ', postcode, ' ', city, ', ', country)")
+	@Formula("CONCAT(street, ' ', houseNumber, ', ', postcode, ' ', city, ', ', country)") // NOTE: EclipseLink doesn't have a reasonable equivalent for @Formula.
 	private String string;
 
 	public String getStreet() {

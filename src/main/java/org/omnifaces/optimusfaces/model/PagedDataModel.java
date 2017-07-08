@@ -956,7 +956,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>value = {@link String}, this will delegate to {@link Like#contains()}.
+		 * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * </ul>
 		 * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value.
 		 * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked as first.

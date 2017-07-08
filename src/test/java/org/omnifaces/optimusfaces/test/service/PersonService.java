@@ -12,6 +12,9 @@
  */
 package org.omnifaces.optimusfaces.test.service;
 
+import static org.omnifaces.persistence.JPA.concat;
+import static org.omnifaces.persistence.JPA.Provider.HIBERNATE;
+
 import java.util.LinkedHashMap;
 
 import javax.ejb.Stateless;
@@ -56,7 +59,14 @@ public class PersonService extends BaseEntityService<Long, Person> {
 			LinkedHashMap<Getter<PersonCard>, Expression<?>> mapping = new LinkedHashMap<>();
 			mapping.put(PersonCard::getId, person.get("id"));
 			mapping.put(PersonCard::getEmail, person.get("email"));
-			mapping.put(PersonCard::getAddressString, personAddress.get("string"));
+
+			if (getProvider() == HIBERNATE) {
+				mapping.put(PersonCard::getAddressString, personAddress.get("string")); // address.string already uses Hibernate specific @Formula
+			}
+			else {
+				mapping.put(PersonCard::getAddressString, concat(builder, personAddress.get("street"), " ", personAddress.get("houseNumber"), ", ", personAddress.get("postcode"), " ", personAddress.get("city"), ", ", personAddress.get("country")));
+			}
+
 			mapping.put(PersonCard::getTotalPhones, builder.count(personPhones));
 
 			return mapping;
