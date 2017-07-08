@@ -379,6 +379,10 @@ public class OptimusFacesIT {
 
 	@Test
 	public void testLazyWithDTO() {
+		if (isEclipseLink()) {
+			return; // EclipseLink can't deal with it. It bugs with a missing SELECT parameter.
+		}
+
 		open("LazyWithDTO", null);
 		testDTO();
 	}
@@ -623,10 +627,6 @@ public class OptimusFacesIT {
 	}
 
 	protected void testDTO() {
-		if (isEclipseLink()) {
-			return; // EclipseLink can't deal with it. It basically requires DTO being mapped in persistence.xml :(
-		}
-
 		assertNoCartesianProduct();
 
 		guardAjax(addressStringColumn).click();

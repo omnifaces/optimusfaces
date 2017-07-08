@@ -23,15 +23,20 @@
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 		<jta-data-source>java:jboss/datasources/ExampleDS</jta-data-source>
 
-        <class>org.omnifaces.optimusfaces.test.model.Address</class>
-        <class>org.omnifaces.optimusfaces.test.model.Person</class>
-        <class>org.omnifaces.optimusfaces.test.model.Phone</class>
-        <class>org.omnifaces.persistence.model.BaseEntity</class>
- 
-        <properties>
-			<property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
+		<class>org.omnifaces.optimusfaces.test.model.Address</class>
+		<class>org.omnifaces.optimusfaces.test.model.Person</class>
+		<class>org.omnifaces.optimusfaces.test.model.Phone</class>
+		<class>org.omnifaces.persistence.model.BaseEntity</class>
+
+		<properties>
+			<property name="eclipselink.ddl-generation" value="create-tables" />
+			<property name="eclipselink.target-server" value="JBoss" />
 			<property name="eclipselink.logging.level" value="FINE" />
 			<property name="eclipselink.logging.level.sql" value="FINE" />
-        </properties>
+			<property name="eclipselink.logging.timestamp" value="false" />
+			<property name="eclipselink.logging.thread" value="false" />
+			<property name="eclipselink.logging.session" value="false" />
+			<property name="eclipselink.logging.parameters" value="false" />
+		</properties>
 	</persistence-unit>
 </persistence>
