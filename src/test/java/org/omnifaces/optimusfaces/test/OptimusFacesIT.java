@@ -404,7 +404,8 @@ public class OptimusFacesIT {
 	@Test
 	public void testLazyWithOneToMany() {
 		if (isEclipseLink()) {
-			return; // It stubbornly returns cartesian products. TODO: fix them.
+			System.out.println("SKIPPING this test for EclipseLink for now because it returns a cartesian product"); // TODO: fix this.
+			return;
 		}
 
 		open("LazyWithOneToMany", null);
@@ -414,7 +415,8 @@ public class OptimusFacesIT {
 	@Test
 	public void testNonLazyWithOneToMany() {
 		if (isEclipseLink()) {
-			return; // It stubbornly returns cartesian products. TODO: fix them.
+			System.out.println("SKIPPING this test for EclipseLink for now because it returns a cartesian product"); // TODO: fix this.
+			return;
 		}
 
 		open("NonLazyWithOneToMany", null);
@@ -424,7 +426,8 @@ public class OptimusFacesIT {
 	@Test
 	public void testLazyWithElementCollection() {
 		if (isEclipseLink()) {
-			return; // It stubbornly returns cartesian products. TODO: fix them.
+			System.out.println("SKIPPING this test for EclipseLink for now because it returns a cartesian product"); // TODO: fix this.
+			return;
 		}
 
 		open("LazyWithElementCollection", null);
@@ -434,7 +437,8 @@ public class OptimusFacesIT {
 	@Test
 	public void testNonLazyWithElementCollection() {
 		if (isEclipseLink()) {
-			return; // It stubbornly returns cartesian products. TODO: fix them.
+			System.out.println("SKIPPING this test for EclipseLink for now because it returns a cartesian product"); // TODO: fix this.
+			return;
 		}
 
 		open("NonLazyWithElementCollection", null);
@@ -588,7 +592,10 @@ public class OptimusFacesIT {
 		open(type, "p=3&o=-dateOfBirth&gender=MALE");
 		assertPaginatorState(3);
 
-		if (!isEclipseLink()) { // For some reason it sorts years between 1900 and 1919 AFTER 1920-2000?! Looks like java.time isn't entirely correctly supported.
+		if (isEclipseLink()) {
+			System.out.println("SKIPPING assertSortedState(dateOfBirthColumn) for EclipseLink for now because for some reason it sorts years between 1900 and 1919 _after_ 1920-2000"); // TODO: investigate.
+		}
+		else {
 			assertSortedState(dateOfBirthColumn, false);
 		}
 
@@ -694,7 +701,9 @@ public class OptimusFacesIT {
 		assertNoCartesianProduct();
 
 		if (isEclipseLink()) {
-			return; // EclipseLink doesn't have a reasonable equivalent for @Formula as used in address.string. The intented test is already covered by testDTO() anyway.
+			System.out.println("SKIPPING address.string tests for EclipseLink for now because it doesn't support derived properties like Hibernate @Formula,"
+				+ " the intented test is however already covered by testDTO()."); // TODO: improve?
+			return;
 		}
 
 		guardAjax(address_stringColumnFilter).sendKeys("11");
