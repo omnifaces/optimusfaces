@@ -163,6 +163,10 @@ public class OptimusFacesIT {
 		return System.getProperty("profile.id").endsWith("-eclipselink");
 	}
 
+	protected boolean isLazy() {
+		return browser.getCurrentUrl().contains("OptimusFacesITLazy");
+	}
+
 
 	// Elements -------------------------------------------------------------------------------------------------------
 
@@ -403,44 +407,24 @@ public class OptimusFacesIT {
 
 	@Test
 	public void testLazyWithOneToMany() {
-		if (isEclipseLink()) {
-			System.out.println("SKIPPING this test for EclipseLink for now because it returns a cartesian product"); // TODO: fix this.
-			return;
-		}
-
 		open("LazyWithOneToMany", null);
 		testOneToMany();
 	}
 
 	@Test
 	public void testNonLazyWithOneToMany() {
-		if (isEclipseLink()) {
-			System.out.println("SKIPPING this test for EclipseLink for now because it returns a cartesian product"); // TODO: fix this.
-			return;
-		}
-
 		open("NonLazyWithOneToMany", null);
 		testOneToMany();
 	}
 
 	@Test
 	public void testLazyWithElementCollection() {
-		if (isEclipseLink()) {
-			System.out.println("SKIPPING this test for EclipseLink for now because it returns a cartesian product"); // TODO: fix this.
-			return;
-		}
-
 		open("LazyWithElementCollection", null);
 		testElementCollection();
 	}
 
 	@Test
 	public void testNonLazyWithElementCollection() {
-		if (isEclipseLink()) {
-			System.out.println("SKIPPING this test for EclipseLink for now because it returns a cartesian product"); // TODO: fix this.
-			return;
-		}
-
 		open("NonLazyWithElementCollection", null);
 		testElementCollection();
 	}
@@ -593,7 +577,7 @@ public class OptimusFacesIT {
 		assertPaginatorState(3);
 
 		if (isEclipseLink()) {
-			System.out.println("SKIPPING assertSortedState(dateOfBirthColumn) for EclipseLink for now because for some reason it sorts years between 1900 and 1919 _after_ 1920-2000"); // TODO: investigate.
+			System.out.println("SKIPPING assertSortedState(dateOfBirth) for EclipseLink for now because for some reason it sorts years between 1900 and 1919 _after_ 1920-2000"); // TODO: investigate.
 		}
 		else {
 			assertSortedState(dateOfBirthColumn, false);
@@ -701,58 +685,86 @@ public class OptimusFacesIT {
 		assertNoCartesianProduct();
 
 		if (isEclipseLink()) {
-			System.out.println("SKIPPING address.string tests for EclipseLink for now because it doesn't support derived properties like Hibernate @Formula,"
-				+ " the intented test is however already covered by testDTO()."); // TODO: improve?
-			return;
+			System.out.println("SKIPPING assertFilteredState(address.string) for EclipseLink because it doesn't support derived properties like Hibernate @Formula;"
+				+ " the intended test is however already covered by testDTO()."); // TODO: improve?
 		}
-
-		guardAjax(address_stringColumnFilter).sendKeys("11");
-		assertPaginatorState(1, 11);
-		assertFilteredState(address_stringColumnFilter, "11");
-		assertNoCartesianProduct();
+		else {
+			guardAjax(address_stringColumnFilter).sendKeys("11");
+			assertPaginatorState(1, 11);
+			assertFilteredState(address_stringColumnFilter, "11");
+			assertNoCartesianProduct();
+		}
 	}
 
 	protected void testOneToMany() {
 		assertNoCartesianProduct();
 
-		guardAjax(phones_numberColumn).click();
-		assertSortedState(phones_numberColumn, true);
-		assertNoCartesianProduct();
+		if (isEclipseLink() && isLazy()) {
+			System.out.println("SKIPPING assertSortedState(phones.number) for EclipseLink because it doesn't support join fetch with range and therefore sort can't run in same query"); // TODO: improve?
 
-		guardAjax(phones_numberColumnFilter).sendKeys("11");
-		assertFilteredState(phones_numberColumnFilter, "11");
-		assertNoCartesianProduct();
-		int rowCount1 = getRowCount();
-		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
+			guardAjax(phones_numberColumnFilter).sendKeys("11");
+			assertFilteredState(phones_numberColumnFilter, "11");
+			assertNoCartesianProduct();
+			int rowCount1 = getRowCount();
+			assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 
-		guardAjax(phones_numberColumn).click();
-		assertSortedState(phones_numberColumn, false);
-		assertNoCartesianProduct();
-		int rowCount2 = getRowCount();
-		assertEquals("rowcount is still the same", rowCount1, rowCount2);
+			guardAjax(emailColumnFilter).sendKeys("1");
+			assertFilteredState(emailColumnFilter, "1");
+			assertFilteredState(phones_numberColumnFilter, "11");
+			assertNoCartesianProduct();
+			int rowCount3 = getRowCount();
+			assertTrue(rowCount3 + " must be less than " + rowCount1, rowCount3 < rowCount1);
 
-		guardAjax(emailColumnFilter).sendKeys("1");
-		assertFilteredState(emailColumnFilter, "1");
-		assertFilteredState(phones_numberColumnFilter, "11");
-		assertNoCartesianProduct();
-		int rowCount3 = getRowCount();
-		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
+			phones_numberColumnFilter.clear();
+			guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
+			assertPaginatorState(1, 119);
+			assertNoCartesianProduct();
 
-		phones_numberColumnFilter.clear();
-		guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
-		assertPaginatorState(1, 119);
-		assertSortedState(phones_numberColumn, false);
-		assertNoCartesianProduct();
+			emailColumnFilter.clear();
+			guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
+			assertPaginatorState(1, TOTAL_RECORDS);
+			assertNoCartesianProduct();
+		}
+		else {
+			guardAjax(phones_numberColumn).click();
+			assertSortedState(phones_numberColumn, true);
+			assertNoCartesianProduct();
 
-		guardAjax(phones_numberColumn).click();
-		assertSortedState(phones_numberColumn, true);
-		assertNoCartesianProduct();
+			guardAjax(phones_numberColumnFilter).sendKeys("11");
+			assertFilteredState(phones_numberColumnFilter, "11");
+			assertNoCartesianProduct();
+			int rowCount1 = getRowCount();
+			assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 
-		emailColumnFilter.clear();
-		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
-		assertPaginatorState(1, TOTAL_RECORDS);
-		assertSortedState(phones_numberColumn, true);
-		assertNoCartesianProduct();
+			guardAjax(phones_numberColumn).click();
+			assertSortedState(phones_numberColumn, false);
+			assertNoCartesianProduct();
+			int rowCount2 = getRowCount();
+			assertEquals("rowcount is still the same", rowCount1, rowCount2);
+
+			guardAjax(emailColumnFilter).sendKeys("1");
+			assertFilteredState(emailColumnFilter, "1");
+			assertFilteredState(phones_numberColumnFilter, "11");
+			assertNoCartesianProduct();
+			int rowCount3 = getRowCount();
+			assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
+
+			phones_numberColumnFilter.clear();
+			guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
+			assertPaginatorState(1, 119);
+			assertSortedState(phones_numberColumn, false);
+			assertNoCartesianProduct();
+
+			guardAjax(phones_numberColumn).click();
+			assertSortedState(phones_numberColumn, true);
+			assertNoCartesianProduct();
+
+			emailColumnFilter.clear();
+			guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
+			assertPaginatorState(1, TOTAL_RECORDS);
+			assertSortedState(phones_numberColumn, true);
+			assertNoCartesianProduct();
+		}
 	}
 
 	protected void testElementCollection() {
@@ -763,6 +775,11 @@ public class OptimusFacesIT {
 		int rowCount1 = getRowCount();
 		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 		assertNoCartesianProduct();
+
+		if (isEclipseLink() && isLazy()) {
+			System.out.println("SKIPPING multiple criteria selection for EclipseLink because it doesn't support join fetch with range and therefore groupby can't run in same query"); // TODO: improve?
+			return;
+		}
 
 		guardAjax(criteriaGroupMANAGER).click();
 		int rowCount2 = getRowCount();
@@ -837,7 +854,7 @@ public class OptimusFacesIT {
 			expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
 
 			if (!expectedValues.equals(actualValues)) {
-				expectedValues.sort(Collator.getInstance(Locale.ENGLISH)); // TODO: find a better way. Problem is, lazy model sorts by H2 collation and non-lazy model sorts by Java collation, however they don't agree on each other (e.g. @ before 0).
+				expectedValues.sort(Collator.getInstance(Locale.ENGLISH)); // TODO: find a better way. Problem is, lazy model sorts by DB collation and non-lazy model sorts by Java collation, however they don't necessarily agree on each other (e.g. @ before 0).
 			}
 		}
 
