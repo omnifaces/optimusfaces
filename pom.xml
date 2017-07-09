@@ -86,6 +86,7 @@
 
 		<!-- Test server versions. -->
 		<test.wildfly.version>10.1.0.Final</test.wildfly.version>
+		<test.tomee.version>7.0.3</test.tomee.version>
 	</properties>
 
 	<dependencies>
@@ -551,6 +552,33 @@
 							<systemPropertyVariables>
 								<jboss.home>${project.build.directory}/wildfly-${test.wildfly.version}</jboss.home>
 								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- TomEE/OpenJPA integration test profile: mvn verify -P tomee-openjpa -->
+		<profile>
+			<id>tomee-openjpa</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.tomee</groupId>
+					<artifactId>arquillian-tomee-remote</artifactId>
+					<version>${test.tomee.version}</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<tomee.version>${test.tomee.version}</tomee.version>
+								<tomee.classifier>webprofile</tomee.classifier>
 							</systemPropertyVariables>
 						</configuration>
 					</plugin>
