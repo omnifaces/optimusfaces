@@ -12,27 +12,19 @@
  */
 package org.omnifaces.optimusfaces.model;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static org.omnifaces.persistence.model.Identifiable.ID;
 import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.omnifaces.utils.stream.Streams.stream;
-import static org.primefaces.model.SortOrder.ASCENDING;
-import static org.primefaces.model.SortOrder.DESCENDING;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javax.enterprise.inject.spi.CDI;
 import javax.faces.model.SelectItem;
 import javax.persistence.ElementCollection;
 import javax.persistence.OneToMany;
@@ -53,10 +45,7 @@ import org.omnifaces.persistence.criteria.Order;
 import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
-import org.omnifaces.persistence.model.dto.SortFilterPage;
 import org.omnifaces.persistence.service.BaseEntityService;
-import org.omnifaces.persistence.service.GenericEntityService;
-import org.omnifaces.persistence.service.GenericEntityService.QueryBuilder;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.column.Column;
@@ -64,7 +53,6 @@ import org.primefaces.component.columntoggler.ColumnToggler;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.event.ToggleEvent;
 import org.primefaces.model.LazyDataModel;
-import org.primefaces.model.SortOrder;
 import org.primefaces.model.Visibility;
 
 /**
@@ -240,7 +228,7 @@ import org.primefaces.model.Visibility;
  * <h3 id="criteria-backend"><a href="#criteria-backend">Providing specific criteria in backend</a></h3>
  * <p>
  * In the backend, create a new <code>getPageXxx()</code> method and delegate to one of
- * {@link BaseEntityService#getPage(Page, boolean)} methods which takes a {@link QueryBuilder} argument providing the
+ * {@link BaseEntityService#getPage(Page, boolean)} methods which takes a <code>QueryBuilder</code> argument providing the
  * JPA Criteria API objects to build the query with. For example, to get a page of only entities of a specific type.
  * <pre>
  * &#64;Stateless
@@ -1018,139 +1006,6 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 				throw new IllegalStateException("You must provide non-null loader or allData.");
 			}
 		}
-	}
-
-
-	// Old builder ----------------------------------------------------------------------------------------------------
-
-	/**
-	 * @param <T> The generic base entity type.
-	 * @param forClass The entity class.
-	 * @return The builder.
-	 * @deprecated Use {@link PagedDataModel#lazy(BaseEntityService)} instead.
-	 */
-	@Deprecated
-	public static <T extends BaseEntity<?>> PagedDataModelBuilder<T> forClass(Class<T> forClass) {
-		return new PagedDataModelBuilder<>(forClass);
-	}
-
-	/**
-	 * @param <T> The generic base entity type.
-	 * @param dataLoader The data loader.
-	 * @return The builder.
-	 * @deprecated Use {@link PagedDataModel#lazy(PartialResultListLoader)} instead.
-	 */
-	@Deprecated
-	public static <T extends BaseEntity<?>> PagedDataModelBuilder<T> forDataLoader(DataLoader<T> dataLoader) {
-		return new PagedDataModelBuilder<>(dataLoader);
-	}
-
-	/**
-	 * @param <T> The generic base entity type.
-	 * @param dataLoader The sort filter page data loader.
-	 * @return The builder.
-	 * @deprecated Use {@link PagedDataModel#lazy(PartialResultListLoader)} instead.
-	 */
-	@Deprecated
-	public static <T extends BaseEntity<?>> PagedDataModelBuilder<T> forDataLoader(Function<SortFilterPage, List<T>> dataLoader) {
-		return new PagedDataModelBuilder<>((page, count) -> dataLoader.apply(page));
-	}
-
-	/**
-	 * @param <T> The generic base entity type.
-	 * @param allData List of all data.
-	 * @return The builder.
-	 * @deprecated Use {@link PagedDataModel#nonLazy(List)} instead.
-	 */
-	@Deprecated
-	public static <T extends BaseEntity<?>> PagedDataModelBuilder<T> forAllData(List<T> allData) {
-		return new PagedDataModelBuilder<>(allData);
-	}
-
-	/**
-	 * @param <T> The generic base entity type.
-	 * @deprecated Use {@link PagedDataModel.PartialResultListLoader} instead.
-	 */
-	@Deprecated
-	public static interface DataLoader<T> {
-		List<T> load(SortFilterPage page, boolean count);
-	}
-
-	/**
-	 * @param <T> The generic base entity type.
-	 * @deprecated Use {@link PagedDataModel#lazy(BaseEntityService)}, {@link PagedDataModel#lazy(PartialResultListLoader)} or {@link PagedDataModel#nonLazy(List)} instead.
-	 */
-	@Deprecated
-	public static class PagedDataModelBuilder<T extends BaseEntity<?>> {
-
-		private Class<T> forClass;
-		private DataLoader<T> dataLoader;
-		private List<T> allData;
-
-		private String defaultSortField = ID;
-		private SortOrder defaultSortOrder = DESCENDING;
-
-		private PagedDataModelBuilder(Class<T> forClass) {
-			this.forClass = forClass;
-		}
-
-		private PagedDataModelBuilder(DataLoader<T> dataLoader) {
-			this.dataLoader = dataLoader;
-		}
-
-		private PagedDataModelBuilder(List<T> allData) {
-			this.allData = allData;
-		}
-
-		public PagedDataModelBuilder<T> withDefaultSortField(String defaultSortField) {
-			this.defaultSortField = defaultSortField;
-			return this;
-		}
-
-		public PagedDataModelBuilder<T> withDefaultSortOrder(SortOrder defaultSortOrder) {
-			this.defaultSortOrder = defaultSortOrder;
-			return this;
-		}
-
-		public PagedDataModelBuilder<T> withDefaultSort(String defaultSortField, SortOrder defaultSortOrder) {
-			return withDefaultSortField(defaultSortField).withDefaultSortOrder(defaultSortOrder);
-		}
-
-		public PagedDataModel<T> build() {
-			LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(1);
-			ordering.put(defaultSortField, defaultSortOrder == ASCENDING);
-
-			if (allData != null) {
-				return new NonLazyPagedDataModel<>(allData, ordering, () -> emptyMap());
-			}
-
-			if (dataLoader == null) {
-				if (forClass == null) {
-					throw new IllegalStateException("You must provide non-null forClass or dataLoader or allData.");
-				}
-
-				GenericEntityService entityService = CDI.current().select(GenericEntityService.class).get();
-
-				if (entityService == null) {
-					throw new IllegalStateException("You must provide an implementation of GenericEntityService.");
-				}
-
-				dataLoader = (page, count) -> entityService.getAllPagedAndSortedByType(forClass, page, count);
-			}
-
-			return new LazyPagedDataModel<T>(null, ordering, () -> emptyMap()) {
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public PartialResultList<T> load(Page page, boolean count) {
-					Map<String, Object> filterValues = new HashMap<>(page.getRequiredCriteria());
-					filterValues.putAll(page.getOptionalCriteria());
-					Entry<String, Boolean> orderBy = page.getOrdering().entrySet().iterator().next();
-					return (PartialResultList<T>) dataLoader.load(new SortFilterPage(page.getOffset(), page.getLimit(), orderBy.getKey(), (orderBy.getValue() ? ASCENDING : DESCENDING).name(), emptyList(), filterValues, !page.getOptionalCriteria().isEmpty()), count);
-				}
-			};
-		}
-
 	}
 
 }
