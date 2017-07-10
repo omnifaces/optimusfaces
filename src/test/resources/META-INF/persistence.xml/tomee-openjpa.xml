@@ -20,7 +20,6 @@
 	version="2.1"
 >
 	<persistence-unit name="OptimusFacesIT">
-		<provider>org.apache.openjpa.persistence.PersistenceProviderImpl</provider>
 		<jta-data-source>java:openejb/Resource/H2</jta-data-source>
 
 		<class>org.omnifaces.persistence.model.BaseEntity</class>

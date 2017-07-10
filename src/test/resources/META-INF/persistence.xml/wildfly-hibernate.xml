@@ -20,10 +20,8 @@
 	version="2.1"
 >
 	<persistence-unit name="OptimusFacesIT">
-		<jta-data-source>java:jboss/datasources/ExampleDS</jta-data-source>
-
 		<properties>
-			<property name="hibernate.hbm2ddl.auto" value="create" />
+			<property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />
 			<property name="hibernate.show_sql" value="true" />
 		</properties>
 	</persistence-unit>
