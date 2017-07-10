@@ -104,7 +104,7 @@
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnifaces</artifactId>
 			<version>2.2</version><!-- minimum version for o:tagAttribute and Servlets#toQueryString() -->
-			<scope>provided</scope><!-- by enduser -->
+			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 		<dependency>
 			<groupId>org.omnifaces</groupId>
@@ -117,7 +117,7 @@
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
 			<version>5.2</version><!-- minimum version for DataTable#isFilterable() and DataTable#getNullSortOrder() -->
-			<scope>provided</scope><!-- by enduser -->
+			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 
 		<!-- Test dependencies.	-->
