@@ -181,10 +181,6 @@ public class OptimusFacesIT {
 		return System.getProperty("profile.id").endsWith("-openjpa");
 	}
 
-	protected static boolean isTomEE() {
-		return System.getProperty("profile.id").startsWith("tomee-");
-	}
-
 	protected boolean isLazy() {
 		return browser.getCurrentUrl().contains("OptimusFacesITLazy");
 	}
@@ -405,22 +401,12 @@ public class OptimusFacesIT {
 
 	@Test
 	public void testLazyWithDTO() {
-		if (isTomEE()) {
-			System.out.println("SKIPPING this test for TomEE because its HSQLDB doesn't interpret the CONCAT aggregate as one-to-one and stubbornly says that a GROUP BY is missing"); // TODO: replace HSQLDB?
-			return;
-		}
-
 		open("LazyWithDTO", null);
 		testDTO();
 	}
 
 	@Test
 	public void testNonLazyWithDTO() {
-		if (isTomEE()) {
-			System.out.println("SKIPPING this test for TomEE because its HSQLDB doesn't interpret the CONCAT aggregate as one-to-one and stubbornly says that a GROUP BY is missing"); // TODO: replace HSQLDB?
-			return;
-		}
-
 		open("NonLazyWithDTO", null);
 		testDTO();
 	}
@@ -525,18 +511,13 @@ public class OptimusFacesIT {
 		assertPaginatorState(1);
 		assertSortedState(emailColumn, true);
 
-		if (isTomEE() && isOpenJPA()) {
-			System.out.println("SKIPPING assertSortedState(dateOfBirthColumn) for HSQLDB+OpenJPA because it doesn't support LocalDate even with AttributeConverter"); // TODO: improve?
-		}
-		else {
-			guardAjax(dateOfBirthColumn).click();
-			assertPaginatorState(1);
-			assertSortedState(dateOfBirthColumn, true);
+		guardAjax(dateOfBirthColumn).click();
+		assertPaginatorState(1);
+		assertSortedState(dateOfBirthColumn, true);
 
-			guardAjax(dateOfBirthColumn).click();
-			assertPaginatorState(1);
-			assertSortedState(dateOfBirthColumn, false);
-		}
+		guardAjax(dateOfBirthColumn).click();
+		assertPaginatorState(1);
+		assertSortedState(dateOfBirthColumn, false);
 	}
 
 	protected void testFiltering() {
@@ -606,6 +587,10 @@ public class OptimusFacesIT {
 		assertPaginatorState(3);
 		assertSortedState(emailColumn, false);
 		assertFilteredState(genderColumnFilter, "MALE");
+
+		open(type, "o=dateOfBirth");
+		assertPaginatorState(1);
+		assertSortedState(dateOfBirthColumn, true);
 	}
 
 	protected void testCriteria() {
@@ -623,8 +608,9 @@ public class OptimusFacesIT {
 		assertFilteredState(genderColumnFilter, "FEMALE", true);
 
 		int rowCount3 = rowCount2;
-		if (isTomEE() && isOpenJPA()) {
-			System.out.println("SKIPPING criteriaDateOfBirthBefore1950 for HSQLDB+OpenJPA because it doesn't support LocalDate even with AttributeConverter"); // TODO: improve?
+		if (isOpenJPA()) {
+			System.out.println("SKIPPING criteriaDateOfBirthBefore1950 for OpenJPA because it doesn't support LocalDate in Criteria API even with AttributeConverter");
+			// org.apache.openjpa.persistence.ArgumentException: The specified parameter of type "class java.time.LocalDate" is not a valid query parameter
 		}
 		else {
 			guardAjax(criteriaDateOfBirthBefore1950).click();
@@ -644,7 +630,7 @@ public class OptimusFacesIT {
 		int rowCount6 = getRowCount();
 		assertTrue(rowCount6 + " must be more than " + rowCount5, rowCount6 > rowCount5);
 
-		if (!(isTomEE() && isOpenJPA())) {
+		if (!isOpenJPA()) {
 			guardAjax(criteriaDateOfBirthBefore1950).click(); // Uncheck
 		}
 
@@ -717,11 +703,11 @@ public class OptimusFacesIT {
 
 		if (isEclipseLink()) {
 			System.out.println("SKIPPING assertFilteredState(address.string) for EclipseLink because it doesn't support derived properties like Hibernate @Formula;"
-				+ " the intended test is however already covered by testDTO()."); // TODO: improve?
+				+ " the intended test is however already covered by testDTO().");
 		}
 		else if (isOpenJPA()) {
 			System.out.println("SKIPPING assertFilteredState(address.string) for OpenJPA because it doesn't support derived properties like Hibernate @Formula;"
-				+ " the intended test is however already covered by testDTO()."); // TODO: improve?
+				+ " the intended test is however already covered by testDTO().");
 		}
 		else {
 			guardAjax(address_stringColumnFilter).sendKeys("11");
@@ -734,12 +720,12 @@ public class OptimusFacesIT {
 	protected void testOneToMany() {
 		assertNoCartesianProduct();
 
-		if ((isEclipseLink() || isTomEE()) && isLazy()) {
+		if ((isEclipseLink() || isOpenJPA()) && isLazy()) {
 			if (isEclipseLink()) {
 				System.out.println("SKIPPING assertSortedState(phones.number) for EclipseLink because it doesn't support join fetch with range and therefore sort can't run in same query"); // TODO: improve?
 			}
-			else {
-				System.out.println("SKIPPING assertSortedState(phones.number) for TomEE because its HSQLDB doesn't sort values in a join"); // TODO: improve?
+			else if (isOpenJPA()) {
+				System.out.println("SKIPPING assertSortedState(phones.number) for OpenJPA because BaseEntityService somehow performs a double join for the table"); // TODO: fix it
 			}
 
 			guardAjax(phones_numberColumnFilter).sendKeys("11");
@@ -757,12 +743,12 @@ public class OptimusFacesIT {
 
 			phones_numberColumnFilter.clear();
 			guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
-			assertPaginatorState(1, 119);
+			assertPaginatorState(1, 119, true);
 			assertNoCartesianProduct();
 
 			emailColumnFilter.clear();
 			guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
-			assertPaginatorState(1, TOTAL_RECORDS);
+			assertPaginatorState(1, TOTAL_RECORDS, true);
 			assertNoCartesianProduct();
 		}
 		else {
@@ -791,7 +777,7 @@ public class OptimusFacesIT {
 
 			phones_numberColumnFilter.clear();
 			guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
-			assertPaginatorState(1, 119);
+			assertPaginatorState(1, 119, true);
 			assertSortedState(phones_numberColumn, false);
 			assertNoCartesianProduct();
 
@@ -801,7 +787,7 @@ public class OptimusFacesIT {
 
 			emailColumnFilter.clear();
 			guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
-			assertPaginatorState(1, TOTAL_RECORDS);
+			assertPaginatorState(1, TOTAL_RECORDS, true);
 			assertSortedState(phones_numberColumn, true);
 			assertNoCartesianProduct();
 		}
@@ -809,7 +795,7 @@ public class OptimusFacesIT {
 
 	protected void testElementCollection() {
 		assertNoCartesianProduct();
-		assertPaginatorState(1, TOTAL_RECORDS);
+		assertPaginatorState(1, TOTAL_RECORDS, true);
 
 		guardAjax(criteriaGroupUSER).click();
 		int rowCount1 = getRowCount();
@@ -852,7 +838,7 @@ public class OptimusFacesIT {
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupDEVELOPER).click(); // Uncheck
-		assertPaginatorState(1, TOTAL_RECORDS);
+		assertPaginatorState(1, TOTAL_RECORDS, true);
 		assertNoCartesianProduct();
 	}
 
@@ -860,14 +846,26 @@ public class OptimusFacesIT {
 	// Assertions -----------------------------------------------------------------------------------------------------
 
 	protected void assertPaginatorState(int currentPage) {
-		assertPaginatorState(currentPage, getRowCount());
+		assertPaginatorState(currentPage, getRowCount(), false);
 	}
 
 	protected void assertPaginatorState(int currentPage, int expectedTotalRecords) {
+		assertPaginatorState(currentPage, expectedTotalRecords, false);
+	}
+
+	protected void assertPaginatorState(int currentPage, int expectedTotalRecords, boolean oneToManyOrElementCollection) {
 		int totalRecords = getRowCount();
 		int startRecord = ((currentPage - 1) * ROWS_PER_PAGE) + 1;
 		int endRecord = min(startRecord + ROWS_PER_PAGE - 1, totalRecords);
 		int pageCount = (totalRecords / ROWS_PER_PAGE) + ((totalRecords % ROWS_PER_PAGE > 0) ? 1 : 0);
+		int visibleRecords = endRecord - startRecord + 1;
+
+		if (oneToManyOrElementCollection && isOpenJPA()) {
+			System.out.println("SKIPPING assertEquals(visibleRecords, getCells(idColumn).size()) for OpenJPA because it doesn't correctly limit @OneToMany and @ElementCollection on root"); // TODO: improve?
+		}
+		else {
+			assertEquals("visible records", visibleRecords, getCells(idColumn).size());
+		}
 
 		assertEquals("total records", expectedTotalRecords, totalRecords);
 		assertEquals("page report", "Showing " + startRecord + " - " + endRecord + " of " + totalRecords + " records", pageReport.getText());

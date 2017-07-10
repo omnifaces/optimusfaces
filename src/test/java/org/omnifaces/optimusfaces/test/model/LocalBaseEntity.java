@@ -23,9 +23,10 @@ import org.omnifaces.persistence.model.BaseEntity;
 /**
  * This is needed by OpenJPA because it doesn't recognize a parameterized ID in a MappedSuperClass in a JAR.
  * <pre>
- * WARN openjpa.Runtime - Fields "org.omnifaces.persistence.model.BaseEntity.id" are not a default persistent type, and do not have any annotations indicating their persistence strategy. They will be treated as non-persistent.
+ * WARN openjpa.Runtime - Fields "org.omnifaces.persistence.model.BaseEntity.id" are not a default persistent type,
+ * and do not have any annotations indicating their persistence strategy. They will be treated as non-persistent.
  * </pre>
- * This is <strong>NOT</strong> needed for Hibernate and EclipseLink.
+ * This is <strong>NOT</strong> needed for Hibernate and EclipseLink. You can just extend from {@link BaseEntity} directly.
  */
 @MappedSuperclass
 public class LocalBaseEntity extends BaseEntity<Long> {
