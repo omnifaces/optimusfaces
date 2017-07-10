@@ -10,6 +10,7 @@ cache:
 env:
    - SERVER=wildfly-hibernate
    - SERVER=wildfly-eclipselink
+   - SERVER=tomee-openjpa
 script: mvn verify -Dmaven.javadoc.skip=true -P $SERVER
 
 # Do snapshot deployment.
