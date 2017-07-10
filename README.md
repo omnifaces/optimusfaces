@@ -14,17 +14,11 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 
 ```XML
 <dependencies>
-    <!-- Target Java EE 7 server with Hibernate. E.g. WildFly 10. -->
+    <!-- Target Java EE 7 server. E.g. WildFly 10. -->
     <dependency>
         <groupId>javax</groupId>
         <artifactId>javaee-api</artifactId>
         <version>7.0</version>
-        <scope>provided</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-core</artifactId>
-        <version>5.0.0.Final</version>
         <scope>provided</scope>
     </dependency>
 
