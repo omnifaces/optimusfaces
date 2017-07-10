@@ -18,10 +18,8 @@ import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.validation.constraints.NotNull;
 
-import org.omnifaces.persistence.model.BaseEntity;
-
 @Entity
-public class Phone extends BaseEntity<Long> {
+public class Phone extends LocalBaseEntity {
 
 	private static final long serialVersionUID = 1L;
 

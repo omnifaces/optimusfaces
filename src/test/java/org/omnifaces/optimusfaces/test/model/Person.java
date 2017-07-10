@@ -29,10 +29,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
-import org.omnifaces.persistence.model.BaseEntity;
-
 @Entity
-public class Person extends BaseEntity<Long> {
+public class Person extends LocalBaseEntity {
 
 	private static final long serialVersionUID = 1L;
 

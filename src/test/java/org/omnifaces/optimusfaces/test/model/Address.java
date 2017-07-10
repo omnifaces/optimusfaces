@@ -16,10 +16,9 @@ import javax.persistence.Entity;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Formula;
-import org.omnifaces.persistence.model.BaseEntity;
 
 @Entity
-public class Address extends BaseEntity<Long> {
+public class Address extends LocalBaseEntity {
 
 	private static final long serialVersionUID = 1L;
 
