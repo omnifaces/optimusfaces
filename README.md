@@ -5,7 +5,7 @@ Utility library for OmniFaces + PrimeFaces combined.
 
 ## This project is currently still in development stage!
 
-This project basically combines best of [OmniFaces](http://omnifaces.org/) and [PrimeFaces](http://www.primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for JPA (and [Hibernate](http://hibernate.org/)). This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a JPA model and a generic entity service.
+This project basically combines best of [OmniFaces](http://omnifaces.org/) and [PrimeFaces](http://www.primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for JPA. This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a JPA model and a generic entity service.
 
 
 ### Installation
@@ -132,8 +132,14 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 ### Known Issues
 
-- The `<op:column>` approach is not compatible with MyFaces yet. This will be worked on later.
 - EclipseLink refuses to perform a `JOIN` with Criteria API when setFirstResult/setMaxResults is used. This returns a cartesian product. This has been workarounded, but this removes the ability to perform sorting on a column referenced by a join (`@OneToMany` and `@ElementCollection`). You should set such columns as `<op:column ... sortable="false">`.
 - EclipseLink refuses to perform a `GROUP BY` with Criteria API when setFirstResult/setMaxResults is used. This has as consequence that an `IN` clause performed on a column referenced by `@ElementCollection` will return a cartesian product. There is no clear solution/workaround for that yet.
+- HSQLDB (as used in TomEE) for some reason requires a `GROUP BY` on the `CONCAT` aggregate. Other DBs doesn't.
+- HSQLDB (as used in TomEE) doesn't correctly sort values referenced in an inner join.
 
-The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on WildFly 10.1.0 with Mojarra 2.2.13 and Hibernate 5.0.10 and EclipseLink 2.6.4. Hibernate successfully passes all tests while some of the tests will be skipped for EclipseLink due to abovementioned issues.
+The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on following environments:
+- WildFly 10.1.0 with Mojarra 2.2.13 and Hibernate 5.0.10
+- WildFly 10.1.0 with Mojarra 2.2.13 and EclipseLink 2.6.4
+- TomEE 7.0.3 with MyFaces 2.2.11 and OpenJPA 2.4.2
+
+Hibernate successfully passes all tests while some of the tests will be skipped for EclipseLink due to abovementioned issues. OpenJPA technically also passes all tests, however TomEE's embedded HSQLDB has its problems as mentioned above and hence those tests will be skipped for TomEE+OpenJPA.
