@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.omnifaces.optimusfaces.test;
+package org.omnifaces.optimusfaces.test.view;
 
 import static java.util.stream.Collectors.toMap;
 import static org.omnifaces.utils.stream.Streams.stream;
@@ -39,7 +39,7 @@ import org.omnifaces.utils.reflect.Getter;
 
 @Named
 @ViewScoped
-public class OptimusFacesITNonLazyWithCriteriaBean implements Serializable {
+public class OptimusFacesITLazyWithCriteriaBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -52,7 +52,7 @@ public class OptimusFacesITNonLazyWithCriteriaBean implements Serializable {
 		AVAILABLE_CRITERIA.put("DateOfBirth < 1950", new SimpleEntry<>(Person::getDateOfBirth, Order.lessThan(LocalDate.of(1950, 1, 1))));
 	}
 
-	private PagedDataModel<Person> nonLazyPersonsWithCriteria;
+	private PagedDataModel<Person> lazyPersonsWithCriteria;
 	private List<Entry<Getter<Person>, Object>> selectedCriteria;
 
 	@Inject
@@ -60,15 +60,15 @@ public class OptimusFacesITNonLazyWithCriteriaBean implements Serializable {
 
 	@PostConstruct
 	public void init() {
-		nonLazyPersonsWithCriteria = PagedDataModel.nonLazy(personService.getAll()).criteria(this::mapSelectedCriteria).build();
+		lazyPersonsWithCriteria = PagedDataModel.lazy(personService).criteria(this::mapSelectedCriteria).build();
 	}
 
 	private Map<Getter<Person>, Object> mapSelectedCriteria() {
 		return stream(selectedCriteria).collect(toMap(Entry::getKey, Entry::getValue));
 	}
 
-	public PagedDataModel<Person> getNonLazyPersonsWithCriteria() {
-		return nonLazyPersonsWithCriteria;
+	public PagedDataModel<Person> getLazyPersonsWithCriteria() {
+		return lazyPersonsWithCriteria;
 	}
 
 	public Map<String, Entry<Getter<Person>, Object>> getAvailableCriteria() {

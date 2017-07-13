@@ -26,8 +26,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_ORDER;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_PAGE;
-import static org.omnifaces.optimusfaces.test.OptimusFacesITStartup.ROWS_PER_PAGE;
-import static org.omnifaces.optimusfaces.test.OptimusFacesITStartup.TOTAL_RECORDS;
+import static org.omnifaces.optimusfaces.test.service.StartupService.ROWS_PER_PAGE;
+import static org.omnifaces.optimusfaces.test.service.StartupService.TOTAL_RECORDS;
 
 import java.io.File;
 import java.net.URL;
@@ -36,11 +36,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.drone.api.annotation.Drone;
-import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -52,7 +51,6 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
-import org.junit.runner.RunWith;
 import org.omnifaces.optimusfaces.test.model.Gender;
 import org.omnifaces.util.Servlets;
 import org.openqa.selenium.By;
@@ -62,8 +60,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.Select;
 
-@RunWith(Arquillian.class)
-public class OptimusFacesIT {
+public abstract class OptimusFacesIT {
 
 	@Drone
 	private WebDriver browser;
@@ -71,37 +68,39 @@ public class OptimusFacesIT {
 	@ArquillianResource
 	private URL baseURL;
 
-	@Deployment(testable=false)
-	public static WebArchive createDeployment() {
-		Class<?> testClass = OptimusFacesIT.class;
+	protected enum DB {
+		H2, MYSQL
+	}
+
+	protected static <T extends OptimusFacesIT> WebArchive createArchive(Class<T> testClass, DB db) {
 		String packageName = testClass.getPackage().getName();
 		MavenResolverSystem maven = Maven.resolver();
 
 		WebArchive archive = create(WebArchive.class, testClass.getSimpleName() + ".war")
-			.addPackage(packageName)
-			.deleteClass(testClass)
 			.addPackage(packageName + ".model")
 			.addPackage(packageName + ".model.dto")
 			.addPackage(packageName + ".service")
-			.addAsResource("META-INF/persistence.xml/" + System.getProperty("profile.id") + ".xml", "META-INF/persistence.xml")
+			.addPackage(packageName + ".view")
+			.addAsResource("META-INF/persistence.xml/" + System.getProperty("profile.id") + "-" + db.name().toLowerCase() + ".xml", "META-INF/persistence.xml")
 			.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
 			.addAsLibrary(new File(System.getProperty("optimusfaces.jar")))
 			.addAsLibraries(maven.loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile())
 			.addAsLibraries(maven.resolve("org.omnifaces:omnifaces:2.6.3", "org.primefaces:primefaces:6.1").withTransitivity().asFile());
 
-		addWebResources(archive, new File(testClass.getClassLoader().getResource(packageName).getFile()), "");
+		addResources(new File(testClass.getClassLoader().getResource("WEB-INF").getFile()), "", archive::addAsWebInfResource);
+		addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
 		return archive;
 	}
 
-	private static void addWebResources(WebArchive archive, File root, String directory) {
+	private static void addResources(File root, String directory, BiConsumer<File, String> archiveConsumer) {
 		for (File file : root.listFiles()) {
 			String path = directory + "/" + file.getName();
 
 			if (file.isFile()) {
-				archive.addAsWebResource(file, path);
+				archiveConsumer.accept(file, path);
 			}
 			else if (file.isDirectory()) {
-				addWebResources(archive, file, path);
+				addResources(file, path, archiveConsumer);
 			}
 		}
 	}
@@ -135,13 +134,11 @@ public class OptimusFacesIT {
 
 	@Before
 	public void init() {
-		if (isMyFaces()) {
-			Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(OFF); // MyFaces triggers for some reason a lot of awkward JS "illegal selector" and CSS "em has to be a px" warnings.
-		}
+		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(OFF); // MyFaces triggers for some reason a lot of awkward JS "illegal selector" and CSS "em has to be a px" warnings.
 	}
 
 	protected void open(String type, String queryString) {
-		String url = baseURL + getClass().getSimpleName() + type + (isMyFaces() ? ".jsf" : ".xhtml"); // MyFaces has no implicit mapping for .xhtml (yet).
+		String url = baseURL + OptimusFacesIT.class.getSimpleName() + type + (isMyFaces() ? ".jsf" : ".xhtml"); // MyFaces has no implicit mapping for .xhtml (yet).
 
 		if (queryString != null) {
 			url += "?" + queryString;

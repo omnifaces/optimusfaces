@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.omnifaces.optimusfaces.test;
+package org.omnifaces.optimusfaces.test.service;
 
 import static java.lang.Math.abs;
 
@@ -30,11 +30,10 @@ import org.omnifaces.optimusfaces.test.model.Gender;
 import org.omnifaces.optimusfaces.test.model.Group;
 import org.omnifaces.optimusfaces.test.model.Person;
 import org.omnifaces.optimusfaces.test.model.Phone;
-import org.omnifaces.optimusfaces.test.service.PersonService;
 
 @Eager
 @ApplicationScoped
-public class OptimusFacesITStartup {
+public class StartupService {
 
 	public static final int TOTAL_RECORDS = 200;
 	public static final int ROWS_PER_PAGE = 10;

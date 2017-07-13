@@ -13,22 +13,14 @@
     specific language governing permissions and limitations under the License.
 
 -->
-<!-- 
-	H2 and MySQL data source configurations for TomEE.
- -->
-<resources>
-	<Resource id="H2" type="javax.sql.DataSource">
-		JdbcDriver org.h2.Driver
-		JdbcUrl jdbc:h2:mem:test
-		UserName sa
-		Password sa
-		jtaManaged = true
-	</Resource>
-	<Resource id="MySQL" type="javax.sql.DataSource">
-		JdbcDriver com.mysql.jdbc.Driver
-		JdbcUrl jdbc:mysql://localhost:3310/test?useUnicode=true&amp;characterEncoding=UTF-8
-		UserName test
-		Password test
-		jtaManaged = true
-	</Resource>
-</resources>
+<datasources>
+	<datasource jta="true" jndi-name="java:/MySQL" pool-name="MySQL" enabled="true" use-java-context="true">
+		<connection-url>jdbc:mysql://localhost:3310/test?useUnicode=true&amp;characterEncoding=UTF-8</connection-url>
+		<driver>mysql-connector-java.jar_com.mysql.jdbc.Driver_5_1</driver>
+		<transaction-isolation>TRANSACTION_READ_COMMITTED</transaction-isolation>
+		<security>
+			<user-name>test</user-name>
+			<password>test</password>
+		</security>
+	</datasource>
+</datasources>

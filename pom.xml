@@ -140,10 +140,28 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.25</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.wix</groupId>
+			<artifactId>wix-embedded-mysql</artifactId>
+			<version>2.2.6</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion> <!-- Conflicts with Selenium's own one. -->
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>5.0.0.Final</version>
-			<scope>test</scope>
+			<scope>test</scope> <!-- Only for the @Formula annotation on Address entity. -->
 			<exclusions>
 				<exclusion> <!-- Conflicts with Selenium's own one. -->
 					<groupId>dom4j</groupId>
@@ -453,6 +471,25 @@
 									</artifactItems>
 								</configuration>
 							</execution>
+							<execution>
+								<id>install-mysql-driver-in-wildfly</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>mysql</groupId>
+											<artifactId>mysql-connector-java</artifactId>
+											<version>5.1.42</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<destFileName>mysql-connector-java.jar</destFileName>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
 						</executions>
 					</plugin>
 					<plugin>
@@ -499,6 +536,25 @@
 								</configuration>
 							</execution>
 							<execution>
+								<id>install-mysql-driver-in-wildfly</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>mysql</groupId>
+											<artifactId>mysql-connector-java</artifactId>
+											<version>5.1.42</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<destFileName>mysql-connector-java.jar</destFileName>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
 								<id>install-eclipselink-in-wildfly</id>
 								<phase>pre-integration-test</phase>
 								<goals>
@@ -513,7 +569,6 @@
 											<type>jar</type>
 											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
 											<destFileName>eclipselink.jar</destFileName>
-											<overWrite>true</overWrite>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -526,7 +581,7 @@
 						<version>3.0.2</version>
 						<executions>
 							<execution>
-								<id>copy-resources</id>
+								<id>register-eclipselink-in-wildfly</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy-resources</goal>
@@ -603,8 +658,24 @@
 											<version>1.4.196</version>
 											<type>jar</type>
 											<outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
-											<destFileName>h2.jar</destFileName>
-											<overWrite>true</overWrite>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-mysql-driver-in-tomee</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>mysql</groupId>
+											<artifactId>mysql-connector-java</artifactId>
+											<version>5.1.42</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>

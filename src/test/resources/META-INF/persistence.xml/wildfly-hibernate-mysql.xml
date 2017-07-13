@@ -13,22 +13,18 @@
     specific language governing permissions and limitations under the License.
 
 -->
-<!-- 
-	H2 and MySQL data source configurations for TomEE.
- -->
-<resources>
-	<Resource id="H2" type="javax.sql.DataSource">
-		JdbcDriver org.h2.Driver
-		JdbcUrl jdbc:h2:mem:test
-		UserName sa
-		Password sa
-		jtaManaged = true
-	</Resource>
-	<Resource id="MySQL" type="javax.sql.DataSource">
-		JdbcDriver com.mysql.jdbc.Driver
-		JdbcUrl jdbc:mysql://localhost:3310/test?useUnicode=true&amp;characterEncoding=UTF-8
-		UserName test
-		Password test
-		jtaManaged = true
-	</Resource>
-</resources>
+<persistence 
+	xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
+	version="2.1"
+>
+	<persistence-unit name="OptimusFacesIT">
+		<jta-data-source>MySQL</jta-data-source>
+
+		<properties>
+			<property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />
+			<property name="hibernate.show_sql" value="true" />
+		</properties>
+	</persistence-unit>
+</persistence>

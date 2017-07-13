@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.omnifaces.optimusfaces.test;
+package org.omnifaces.optimusfaces.test.view;
 
 import java.io.Serializable;
 
@@ -20,27 +20,27 @@ import javax.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.optimusfaces.model.PagedDataModel;
-import org.omnifaces.optimusfaces.test.model.Person;
+import org.omnifaces.optimusfaces.test.model.dto.PersonCard;
 import org.omnifaces.optimusfaces.test.service.PersonService;
 
 @Named
 @ViewScoped
-public class OptimusFacesITLazyWithOneToOneBean implements Serializable {
+public class OptimusFacesITNonLazyWithDTOBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<Person> lazyPersonsWithAddress;
+	private PagedDataModel<PersonCard> allPersonCards;
 
 	@Inject
 	private PersonService personService;
 
 	@PostConstruct
 	public void init() {
-		lazyPersonsWithAddress = PagedDataModel.lazy(personService::getPageWithAddress).build();
+		allPersonCards = PagedDataModel.nonLazy(personService.getAllPersonCards()).build();
 	}
 
-	public PagedDataModel<Person> getLazyPersonsWithAddress() {
-		return lazyPersonsWithAddress;
+	public PagedDataModel<PersonCard> getAllPersonCards() {
+		return allPersonCards;
 	}
 
 }
