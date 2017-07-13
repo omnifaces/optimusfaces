@@ -26,9 +26,9 @@
 	</Resource>
 	<Resource id="MySQL" type="javax.sql.DataSource">
 		JdbcDriver com.mysql.jdbc.Driver
-		JdbcUrl jdbc:mysql://localhost:3310/test?useUnicode=true&amp;characterEncoding=UTF-8
-		UserName test
-		Password test
+		JdbcUrl jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF-8
+		UserName root
+		Password 
 		jtaManaged = true
 	</Resource>
 </resources>

@@ -5,13 +5,16 @@ cache:
    directories:
       - "$HOME/.m2/repository"
       - "$HOME/.sonar/cache"
-      - "$HOME/.embedmysql"
+services:
+   - mysql
 
 # Do integration test on configured servers.
 env:
    - SERVER=wildfly-hibernate
    - SERVER=wildfly-eclipselink
    - SERVER=tomee-openjpa
+before_script:
+   - mysql -u root -e 'CREATE DATABASE test;'
 script: mvn verify -Dmaven.javadoc.skip=true -P $SERVER
 
 # Do snapshot deployment.

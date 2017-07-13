@@ -15,12 +15,12 @@
 -->
 <datasources>
 	<datasource jta="true" jndi-name="java:/MySQL" pool-name="MySQL" enabled="true" use-java-context="true">
-		<connection-url>jdbc:mysql://localhost:3310/test?useUnicode=true&amp;characterEncoding=UTF-8</connection-url>
+		<connection-url>jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF-8</connection-url>
 		<driver>mysql-connector-java.jar_com.mysql.jdbc.Driver_5_1</driver>
 		<transaction-isolation>TRANSACTION_READ_COMMITTED</transaction-isolation>
 		<security>
-			<user-name>test</user-name>
-			<password>test</password>
+			<user-name>root</user-name>
+			<password></password>
 		</security>
 	</datasource>
 </datasources>
