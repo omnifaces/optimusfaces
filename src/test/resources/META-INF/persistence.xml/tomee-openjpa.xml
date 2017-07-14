@@ -20,7 +20,7 @@
 	version="2.1"
 >
 	<persistence-unit name="OptimusFacesIT">
-		<jta-data-source>java:openejb/Resource/MySQL</jta-data-source>
+		<jta-data-source>java:openejb/Resource/OptimusFacesIT</jta-data-source>
 
 		<class>org.omnifaces.persistence.model.BaseEntity</class>
 

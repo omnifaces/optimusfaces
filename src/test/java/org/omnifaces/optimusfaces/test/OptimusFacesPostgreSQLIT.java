@@ -12,18 +12,20 @@
  */
 package org.omnifaces.optimusfaces.test;
 
-import static org.omnifaces.optimusfaces.test.OptimusFacesIT.DB.MySQL;
+import static org.omnifaces.optimusfaces.test.OptimusFacesIT.DB.PostgreSQL;
+
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 
-@RunWith(Arquillian.class)
-public class OptimusFacesMySQLIT extends OptimusFacesIT {
+@RunWith(Arquillian.class) @Ignore // Disabled for now. TODO: Fix GROUP BY @ElementCollection in BaseEntityService for PostgreSQL.
+public class OptimusFacesPostgreSQLIT extends OptimusFacesIT {
 
 	@Deployment(testable=false)
 	public static WebArchive createDeployment() {
-		return createArchive(OptimusFacesMySQLIT.class, MySQL);
+		return createArchive(OptimusFacesPostgreSQLIT.class, PostgreSQL);
 	}
 
 }

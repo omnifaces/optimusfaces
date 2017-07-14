@@ -69,7 +69,7 @@ public abstract class OptimusFacesIT {
 	private URL baseURL;
 
 	protected enum DB {
-		H2, MYSQL
+		H2, MySQL, PostgreSQL
 	}
 
 	protected static <T extends OptimusFacesIT> WebArchive createArchive(Class<T> testClass, DB db) {
@@ -81,13 +81,19 @@ public abstract class OptimusFacesIT {
 			.addPackage(packageName + ".model.dto")
 			.addPackage(packageName + ".service")
 			.addPackage(packageName + ".view")
-			.addAsResource("META-INF/persistence.xml/" + System.getProperty("profile.id") + "-" + db.name().toLowerCase() + ".xml", "META-INF/persistence.xml")
+			.addAsResource("META-INF/persistence.xml/" + System.getProperty("profile.id") + ".xml", "META-INF/persistence.xml")
 			.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
 			.addAsLibrary(new File(System.getProperty("optimusfaces.jar")))
 			.addAsLibraries(maven.loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile())
 			.addAsLibraries(maven.resolve("org.omnifaces:omnifaces:2.6.3", "org.primefaces:primefaces:6.1").withTransitivity().asFile());
 
-		addResources(new File(testClass.getClassLoader().getResource("WEB-INF").getFile()), "", archive::addAsWebInfResource);
+		if (isWildFly()) {
+			archive.addAsWebInfResource("WEB-INF/wildfly-ds.xml/" + db.name() + ".xml", "wildfly-ds.xml");
+		}
+		else if (isTomEE()) {
+			archive.addAsWebInfResource("WEB-INF/resources.xml/" + db.name() + ".xml", "resources.xml");
+		}
+
 		addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
 		return archive;
 	}
@@ -138,7 +144,7 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void open(String type, String queryString) {
-		String url = baseURL + OptimusFacesIT.class.getSimpleName() + type + (isMyFaces() ? ".jsf" : ".xhtml"); // MyFaces has no implicit mapping for .xhtml (yet).
+		String url = baseURL + OptimusFacesIT.class.getSimpleName() + type + (isTomEE() ? ".jsf" : ".xhtml"); // MyFaces has no implicit mapping for .xhtml (yet).
 
 		if (queryString != null) {
 			url += "?" + queryString;
@@ -166,7 +172,11 @@ public abstract class OptimusFacesIT {
 		return Integer.parseInt(browser.findElement(By.id("rowCount")).getText());
 	}
 
-	protected static boolean isMyFaces() {
+	protected static boolean isWildFly() {
+		return System.getProperty("profile.id").startsWith("wildfly-");
+	}
+
+	protected static boolean isTomEE() {
 		return System.getProperty("profile.id").startsWith("tomee-");
 	}
 
@@ -798,11 +808,6 @@ public abstract class OptimusFacesIT {
 		int rowCount1 = getRowCount();
 		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 		assertNoCartesianProduct();
-
-		if (isEclipseLink() && isLazy()) {
-			System.out.println("SKIPPING multiple criteria selection for EclipseLink because it doesn't support join fetch with range and therefore groupby can't run in same query"); // TODO: improve?
-			return;
-		}
 
 		guardAjax(criteriaGroupMANAGER).click();
 		int rowCount2 = getRowCount();

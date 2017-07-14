@@ -20,7 +20,7 @@
 	version="2.1"
 >
 	<persistence-unit name="OptimusFacesIT">
-		<jta-data-source>MySQL</jta-data-source>
+		<jta-data-source>OptimusFacesIT</jta-data-source>
 
 		<properties>
 			<property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />

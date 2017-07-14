@@ -467,7 +467,26 @@
 											<version>5.1.42</version>
 											<type>jar</type>
 											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
-											<destFileName>mysql-connector-java.jar</destFileName>
+											<destFileName>mysql.jar</destFileName>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-psql-driver-in-wildfly</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.postgresql</groupId>
+											<artifactId>postgresql</artifactId>
+											<version>42.1.1</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<destFileName>postgresql.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -531,7 +550,26 @@
 											<version>5.1.42</version>
 											<type>jar</type>
 											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
-											<destFileName>mysql-connector-java.jar</destFileName>
+											<destFileName>mysql.jar</destFileName>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-psql-driver-in-wildfly</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.postgresql</groupId>
+											<artifactId>postgresql</artifactId>
+											<version>42.1.1</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<destFileName>postgresql.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -656,6 +694,24 @@
 											<groupId>mysql</groupId>
 											<artifactId>mysql-connector-java</artifactId>
 											<version>5.1.42</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-psql-driver-in-tomee</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.postgresql</groupId>
+											<artifactId>postgresql</artifactId>
+											<version>42.1.1</version>
 											<type>jar</type>
 											<outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
 										</artifactItem>

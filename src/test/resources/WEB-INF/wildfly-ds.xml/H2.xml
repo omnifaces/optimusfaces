@@ -14,21 +14,15 @@
 
 -->
 <!-- 
-	H2 and MySQL data source configurations for TomEE.
+	H2 data source configuration for WildFly.
  -->
-<resources>
-	<Resource id="H2" type="javax.sql.DataSource">
-		JdbcDriver org.h2.Driver
-		JdbcUrl jdbc:h2:mem:test
-		UserName sa
-		Password sa
-		jtaManaged = true
-	</Resource>
-	<Resource id="MySQL" type="javax.sql.DataSource">
-		JdbcDriver com.mysql.jdbc.Driver
-		JdbcUrl jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF-8
-		UserName root
-		Password 
-		jtaManaged = true
-	</Resource>
-</resources>
+<datasources>
+	<datasource jta="true" jndi-name="java:/OptimusFacesIT" pool-name="OptimusFacesIT" enabled="true" use-java-context="true">
+		<connection-url>jdbc:h2:mem:test</connection-url>
+		<driver>h2</driver>
+		<security>
+			<user-name>sa</user-name>
+			<password>sa</password>
+		</security>
+	</datasource>
+</datasources>

@@ -13,11 +13,13 @@
     specific language governing permissions and limitations under the License.
 
 -->
+<!-- 
+	MySQL data source configuration for WildFly.
+ -->
 <datasources>
-	<datasource jta="true" jndi-name="java:/MySQL" pool-name="MySQL" enabled="true" use-java-context="true">
+	<datasource jta="true" jndi-name="java:/OptimusFacesIT" pool-name="OptimusFacesIT" enabled="true" use-java-context="true">
 		<connection-url>jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF-8</connection-url>
-		<driver>mysql-connector-java.jar_com.mysql.jdbc.Driver_5_1</driver>
-		<transaction-isolation>TRANSACTION_READ_COMMITTED</transaction-isolation>
+		<driver>mysql.jar_com.mysql.jdbc.Driver_5_1</driver>
 		<security>
 			<user-name>root</user-name>
 			<password></password>

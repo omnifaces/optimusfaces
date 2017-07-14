@@ -21,6 +21,7 @@
 >
 	<persistence-unit name="OptimusFacesIT">
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+		<jta-data-source>OptimusFacesIT</jta-data-source>
 
 		<class>org.omnifaces.optimusfaces.test.model.Address</class>
 		<class>org.omnifaces.optimusfaces.test.model.Person</class>
