@@ -39,7 +39,11 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
+import org.jboss.arquillian.drone.api.annotation.Default;
 import org.jboss.arquillian.drone.api.annotation.Drone;
+import org.jboss.arquillian.graphene.context.GrapheneContext;
+import org.jboss.arquillian.graphene.proxy.GrapheneProxyInstance;
+import org.jboss.arquillian.graphene.spi.configuration.GrapheneConfiguration;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -61,6 +65,8 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.Select;
 
 public abstract class OptimusFacesIT {
+
+	private static final int TIMEOUT_IN_SECONDS = 5;
 
 	@Drone
 	private WebDriver browser;
@@ -141,6 +147,35 @@ public abstract class OptimusFacesIT {
 	@Before
 	public void init() {
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(OFF); // MyFaces triggers for some reason a lot of awkward JS "illegal selector" and CSS "em has to be a px" warnings.
+		configureTimeouts(browser);
+	}
+
+	protected static void configureTimeouts(WebDriver browser) {
+		while (browser instanceof GrapheneProxyInstance) {
+			browser = ((GrapheneProxyInstance) browser).unwrap();
+		}
+
+		GrapheneContext.setContextFor(new GrapheneConfiguration() {
+			@Override
+			public long getWaitAjaxInterval() {
+				return TIMEOUT_IN_SECONDS;
+			}
+
+			@Override
+			public long getWaitGuardInterval() {
+				return TIMEOUT_IN_SECONDS;
+			}
+
+			@Override
+			public long getWaitGuiInterval() {
+				return TIMEOUT_IN_SECONDS;
+			}
+
+			@Override
+			public long getWaitModelInterval() {
+				return TIMEOUT_IN_SECONDS;
+			}
+		}, browser, Default.class);
 	}
 
 	protected void open(String type, String queryString) {
