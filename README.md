@@ -141,3 +141,5 @@ Each environment will run the IT on following databases:
 - H2 1.3.173 on WildFly and H2 1.4.196 on TomEE (embedded database)
 - MySQL 5.5.41 (provided by Travis) with JDBC driver 5.1.42
 - PostgreSQL 9.1.14 (provided by Travis) with JDBC driver 42.1.1
+
+Effectively, there are thus 9 full test runs.
