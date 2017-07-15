@@ -12,7 +12,7 @@
  */
 package org.omnifaces.optimusfaces.test;
 
-import static org.omnifaces.optimusfaces.test.OptimusFacesIT.DB.H2;
+import static org.omnifaces.persistence.Database.H2;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;

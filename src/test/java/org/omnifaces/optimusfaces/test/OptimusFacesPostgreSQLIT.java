@@ -12,7 +12,7 @@
  */
 package org.omnifaces.optimusfaces.test;
 
-import static org.omnifaces.optimusfaces.test.OptimusFacesIT.DB.PostgreSQL;
+import static org.omnifaces.persistence.Database.POSTGRESQL;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -20,12 +20,17 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 
-@RunWith(Arquillian.class) @Ignore // Disabled for now. TODO: Fix GROUP BY @ElementCollection in BaseEntityService for PostgreSQL.
+/**
+ * wildfly-hibernate: fails on testLazyElementCollection: groups.person_id must be in GROUP BY
+ * wildfly-eclipselink: fails on testDTO: address.street etc must be in GROUP BY
+ * tomee-openjpa: fails on testDTO: address.street etc must be in GROUP BY
+ */
+@RunWith(Arquillian.class) @Ignore // Disabled for now. TODO: Fix GROUP BY in BaseEntityService for PostgreSQL.
 public class OptimusFacesPostgreSQLIT extends OptimusFacesIT {
 
 	@Deployment(testable=false)
 	public static WebArchive createDeployment() {
-		return createArchive(OptimusFacesPostgreSQLIT.class, PostgreSQL);
+		return createArchive(OptimusFacesPostgreSQLIT.class, POSTGRESQL);
 	}
 
 }

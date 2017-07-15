@@ -56,6 +56,7 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.omnifaces.optimusfaces.test.model.Gender;
+import org.omnifaces.persistence.Database;
 import org.omnifaces.util.Servlets;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -74,11 +75,7 @@ public abstract class OptimusFacesIT {
 	@ArquillianResource
 	private URL baseURL;
 
-	protected enum DB {
-		H2, MySQL, PostgreSQL
-	}
-
-	protected static <T extends OptimusFacesIT> WebArchive createArchive(Class<T> testClass, DB db) {
+	protected static <T extends OptimusFacesIT> WebArchive createArchive(Class<T> testClass, Database database) {
 		String packageName = testClass.getPackage().getName();
 		MavenResolverSystem maven = Maven.resolver();
 
@@ -94,10 +91,10 @@ public abstract class OptimusFacesIT {
 			.addAsLibraries(maven.resolve("org.omnifaces:omnifaces:2.6.3", "org.primefaces:primefaces:6.1").withTransitivity().asFile());
 
 		if (isWildFly()) {
-			archive.addAsWebInfResource("WEB-INF/wildfly-ds.xml/" + db.name() + ".xml", "wildfly-ds.xml");
+			archive.addAsWebInfResource("WEB-INF/wildfly-ds.xml/" + database.name().toLowerCase() + ".xml", "wildfly-ds.xml");
 		}
 		else if (isTomEE()) {
-			archive.addAsWebInfResource("WEB-INF/resources.xml/" + db.name() + ".xml", "resources.xml");
+			archive.addAsWebInfResource("WEB-INF/resources.xml/" + database.name().toLowerCase() + ".xml", "resources.xml");
 		}
 
 		addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
@@ -651,7 +648,7 @@ public abstract class OptimusFacesIT {
 
 		int rowCount3 = rowCount2;
 		if (isOpenJPA()) {
-			System.out.println("SKIPPING criteriaDateOfBirthBefore1950 for OpenJPA because it doesn't support LocalDate in Criteria API even with AttributeConverter");
+			System.out.println("SKIPPING criteriaDateOfBirthBefore1950 for OpenJPA because it doesn't support LocalDate in Criteria API");
 			// org.apache.openjpa.persistence.ArgumentException: The specified parameter of type "class java.time.LocalDate" is not a valid query parameter
 		}
 		else {

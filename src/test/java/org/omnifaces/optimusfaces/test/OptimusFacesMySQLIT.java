@@ -12,7 +12,8 @@
  */
 package org.omnifaces.optimusfaces.test;
 
-import static org.omnifaces.optimusfaces.test.OptimusFacesIT.DB.MySQL;
+import static org.omnifaces.persistence.Database.MYSQL;
+
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -23,7 +24,7 @@ public class OptimusFacesMySQLIT extends OptimusFacesIT {
 
 	@Deployment(testable=false)
 	public static WebArchive createDeployment() {
-		return createArchive(OptimusFacesMySQLIT.class, MySQL);
+		return createArchive(OptimusFacesMySQLIT.class, MYSQL);
 	}
 
 }
