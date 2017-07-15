@@ -17,15 +17,9 @@ import static org.omnifaces.persistence.Database.POSTGRESQL;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 
-/**
- * wildfly-hibernate: fails on testLazyElementCollection: groups.person_id must be in GROUP BY
- * wildfly-eclipselink: fails on testDTO: address.street etc must be in GROUP BY
- * tomee-openjpa: fails on testDTO: address.street etc must be in GROUP BY
- */
-@RunWith(Arquillian.class) @Ignore // Disabled for now. TODO: Fix GROUP BY in BaseEntityService for PostgreSQL.
+@RunWith(Arquillian.class)
 public class OptimusFacesPostgreSQLIT extends OptimusFacesIT {
 
 	@Deployment(testable=false)
