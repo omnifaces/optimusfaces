@@ -126,14 +126,18 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 ### Known Issues (OptimusFaces 0.4-SNAPSHOT)
 
+- Hibernate performs the `GROUP BY` of a `@ElementCollection` on the wrong side (in the non-owning side) causing PostgreSQL to error on this. Other databases don't have a problem with it.
 - EclipseLink refuses to perform a `JOIN` with Criteria API when setFirstResult/setMaxResults is used. This returns a cartesian product. This has been workarounded, but this removes the ability to perform sorting on a column referenced by a join (`@OneToMany` and `@ElementCollection`). You should set such columns as `<op:column ... sortable="false">`.
 - EclipseLink refuses to perform a `GROUP BY` with Criteria API when setFirstResult/setMaxResults is used. This has as consequence that an `IN` clause performed on a column referenced by `@ElementCollection` will return a cartesian product. There is no clear solution/workaround for that yet.
 - OpenJPA doesn't support setting a `java.time` search parameter in Criteria API (in IT a `LocalDate` is being used) even though it's supported in `@Column`. So you should for now use `@Temporal` in JPA columns and supply `java.util.Date` as search parameter.
 - OpenJPA performs a double join when sorting a column referenced by a join (`@OneToMany` and `@ElementCollection`). This is perhaps related to the abovementioned EclipseLink issue and still needs investigation. You should for now set such columns as `<op:column ... sortable="false">`.
 
-The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on following environments with H2 embedded database:
+The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on following environments:
 - WildFly 10.1.0 with Mojarra 2.2.13 and Hibernate 5.0.10
 - WildFly 10.1.0 with Mojarra 2.2.13 and EclipseLink 2.6.4
 - TomEE 7.0.3 with MyFaces 2.2.11 and OpenJPA 2.4.2
 
-Hibernate successfully passes all tests while some of the tests will be skipped for EclipseLink and OpenJPA due to abovementioned issues.
+Each environment will run the IT on following databases:
+- H2 1.3.173 on WildFly and H2 1.4.196 on TomEE (embedded database)
+- MySQL 5.5.41 (provided by Travis) with JDBC driver 5.1.42
+- PostgreSQL 9.1.14 (provided by Travis) with JDBC driver 42.1.1
