@@ -62,7 +62,7 @@
 						styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
 					</p:inputText>
 					<p:button id="search" type="button" value="#{searchButtonLabel}"
-						styleClass="search" a:data-tablewidgetid="#{id}">
+						styleClass="search" a:data-tablewidgetid="#{id}" onclick="return false">
 					</p:button>
 				</div>
 				<o:moveComponent for="#{id}" destination="FACET" facet="header">

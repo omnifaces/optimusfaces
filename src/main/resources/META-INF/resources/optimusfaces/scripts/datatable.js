@@ -79,8 +79,6 @@ if (PrimeFaces.widget.DataTable) {
 			$globalFilter.val($globalFilterValue);
 			dataTableWidget.filter();
 		}
-
-		return false;
 	});
 
 }
