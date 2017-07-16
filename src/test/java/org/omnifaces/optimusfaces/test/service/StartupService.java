@@ -14,6 +14,8 @@ package org.omnifaces.optimusfaces.test.service;
 
 import static java.lang.Math.abs;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -25,7 +27,6 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.apache.commons.io.output.NullOutputStream;
 import org.omnifaces.cdi.Eager;
 import org.omnifaces.optimusfaces.test.model.Address;
 import org.omnifaces.optimusfaces.test.model.Gender;
@@ -50,7 +51,12 @@ public class StartupService {
 
 	private void createTestPersons() {
 		PrintStream originalStdout = System.out;
-		System.setOut(new PrintStream(new NullOutputStream())); // INSERT logging of 200 persons is way too verbose.
+		System.setOut(new PrintStream(new OutputStream() {
+			@Override
+			public void write(int ignore) throws IOException {
+				// INSERT logging of 200 persons is way too verbose.
+			}
+		}));
 
 		try {
 			Gender[] genders = Gender.values();
