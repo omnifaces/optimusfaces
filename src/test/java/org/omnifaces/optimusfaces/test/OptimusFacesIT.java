@@ -697,7 +697,7 @@ public abstract class OptimusFacesIT {
 		assertEquals("total matches", TOTAL_RECORDS, matches);
 	}
 
-	protected void testDTO() { // NOTE: sorting on addressString is not supported
+	protected void testDTO() {
 		assertNoCartesianProduct();
 
 		guardAjax(addressStringColumn).click();
