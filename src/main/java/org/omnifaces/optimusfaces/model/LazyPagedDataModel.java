@@ -122,10 +122,10 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
 		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
-		ordering = processPageAndOrderQueryParameters(context, table, limit, tableSortField, tableSortOrder);
-		filters = processFilterQueryParameters(context, processableColumns, tableFilters);
-		globalFilter = processGlobalFilterQueryParameter(context, tableFilters);
-		selection = processSelectionQueryParametersIfNecessary(context, selection);
+		ordering = processPageAndOrdering(context, table, limit, tableSortField, tableSortOrder);
+		filters = processFilters(context, processableColumns, tableFilters);
+		globalFilter = processGlobalFilter(context, tableFilters);
+		selection = processSelectionIfNecessary(context, selection);
 
 		Map<String, Object> requiredCriteria = new HashMap<>();
 		Map<String, Object> optionalCriteria = new HashMap<>();
@@ -184,7 +184,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return Boolean.parseBoolean(String.valueOf(table.getAttributes().get("searchable")));
 	}
 
-	protected LinkedHashMap<String, Boolean> processPageAndOrderQueryParameters(FacesContext context, DataTable table, int limit, String tableSortField, SortOrder tableSortOrder) {
+	protected LinkedHashMap<String, Boolean> processPageAndOrdering(FacesContext context, DataTable table, int limit, String tableSortField, SortOrder tableSortOrder) {
 		LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
 
 		if (!isEmpty(tableSortField)) {
@@ -234,7 +234,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return ordering;
 	}
 
-	protected LinkedHashMap<String, Object> processFilterQueryParameters(FacesContext context, List<UIColumn> processableColumns, Map<String, Object> tableFilters) {
+	protected LinkedHashMap<String, Object> processFilters(FacesContext context, List<UIColumn> processableColumns, Map<String, Object> tableFilters) {
 		LinkedHashMap<String, Object> mergedFilters = new LinkedHashMap<>();
 
 		for (UIColumn column : processableColumns) {
@@ -253,7 +253,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return mergedFilters;
 	}
 
-	protected List<E> processSelectionQueryParametersIfNecessary(FacesContext context, List<E> currentSelection) {
+	protected List<E> processSelectionIfNecessary(FacesContext context, List<E> currentSelection) {
 		if (currentSelection != null || context.isPostback()) {
 			return currentSelection;
 		}
@@ -262,7 +262,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return selection.isEmpty() ? emptyList() : new ArrayList<>(load(new Page(0, selection.size(), null, singletonMap(ID, selection), null), false));
 	}
 
-	protected String processGlobalFilterQueryParameter(FacesContext context, Map<String, Object> tableFilters) {
+	protected String processGlobalFilter(FacesContext context, Map<String, Object> tableFilters) {
 		String globalFilter = (String) tableFilters.get(GLOBAL_FILTER);
 
 		if (globalFilter != null) {
@@ -282,11 +282,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 	protected void processCriteria(List<UIColumn> processableColumns, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
 		if (criteria != null) {
-			ofNullable(criteria.get()).orElse(emptyMap()).forEach((getter, value) -> {
-				String field = getter.getPropertyName();
-				Object normalizedValue = normalizeCriteriaValue(value);
-				requiredCriteria.put(field, normalizedValue);
-			});
+			ofNullable(criteria.get()).orElse(emptyMap()).forEach((getter, value) -> processCriteriaSupplier(getter.getPropertyName(), value, requiredCriteria));
 		}
 
 		for (UIColumn column : processableColumns) {
@@ -312,6 +308,17 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 			if (!isEmpty(globalFilter)) {
 				optionalCriteria.put(field, Like.contains(globalFilter));
 			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void processCriteriaSupplier(String field, Object value, Map<String, Object> requiredCriteria) {
+		if (value instanceof Map && !((Map<?, ?>) value).isEmpty() && ((Map<?, ?>) value).keySet().iterator().next() instanceof Getter) {
+			Map<Getter<?>, Object> nestedCriteria = (Map<Getter<?>, Object>) value;
+			nestedCriteria.forEach((getter, nestedValue) -> processCriteriaSupplier(field + "." + getter.getPropertyName(), nestedValue, requiredCriteria));
+		}
+		else {
+			requiredCriteria.put(field, normalizeCriteriaValue(value));
 		}
 	}
 
