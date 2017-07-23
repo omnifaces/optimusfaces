@@ -14,9 +14,6 @@ package org.omnifaces.optimusfaces.test.service;
 
 import static java.lang.Math.abs;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,50 +47,37 @@ public class StartupService {
 	}
 
 	private void createTestPersons() {
-		PrintStream originalStdout = System.out;
-		System.setOut(new PrintStream(new OutputStream() {
-			@Override
-			public void write(int ignore) throws IOException {
-				// INSERT logging of 200 persons is way too verbose.
+		Gender[] genders = Gender.values();
+		Phone.Type[] phoneTypes = Phone.Type.values();
+		List<Group> groups = Arrays.asList(Group.values());
+		ThreadLocalRandom random = ThreadLocalRandom.current();
+
+		for (int i = 0; i < TOTAL_RECORDS; i++) {
+			Person person = new Person();
+			person.setEmail("name" + i + "@example.com");
+			person.setGender(genders[random.nextInt(genders.length)]);
+			person.setDateOfBirth(LocalDate.ofEpochDay(random.nextLong(LocalDate.of(1900, 1, 1).toEpochDay(), LocalDate.of(2000, 1, 1).toEpochDay())));
+
+			Address address = new Address();
+			address.setStreet("Street" + i);
+			address.setHouseNumber("" + i);
+			address.setPostcode("Postcode" + i);
+			address.setCity("City" + i);
+			address.setCountry("Country" + i);
+			person.setAddress(address);
+
+			int totalPhones = random.nextInt(1, 6);
+			for (int j = 0; j < totalPhones; j++) {
+				Phone phone = new Phone();
+				phone.setType(phoneTypes[random.nextInt(phoneTypes.length)]);
+				phone.setNumber("0" + abs(random.nextInt()));
+				person.getPhones().add(phone);
 			}
-		}));
 
-		try {
-			Gender[] genders = Gender.values();
-			Phone.Type[] phoneTypes = Phone.Type.values();
-			List<Group> groups = Arrays.asList(Group.values());
-			ThreadLocalRandom random = ThreadLocalRandom.current();
+			Collections.shuffle(groups, random);
+			person.getGroups().addAll(groups.subList(0, random.nextInt(1, groups.size() + 1)));
 
-			for (int i = 0; i < TOTAL_RECORDS; i++) {
-				Person person = new Person();
-				person.setEmail("name" + i + "@example.com");
-				person.setGender(genders[random.nextInt(genders.length)]);
-				person.setDateOfBirth(LocalDate.ofEpochDay(random.nextLong(LocalDate.of(1900, 1, 1).toEpochDay(), LocalDate.of(2000, 1, 1).toEpochDay())));
-
-				Address address = new Address();
-				address.setStreet("Street" + i);
-				address.setHouseNumber("" + i);
-				address.setPostcode("Postcode" + i);
-				address.setCity("City" + i);
-				address.setCountry("Country" + i);
-				person.setAddress(address);
-
-				int totalPhones = random.nextInt(1, 6);
-				for (int j = 0; j < totalPhones; j++) {
-					Phone phone = new Phone();
-					phone.setType(phoneTypes[random.nextInt(phoneTypes.length)]);
-					phone.setNumber("0" + abs(random.nextInt()));
-					person.getPhones().add(phone);
-				}
-
-				Collections.shuffle(groups, random);
-				person.getGroups().addAll(groups.subList(0, random.nextInt(1, groups.size() + 1)));
-
-				personService.persist(person);
-			}
-		}
-		finally {
-			System.setOut(originalStdout);
+			personService.persist(person);
 		}
 	}
 
