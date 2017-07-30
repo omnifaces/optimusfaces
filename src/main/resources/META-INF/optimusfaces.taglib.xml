@@ -129,7 +129,7 @@
 			<type>java.lang.Object</type>
 		</attribute>
 		<attribute>
-			<description>Whether the value is iterable. Defaults to whether the field property represents a plural (i.e. whether it ends with "s").</description>
+			<description>Whether the value is iterable. This will trigger the value to be rendered in an ui:repeat with linebreaks. Defaults to whether the field property is an instance of Iterable.</description>
 			<name>iterable</name>
 			<required>false</required>
 			<type>boolean</type>

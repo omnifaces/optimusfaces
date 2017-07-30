@@ -384,8 +384,8 @@ import org.primefaces.model.Visibility;
  * &lt;op:dataTable ... exportable="true"&gt;
  * </pre>
  * <p>
- * Any field property which represents a plural (i.e. when it ends with <code>s</code>) will automatically be wrapped
- * in an <code>&lt;ui:repeat&gt;</code>. You can always explicitly toggle this via <code>iterable</code> attribute.
+ * Any field property which is an instance of {@link Iterable} will automatically be wrapped in an <code>&lt;ui:repeat&gt;</code>.
+ * You can always explicitly toggle this via <code>iterable</code> attribute.
  * <pre>
  * &lt;op:column ... iterable="true" /&gt;
  * </pre>
@@ -797,6 +797,16 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
 
 	// Default methods ------------------------------------------------------------------------------------------------
+
+	/**
+	 * Invoked when default <code>id</code> attribute of <code>&lt;op:column&gt;</code> is to be set. This is by default based on the
+	 * <code>field</code> and the ID attribute does not support periods.
+	 * @param field The column field.
+	 * @return The column ID based on given field.
+	 */
+	default String computeColumnId(String field) {
+		return field.replace('.', '_');
+	}
 
 	/**
 	 * Invoked when <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code> is provided.

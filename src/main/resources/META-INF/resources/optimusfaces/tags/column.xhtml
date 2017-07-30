@@ -23,12 +23,14 @@
 	xmlns:of="http://omnifaces.org/functions"
 	xmlns:p="http://primefaces.org/ui"
 >
-	<c:set var="dataTable" value="#{component.namingContainer}" />
-	<c:set var="pagedDataModel" value="#{dataTable.value}" />
-	<c:set var="exporting" value="#{not empty param.export}" scope="request" />
+	<!-- NOTE: Internal variables start with an unconventional $ in order to prevent interfering with user defined variables in same scope. -->
+	<c:set var="$dataTable" value="#{component.namingContainer}" />
+	<c:set var="$pagedDataModel" value="#{$dataTable.value}" />
+	<c:set var="$exporting" value="#{not empty param.export}" scope="request" />
+	<c:set var="$ITERABLE_CLASS" value="#{{}['class'].interfaces[0].interfaces[0].interfaces[0]}" scope="application" /><!-- TODO: this is hacky -->
 
 	<o:tagAttribute name="field" />
-		<o:tagAttribute name="id" default="#{field.replace(46,95)}" /> <!-- Replaces '.' by '_'. Note that fn:replace is insuitable as it uses regex in Oracle JSTL but not in Apache JSTL, and that using chars instead of codepoints causes Oracle EL not being able to resolve the ambiguous method (char vs string). -->
+		<o:tagAttribute name="id" default="#{$pagedDataModel.computeColumnId(field)}" />
 		<o:tagAttribute name="head" default="#{field}" />
 		<o:tagAttribute name="value" default="#{item[field]}" />
 		<o:tagAttribute name="tooltip" />
@@ -36,12 +38,12 @@
 		<o:tagAttribute name="rendered" default="#{true}" />
 		<o:tagAttribute name="visible" default="#{true}" />
 		<o:tagAttribute name="width" />
-		<o:tagAttribute name="iterable" default="#{field.endsWith('s') or field.contains('s.')}" />
+		<o:tagAttribute name="iterable" default="#{$ITERABLE_CLASS.isInstance(value)}" />
 
-	<o:tagAttribute name="sortable" default="#{dataTable.attributes.sortable}" />
+	<o:tagAttribute name="sortable" default="#{$dataTable.attributes.sortable}" />
 		<o:tagAttribute name="sortDescending" default="#{false}" />
 
-	<o:tagAttribute name="filterable" default="#{dataTable.attributes.filterable}" />
+	<o:tagAttribute name="filterable" default="#{$dataTable.attributes.filterable}" />
 		<o:tagAttribute name="filterMode" />
 		<o:tagAttribute name="filterOptions" />
 
@@ -50,23 +52,23 @@
 
 	<p:column
 		field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" sortBy="#{value}"
-		filterable="#{filterable}" filterBy="#{value}" filterValue="#{pagedDataModel.filters[field]}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
-		styleClass="#{styleClass}#{sortable and dataTable.sortField eq field ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
+		filterable="#{filterable}" filterBy="#{value}" filterValue="#{$pagedDataModel.filters[field]}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
+		styleClass="#{styleClass}#{sortable and $dataTable.sortField eq field ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
 		rendered="#{rendered}" visible="#{visible}"
 	>
 		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
 		<c:if test="#{not empty filterOptions}">
-			<f:attribute name="filterOptions" value="#{pagedDataModel.convertFilterOptionsIfNecessary(filterOptions)}" />
+			<f:attribute name="filterOptions" value="#{$pagedDataModel.convertFilterOptionsIfNecessary(filterOptions)}" />
 			<c:if test="#{empty filterMode}"><f:attribute name="filterMatchMode" value="exact" /></c:if>
 		</c:if>
 
-		<h:outputText rendered="#{exporting}" value="#{exportValue}" />
+		<h:outputText rendered="#{$exporting}" value="#{exportValue}" />
 
-		<ui:fragment rendered="#{not exporting}">
+		<ui:fragment rendered="#{not $exporting}">
 			<span title="#{tooltip}">
 				<ui:insert name="cell">
 					<ui:fragment rendered="#{not iterable}">#{value}</ui:fragment>
-					<ui:repeat rendered="#{iterable}" value="#{value}" var="_value"><span>#{_value}</span><br/></ui:repeat>
+					<ui:repeat rendered="#{iterable}" value="#{of:iterableToList(value)}" var="$value" varStatus="loop"><span>#{$value}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
 				</ui:insert>
 			</span>
 		</ui:fragment>

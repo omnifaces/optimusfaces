@@ -318,7 +318,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 			nestedCriteria.forEach((getter, nestedValue) -> processCriteriaSupplier(field + "." + getter.getPropertyName(), nestedValue, requiredCriteria));
 		}
 		else {
-			requiredCriteria.put(field, normalizeCriteriaValue(value));
+			requiredCriteria.put(field, value);
 		}
 	}
 
