@@ -13,6 +13,7 @@
 package org.omnifaces.optimusfaces.test;
 
 import static java.lang.Math.min;
+import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
@@ -33,11 +34,13 @@ import static org.omnifaces.persistence.Database.POSTGRESQL;
 import java.io.File;
 import java.net.URL;
 import java.text.Collator;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.jboss.arquillian.drone.api.annotation.Default;
@@ -58,6 +61,10 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.omnifaces.optimusfaces.test.model.Gender;
 import org.omnifaces.persistence.Database;
+import org.omnifaces.persistence.criteria.Between;
+import org.omnifaces.persistence.criteria.Criteria;
+import org.omnifaces.persistence.criteria.Like;
+import org.omnifaces.persistence.criteria.Order;
 import org.omnifaces.util.Servlets;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -265,6 +272,9 @@ public abstract class OptimusFacesIT {
 	@FindBy(id="form:table:totalPhones")
 	private WebElement totalPhonesColumn;
 
+	@FindBy(id="form:table:phones_type")
+	private WebElement phones_typeColumn;
+
 	@FindBy(id="form:table:phones_number")
 	private WebElement phones_numberColumn;
 
@@ -336,6 +346,15 @@ public abstract class OptimusFacesIT {
 
 	@FindBy(id="form:criteria:3")
 	private WebElement criteriaDateOfBirthBefore1950;
+
+	@FindBy(id="form:phoneTypes:0")
+	private WebElement criteriaPhoneTypeMOBILE;
+
+	@FindBy(id="form:phoneTypes:1")
+	private WebElement criteriaPhoneTypeHOME;
+
+	@FindBy(id="form:phoneTypes:2")
+	private WebElement criteriaPhoneTypeWORK;
 
 	@FindBy(id="form:groups:0")
 	private WebElement criteriaGroupUSER;
@@ -642,17 +661,21 @@ public abstract class OptimusFacesIT {
 
 	protected void testCriteria() {
 		guardAjax(criteriaIdBetween50And150).click();
+		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
 		assertPaginatorState(1, 101);
 
 		guardAjax(criteriaEmailLikeName1).click();
+		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
+		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
 		int rowCount1 = getRowCount();
 		assertTrue(rowCount1 + " must be less than 101", rowCount1 < 101);
-		assertFilteredState(emailColumnFilter, "name1", true);
 
 		guardAjax(criteriaGenderIsFemale).click();
+		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
+		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
+		assertCriteriaState(genderColumn, "FEMALE");
 		int rowCount2 = getRowCount();
 		assertTrue(rowCount2 + " must be less than " + rowCount1, rowCount2 < rowCount1);
-		assertFilteredState(genderColumnFilter, "FEMALE", true);
 
 		int rowCount3 = rowCount2;
 		if (isOpenJPA()) {
@@ -661,15 +684,22 @@ public abstract class OptimusFacesIT {
 		}
 		else {
 			guardAjax(criteriaDateOfBirthBefore1950).click();
+			assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
+			assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
+			assertCriteriaState(genderColumn, "FEMALE");
+			assertCriteriaState(dateOfBirthColumn, Order.lessThan(LocalDate.of(1950, 1, 1)), LocalDate::parse);
 			rowCount3 = getRowCount();
 			assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
 		}
 
 		guardAjax(criteriaIdBetween50And150).click(); // Uncheck
+		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
+		assertCriteriaState(genderColumn, "FEMALE");
 		int rowCount4 = getRowCount();
 		assertTrue(rowCount4 + " must be more than " + rowCount3, rowCount4 > rowCount3);
 
 		guardAjax(criteriaEmailLikeName1).click(); // Uncheck
+		assertCriteriaState(genderColumn, "FEMALE");
 		int rowCount5 = getRowCount();
 		assertTrue(rowCount5 + " must be more than " + rowCount4, rowCount5 > rowCount4);
 
@@ -777,6 +807,7 @@ public abstract class OptimusFacesIT {
 
 	protected void testOneToMany() {
 		assertNoCartesianProduct();
+		assertPaginatorState(1, TOTAL_RECORDS, true);
 
 		if ((isEclipseLink() || isOpenJPA()) && isLazy()) {
 			if (isEclipseLink()) {
@@ -808,47 +839,89 @@ public abstract class OptimusFacesIT {
 			guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 			assertPaginatorState(1, TOTAL_RECORDS, true);
 			assertNoCartesianProduct();
+
+			if (isEclipseLink()) {
+				System.out.println("SKIPPING assertCriteriaState(phones.type) for EclipseLink because it refuses to perform a JOIN when setFirstResult/setMaxResults is used");
+			}
+			else if (isOpenJPA()) {
+				System.out.println("SKIPPING assertCriteriaState(phones.type) for OpenJPA because it does not support setting parameters in a nested subquery");
+			}
+
+			return;
 		}
-		else {
-			guardAjax(phones_numberColumn).click();
-			assertSortedState(phones_numberColumn, true);
-			assertNoCartesianProduct();
 
-			guardAjax(phones_numberColumnFilter).sendKeys("11");
-			assertFilteredState(phones_numberColumnFilter, "11");
-			assertNoCartesianProduct();
-			int rowCount1 = getRowCount();
-			assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
+		guardAjax(phones_numberColumn).click();
+		assertSortedState(phones_numberColumn, true);
+		assertNoCartesianProduct();
 
-			guardAjax(phones_numberColumn).click();
-			assertSortedState(phones_numberColumn, false);
-			assertNoCartesianProduct();
-			int rowCount2 = getRowCount();
-			assertEquals("rowcount is still the same", rowCount1, rowCount2);
+		guardAjax(phones_numberColumnFilter).sendKeys("11");
+		assertFilteredState(phones_numberColumnFilter, "11");
+		assertNoCartesianProduct();
+		int rowCount1 = getRowCount();
+		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 
-			guardAjax(emailColumnFilter).sendKeys("1");
-			assertFilteredState(emailColumnFilter, "1");
-			assertFilteredState(phones_numberColumnFilter, "11");
-			assertNoCartesianProduct();
-			int rowCount3 = getRowCount();
-			assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
+		guardAjax(phones_numberColumn).click();
+		assertSortedState(phones_numberColumn, false);
+		assertNoCartesianProduct();
+		int rowCount2 = getRowCount();
+		assertEquals("rowcount is still the same", rowCount1, rowCount2);
 
-			phones_numberColumnFilter.clear();
-			guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
-			assertPaginatorState(1, 119, true);
-			assertSortedState(phones_numberColumn, false);
-			assertNoCartesianProduct();
+		guardAjax(emailColumnFilter).sendKeys("1");
+		assertFilteredState(emailColumnFilter, "1");
+		assertFilteredState(phones_numberColumnFilter, "11");
+		assertNoCartesianProduct();
+		int rowCount3 = getRowCount();
+		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
 
-			guardAjax(phones_numberColumn).click();
-			assertSortedState(phones_numberColumn, true);
-			assertNoCartesianProduct();
+		phones_numberColumnFilter.clear();
+		guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, 119, true);
+		assertSortedState(phones_numberColumn, false);
+		assertNoCartesianProduct();
 
-			emailColumnFilter.clear();
-			guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
-			assertPaginatorState(1, TOTAL_RECORDS, true);
-			assertSortedState(phones_numberColumn, true);
-			assertNoCartesianProduct();
-		}
+		guardAjax(phones_numberColumn).click();
+		assertSortedState(phones_numberColumn, true);
+		assertNoCartesianProduct();
+
+		emailColumnFilter.clear();
+		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, TOTAL_RECORDS, true);
+		assertSortedState(phones_numberColumn, true);
+		assertNoCartesianProduct();
+
+		guardAjax(criteriaPhoneTypeMOBILE).click();
+		assertCriteriaState(phones_typeColumn, "MOBILE");
+		int rowCount4 = getRowCount();
+		assertTrue(rowCount4 + " must be less than " + TOTAL_RECORDS, rowCount4 < TOTAL_RECORDS);
+		assertNoCartesianProduct();
+
+		guardAjax(criteriaPhoneTypeHOME).click();
+		assertCriteriaState(phones_typeColumn, "MOBILE", "HOME");
+		int rowCount5 = getRowCount();
+		assertTrue(rowCount5 + " must be less than " + rowCount4, rowCount5 < rowCount4);
+		assertNoCartesianProduct();
+
+		guardAjax(criteriaPhoneTypeWORK).click();
+		assertCriteriaState(phones_typeColumn, "MOBILE", "HOME", "WORK");
+		int rowCount6 = getRowCount();
+		assertTrue(rowCount6 + " must be less than " + rowCount5, rowCount6 < rowCount5);
+		assertNoCartesianProduct();
+
+		guardAjax(criteriaPhoneTypeMOBILE).click(); // Uncheck
+		assertCriteriaState(phones_typeColumn, "HOME", "WORK");
+		int rowCount7 = getRowCount();
+		assertTrue(rowCount7 + " must be more than " + rowCount6, rowCount7 > rowCount6);
+		assertNoCartesianProduct();
+
+		guardAjax(criteriaPhoneTypeHOME).click(); // Uncheck
+		assertCriteriaState(phones_typeColumn, "WORK");
+		int rowCount8 = getRowCount();
+		assertTrue(rowCount8 + " must be more than " + rowCount7, rowCount8 > rowCount7);
+		assertNoCartesianProduct();
+
+		guardAjax(criteriaPhoneTypeWORK).click(); // Uncheck
+		assertPaginatorState(1, TOTAL_RECORDS, true);
+		assertNoCartesianProduct();
 	}
 
 	protected void testElementCollection() {
@@ -856,6 +929,7 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, TOTAL_RECORDS, true);
 
 		guardAjax(criteriaGroupUSER).click();
+		assertCriteriaState(groupsColumn, "USER");
 		int rowCount1 = getRowCount();
 		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 		assertNoCartesianProduct();
@@ -866,31 +940,37 @@ public abstract class OptimusFacesIT {
 		}
 
 		guardAjax(criteriaGroupMANAGER).click();
+		assertCriteriaState(groupsColumn, "USER", "MANAGER");
 		int rowCount2 = getRowCount();
 		assertTrue(rowCount2 + " must be less than " + rowCount1, rowCount2 < rowCount1);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupADMINISTRATOR).click();
+		assertCriteriaState(groupsColumn, "USER", "MANAGER", "ADMINISTRATOR");
 		int rowCount3 = getRowCount();
 		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupDEVELOPER).click();
+		assertCriteriaState(groupsColumn, "USER", "MANAGER", "ADMINISTRATOR", "DEVELOPER");
 		int rowCount4 = getRowCount();
 		assertTrue(rowCount4 + " must be less than " + rowCount3, rowCount4 < rowCount3);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupUSER).click(); // Uncheck
+		assertCriteriaState(groupsColumn, "MANAGER", "ADMINISTRATOR", "DEVELOPER");
 		int rowCount5 = getRowCount();
 		assertTrue(rowCount5 + " must be more than " + rowCount4, rowCount5 > rowCount4);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupMANAGER).click(); // Uncheck
+		assertCriteriaState(groupsColumn, "ADMINISTRATOR", "DEVELOPER");
 		int rowCount6 = getRowCount();
 		assertTrue(rowCount6 + " must be more than " + rowCount5, rowCount6 > rowCount5);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupADMINISTRATOR).click(); // Uncheck
+		assertCriteriaState(groupsColumn, "DEVELOPER");
 		int rowCount7 = getRowCount();
 		assertTrue(rowCount7 + " must be more than " + rowCount6, rowCount7 > rowCount6);
 		assertNoCartesianProduct();
@@ -974,22 +1054,31 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void assertFilteredState(WebElement filter, String filterValue) {
-		assertFilteredState(filter, filterValue, false);
-	}
-
-	protected void assertFilteredState(WebElement filter, String filterValue, boolean criteria) {
 		WebElement column = filter.findElement(By.xpath(".."));
 		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 
-		if (!criteria) {
-			WebElement input = "select".equals(filter.getTagName()) ? new Select(filter).getFirstSelectedOption() : filter;
-			String actualFilterValue = input.getAttribute("value");
-			assertEquals("filter value", filterValue, actualFilterValue);
-			assertEquals("filter query string", actualFilterValue, getQueryParameter(field));
-		}
+		WebElement input = "select".equals(filter.getTagName()) ? new Select(filter).getFirstSelectedOption() : filter;
+		String actualFilterValue = input.getAttribute("value");
+		assertEquals("filter value", filterValue, actualFilterValue);
+		assertEquals("filter query string", actualFilterValue, getQueryParameter(field));
 
 		List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
 		assertTrue(field + " filtering " + actualValues + " matches " + filterValue, actualValues.stream().allMatch(value -> value.contains(filterValue)));
+	}
+
+	protected void assertCriteriaState(WebElement column, Criteria<?> criteria, Function<String, ?> parser) {
+		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+		List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
+		assertTrue(field + " criteria " + actualValues + " matches " + criteria, actualValues.stream().allMatch(value -> criteria.applies(parser.apply(value))));
+	}
+
+	protected void assertCriteriaState(WebElement column, String... criteriaValues) {
+		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+		List<String> expectedValues = asList(criteriaValues);
+		getCells(column).stream().map(WebElement::getText).forEach(text -> {
+			List<String> actualValues = asList(text.split("\n"));
+			assertTrue(field + " criteria " + actualValues + " contains any " + expectedValues, actualValues.stream().anyMatch(value -> expectedValues.contains(value)));
+		});
 	}
 
 	private List<WebElement> getCells(WebElement column) {

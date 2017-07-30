@@ -23,17 +23,25 @@
 	xmlns:op="http://omnifaces.org/optimusfaces"
 >
 	<h:head>
-		<title>OptimusFacesIT - lazy with @OneToOne</title>
+		<title>OptimusFacesIT - lazy with @OneToMany</title>
 	</h:head>
 
 	<h:body>
+		<o:importConstants type="org.omnifaces.optimusfaces.test.model.Phone.Type" var="PhoneType" />
+
 		<o:form id="form" useRequestURI="true">
 			<op:dataTable id="table" value="#{optimusFacesITLazyWithOneToManyBean.lazyPersonsWithPhones}">
 				<op:column field="id" />
 				<op:column field="email" />
 				<op:column field="gender" />
+				<op:column field="phones.type" />
 				<op:column field="phones.number" />
 			</op:dataTable>
+
+			<h:selectManyCheckbox id="phoneTypes" value="#{optimusFacesITLazyWithOneToManyBean.selectedPhoneTypes}" converter="omnifaces.GenericEnumConverter">
+				<f:selectItems value="#{PhoneType}" />
+				<f:ajax render="table :rowCount" />
+			</h:selectManyCheckbox>
 		</o:form>
 
 		<h:outputText id="rowCount" value="#{optimusFacesITLazyWithOneToManyBean.lazyPersonsWithPhones.rowCount}" styleClass="updateOnDataTableFilter" />

@@ -12,7 +12,13 @@
  */
 package org.omnifaces.optimusfaces.test.view;
 
+import static java.util.Collections.emptyMap;
+import static org.omnifaces.utils.Lang.isEmpty;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -21,7 +27,9 @@ import javax.inject.Named;
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.optimusfaces.model.PagedDataModel;
 import org.omnifaces.optimusfaces.test.model.Person;
+import org.omnifaces.optimusfaces.test.model.Phone;
 import org.omnifaces.optimusfaces.test.service.PersonService;
+import org.omnifaces.utils.reflect.Getter;
 
 @Named
 @ViewScoped
@@ -30,17 +38,40 @@ public class OptimusFacesITNonLazyWithOneToManyBean implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private PagedDataModel<Person> nonLazyPersonsWithPhones;
+	private Set<Phone.Type> selectedPhoneTypes;
 
 	@Inject
 	private PersonService personService;
 
 	@PostConstruct
 	public void init() {
-		nonLazyPersonsWithPhones = PagedDataModel.nonLazy(personService.getAllWithPhones()).build();
+		nonLazyPersonsWithPhones = PagedDataModel.nonLazy(personService.getAllWithPhones()).criteria(this::mapSelectedCriteria).build();
+	}
+
+	private Map<Getter<Person>, Object> mapSelectedCriteria() {
+		if (isEmpty(selectedPhoneTypes)) {
+			return emptyMap();
+		}
+
+		Map<Getter<Phone>, Object> phoneCriteria = new HashMap<>();
+		phoneCriteria.put(Phone::getType, selectedPhoneTypes);
+
+		Map<Getter<Person>, Object> personCriteria = new HashMap<>();
+		personCriteria.put(Person::getPhones, phoneCriteria);
+
+		return personCriteria;
 	}
 
 	public PagedDataModel<Person> getNonLazyPersonsWithPhones() {
 		return nonLazyPersonsWithPhones;
+	}
+
+	public Set<Phone.Type> getSelectedPhoneTypes() {
+		return selectedPhoneTypes;
+	}
+
+	public void setSelectedPhoneTypes(Set<Phone.Type> selectedPhoneTypes) {
+		this.selectedPhoneTypes = selectedPhoneTypes;
 	}
 
 }
