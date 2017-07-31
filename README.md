@@ -36,7 +36,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.3</version>
+        <version>0.4</version>
     </dependency>
 </dependencies>
 ```
@@ -124,7 +124,7 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 [Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.3/org/omnifaces/optimusfaces/model/PagedDataModel.html).
 
 
-### Known Issues (OptimusFaces 0.4-SNAPSHOT)
+### Known Issues (OptimusFaces 0.4)
 
 - Hibernate performs the `GROUP BY` of a `@ElementCollection` on the wrong side (in the non-owning side) causing PostgreSQL to error on this. Other databases don't have a problem with it. There is no clear solution/workaround for that yet.
 - EclipseLink refuses to perform a `JOIN` with Criteria API when setFirstResult/setMaxResults is used. This returns a cartesian product. This has been workarounded, but this removes the ability to perform sorting on a column referenced by a join (`@OneToMany` and `@ElementCollection`). You should set such columns as `<op:column ... sortable="false">`. Another consequence is that you cannot search with a multi-valued criteria in a field referenced by a `@OneToMany` relationship. You should consider using a DTO instead.
