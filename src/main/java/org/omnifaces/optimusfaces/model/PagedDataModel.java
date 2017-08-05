@@ -948,8 +948,9 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
 		 * <ul>
 		 * <li>value = <code>null</code>, this will create IS NULL predicate.
-		 * <li>type = {@link Collection}, this will treat given value as enumerated and create an IN predicate.
-		 * <li>value = {@link Iterable} or {@link Array}, this will create an OR disjunction of multiple predicates.
+		 * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
+		 * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
+		 * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
@@ -957,7 +958,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * </ul>
 		 * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value.
-		 * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked as first.
+		 * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked.
 		 * <p>
 		 * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you
 		 * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like
