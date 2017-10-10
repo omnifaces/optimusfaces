@@ -679,8 +679,8 @@ import org.primefaces.model.Visibility;
  * <code>&lt;f:attribute&gt;</code> for that.
  * <pre>
  * &lt;op:dataTable ...&gt;
- *     &lt;f:attribute name="caseSensitiveSort" value="true" /&gt;
- *     &lt;f:attribute name="reflow" value="true" /&gt;
+ *     &lt;f:attribute name="caseSensitiveSort" value="#{true}" /&gt;
+ *     &lt;f:attribute name="reflow" value="#{true}" /&gt;
  *     ...
  * &lt;/op:dataTable&gt;
  * </pre>
