@@ -650,8 +650,8 @@ import org.primefaces.model.Visibility;
  * class on a sorted column when sorting is done via <code>field</code> attribute. Below is a list of new additions:
  * <ul>
  * <li><code>.ui-datatable-actions</code>: the div holding the global search field and export buttons
- * <li><code>.ui-datatable-actions .ui-datatable-search</code>: the div holding the global search field
- * <li><code>.ui-datatable-actions .ui-datatable-export</code>: the div holding the export buttons
+ * <li><code>.ui-datatable-actions .ui-datatable-search</code>: the span holding the global search field
+ * <li><code>.ui-datatable-actions .ui-datatable-export</code>: the span holding the export buttons
  * <li><code>.ui-datatable-actions .ui-inputfield.filter</code>: the global search input field
  * <li><code>.ui-datatable-actions .ui-button.search</code>: the global search button
  * <li><code>.ui-datatable-actions .ui-button.toggle</code>: the column toggler button

@@ -54,50 +54,6 @@
 
 	<o:tagAttribute name="selectable" default="#{false}" />
 
-
-	<c:if test="#{searchable or exportable}">
-		<div class="ui-datatable-actions ui-helper-clearfix">
-			<c:if test="#{searchable}">
-				<div class="ui-datatable-search">
-					<p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" placeholder="#{searchPlaceholder}"
-						styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
-					</p:inputText>
-					<p:button id="search" type="button" value="#{searchButtonLabel}"
-						styleClass="search" a:data-tablewidgetid="#{id}" onclick="return false">
-					</p:button>
-				</div>
-				<o:moveComponent for="#{id}" destination="FACET" facet="header">
-					<h:inputHidden id="globalFilter" />
-				</o:moveComponent>
-			</c:if>
-
-			<c:if test="#{exportable}">
-				<div class="ui-datatable-export">
-					<p:commandButton id="columnToggler" type="button" value="#{columnTogglerButtonLabel}" styleClass="toggle" />
-					<p:splitButton id="#{id}_export" value="#{exportButtonLabel}" styleClass="export"
-						actionListener="#{value.prepareExportVisible(id)}" ajax="false">
-						<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
-						<f:param name="export" value="visible" />
-						<p:menuitem id="#{id}_exportVisible" value="#{exportVisibleColumnsButtonLabel}" styleClass="visible" 
-							actionListener="#{value.prepareExportVisible(id)}" ajax="false">
-							<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
-							<f:param name="export" value="visible" />
-						</p:menuitem>
-						<p:menuitem id="#{id}_exportAll" value="#{exportAllColumnsButtonLabel}" styleClass="all"
-							actionListener="#{value.prepareExportAll(id)}" ajax="false">
-							<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
-							<f:param name="export" value="all" />
-						</p:menuitem>
-					</p:splitButton>
-
-					<p:columnToggler id="#{id}_toggler" trigger="columnToggler" datasource="#{id}">
-						<p:ajax event="toggle" listener="#{value.toggleColumn}" />
-					</p:columnToggler>
-				</div>
-			</c:if>
-		</div>
-	</c:if>
-
 	<p:dataTable id="#{id}" widgetVar="#{id}" value="#{value}" var="item" lazy="true" filteredValue="#{value.filteredValue}"
 		rows="#{rows}" paginator="#{paginable}" paginatorPosition="bottom" paginatorAlwaysVisible="true"
 		styleClass="#{styleClass}#{empty value.wrappedData ? ' empty' : ''}" paginatorTemplate="#{paginatorTemplate}" rowsPerPageTemplate="#{rowsPerPage}"
@@ -122,6 +78,47 @@
 			<f:attribute name="selectionMode" value="multiple" /><!-- TODO: support single selection -->
 			<p:ajax event="rowSelect" update="@(.updateOnDataTableSelect)" />
 			<p:ajax event="rowUnselect" update="@(.updateOnDataTableSelect)" />
+		</c:if>
+		<c:if test="#{searchable or exportable}">
+			<f:facet name="header">
+				<div class="ui-datatable-actions ui-helper-clearfix">
+					<c:if test="#{searchable}">
+						<span class="ui-datatable-search">
+							<p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" placeholder="#{searchPlaceholder}"
+								styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
+							</p:inputText>
+							<p:button id="search" type="button" value="#{searchButtonLabel}"
+								styleClass="search" a:data-tablewidgetid="#{id}" onclick="return false">
+							</p:button>
+							<h:inputHidden id="globalFilter" />
+						</span>
+					</c:if>
+
+					<c:if test="#{exportable}">
+						<span class="ui-datatable-export">
+							<p:commandButton id="columnToggler" type="button" value="#{columnTogglerButtonLabel}" styleClass="toggle" />
+							<p:splitButton id="#{id}_export" value="#{exportButtonLabel}" styleClass="export"
+								actionListener="#{value.prepareExportVisible(id)}" ajax="false">
+								<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
+								<f:param name="export" value="visible" />
+								<p:menuitem id="#{id}_exportVisible" value="#{exportVisibleColumnsButtonLabel}" styleClass="visible" 
+									actionListener="#{value.prepareExportVisible(id)}" ajax="false">
+									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
+									<f:param name="export" value="visible" />
+								</p:menuitem>
+								<p:menuitem id="#{id}_exportAll" value="#{exportAllColumnsButtonLabel}" styleClass="all"
+									actionListener="#{value.prepareExportAll(id)}" ajax="false">
+									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
+									<f:param name="export" value="all" />
+								</p:menuitem>
+							</p:splitButton>
+							<p:columnToggler id="#{id}_toggler" trigger="columnToggler" datasource="#{id}">
+								<p:ajax event="toggle" listener="#{value.toggleColumn}" />
+							</p:columnToggler>
+						</span>
+					</c:if>
+				</div>
+			</f:facet>
 		</c:if>
 		<ui:insert />
 	</p:dataTable>
