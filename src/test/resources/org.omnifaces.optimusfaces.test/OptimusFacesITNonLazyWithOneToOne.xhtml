@@ -28,7 +28,7 @@
 
 	<h:body>
 		<o:form id="form" useRequestURI="true">
-			<op:dataTable id="table" value="#{optimusFacesITNonLazyWithOneToOneBean.nonLazyPersonsWithAddress}">
+			<op:dataTable id="table" value="#{optimusFacesITNonLazyWithOneToOneBean.nonLazyPersonsWithAddress}" searchable="true">
 				<op:column field="id" />
 				<op:column field="email" />
 				<op:column field="address.houseNumber" />

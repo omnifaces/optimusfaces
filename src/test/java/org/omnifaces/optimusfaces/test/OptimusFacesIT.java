@@ -284,6 +284,12 @@ public abstract class OptimusFacesIT {
 	@FindBy(css="#form\\:table th.ui-state-active")
 	private WebElement activeColumn;
 
+	@FindBy(id="form:table:filter")
+	private WebElement globalFilter;
+
+	@FindBy(id="form:table:search")
+	private WebElement globalFilterButton;
+
 	@FindBy(id="form:table:id:filter")
 	private WebElement idColumnFilter;
 
@@ -588,6 +594,19 @@ public abstract class OptimusFacesIT {
 
 	protected void testFiltering() {
 		guardAjax(idColumnFilter).sendKeys("3");
+		int totalRecords1 = getRowCount();
+		assertPaginatorState(1, 38);
+		assertFilteredState(idColumnFilter, "3");
+
+		globalFilter.sendKeys("FEMALE");
+		guardAjax(globalFilterButton).click();
+		int totalRecords2 = getRowCount();
+		assertTrue(totalRecords2 + " must be less than " + totalRecords1, totalRecords2 < totalRecords1);
+		assertGlobalFilterState("FEMALE");
+		assertFilteredState(idColumnFilter, "3");
+
+		globalFilter.clear();
+		guardAjax(globalFilterButton).click();
 		assertPaginatorState(1, 38);
 		assertFilteredState(idColumnFilter, "3");
 
@@ -596,13 +615,13 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, TOTAL_RECORDS);
 
 		guardAjax(genderColumnFilter).sendKeys("FEMALE");
-		int totalRecords1 = getRowCount();
+		int totalRecords3 = getRowCount();
 		assertPaginatorState(1);
 		assertFilteredState(genderColumnFilter, "FEMALE");
 
 		guardAjax(emailColumnFilter).sendKeys("1");
-		int totalRecords2 = getRowCount();
-		assertTrue(totalRecords2 + " must be less than " + totalRecords1, totalRecords2 < totalRecords1);
+		int totalRecords4 = getRowCount();
+		assertTrue(totalRecords4 + " must be less than " + totalRecords3, totalRecords4 < totalRecords3);
 		assertPaginatorState(1);
 		assertFilteredState(emailColumnFilter, "1");
 		assertFilteredState(genderColumnFilter, "FEMALE");
@@ -635,24 +654,61 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(genderColumn, true);
 
+		guardAjax(emailColumn).click();
+		assertPaginatorState(1, 119);
+		assertFilteredState(emailColumnFilter, "1");
+		assertSortedState(emailColumn, true);
+
+		globalFilter.sendKeys("FEMALE");
+		guardAjax(globalFilterButton).click();
+		int totalRecords1 = getRowCount();
+		assertTrue(totalRecords1 + " must be less than 119", totalRecords1 < 119);
+		assertFilteredState(emailColumnFilter, "1");
+		assertGlobalFilterState("FEMALE");
+		assertSortedState(emailColumn, true);
+
+		guardAjax(idColumn).click();
+		int totalRecords2 = getRowCount();
+		assertTrue(totalRecords1 + " must be equal to " + totalRecords2, totalRecords1 == totalRecords2);
+		assertFilteredState(emailColumnFilter, "1");
+		assertGlobalFilterState("FEMALE");
+		assertSortedState(idColumn, true);
+
+		globalFilter.clear();
+		guardAjax(globalFilterButton).click();
+		assertPaginatorState(1, 119);
+		assertFilteredState(emailColumnFilter, "1");
+		assertSortedState(idColumn, true);
+
 		emailColumnFilter.clear();
 		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
-		assertSortedState(genderColumn, true);
+		assertSortedState(idColumn, true);
 	}
 
 	protected void testQueryStringLoading(String type) {
 		open(type, "p=5");
 		assertPaginatorState(5, TOTAL_RECORDS);
+		guardAjax(emailColumn).click();
+		assertPaginatorState(1, TOTAL_RECORDS);
+		assertSortedState(emailColumn, true);
 
 		open(type, "p=4&email=5");
 		assertPaginatorState(4, 38);
 		assertFilteredState(emailColumnFilter, "5");
+		guardAjax(emailColumn).click();
+		assertPaginatorState(1, 38);
+		assertSortedState(emailColumn, true);
 
-		open(type, "p=3&o=-email&gender=MALE");
-		assertPaginatorState(3);
+		open(type, "p=3&o=-email&q=MALE");
+		int totalRecords = getRowCount();
+		assertPaginatorState(3, totalRecords);
 		assertSortedState(emailColumn, false);
-		assertFilteredState(genderColumnFilter, "MALE");
+		assertGlobalFilterState("MALE");
+		guardAjax(emailColumn).click();
+		assertPaginatorState(1, totalRecords);
+		assertSortedState(emailColumn, true);
+		assertGlobalFilterState("MALE");
 
 		open(type, "o=dateOfBirth");
 		assertPaginatorState(1);
@@ -757,6 +813,7 @@ public abstract class OptimusFacesIT {
 
 	protected void testOneToOne() {
 		assertNoCartesianProduct();
+		testGlobalFilter(false);
 
 		guardAjax(address_houseNumberColumn).click();
 		assertSortedState(address_houseNumberColumn, true);
@@ -802,12 +859,17 @@ public abstract class OptimusFacesIT {
 			assertPaginatorState(1, 11);
 			assertFilteredState(address_stringColumnFilter, "11");
 			assertNoCartesianProduct();
+
+			address_stringColumnFilter.clear();
+			guardAjax(address_stringColumnFilter).sendKeys(Keys.TAB);
+			assertPaginatorState(1, TOTAL_RECORDS);
 		}
 	}
 
 	protected void testOneToMany() {
 		assertNoCartesianProduct();
 		assertPaginatorState(1, TOTAL_RECORDS, true);
+		testGlobalFilter(true);
 
 		if ((isEclipseLink() || isOpenJPA()) && isLazy()) {
 			if (isEclipseLink()) {
@@ -927,6 +989,7 @@ public abstract class OptimusFacesIT {
 	protected void testElementCollection() {
 		assertNoCartesianProduct();
 		assertPaginatorState(1, TOTAL_RECORDS, true);
+		testGlobalFilter(true);
 
 		guardAjax(criteriaGroupUSER).click();
 		assertCriteriaState(groupsColumn, "USER");
@@ -977,6 +1040,33 @@ public abstract class OptimusFacesIT {
 
 		guardAjax(criteriaGroupDEVELOPER).click(); // Uncheck
 		assertPaginatorState(1, TOTAL_RECORDS, true);
+		assertNoCartesianProduct();
+	}
+
+	protected void testGlobalFilter(boolean oneToManyOrElementCollection) {
+		guardAjax(idColumnFilter).sendKeys("2");
+		assertPaginatorState(1, 39, oneToManyOrElementCollection);
+		assertNoCartesianProduct();
+
+		globalFilter.sendKeys("19");
+		guardAjax(globalFilterButton).click();
+		assertPaginatorState(1, oneToManyOrElementCollection ? getRowCount() : 4, oneToManyOrElementCollection);
+		assertNoCartesianProduct();
+
+		guardAjax(emailColumn).click();
+		assertPaginatorState(1, oneToManyOrElementCollection ? getRowCount() : 4, oneToManyOrElementCollection);
+		assertSortedState(emailColumn, true);
+		assertNoCartesianProduct();
+
+		idColumnFilter.clear();
+		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
+		assertPaginatorState(1, oneToManyOrElementCollection ? getRowCount() : 15, oneToManyOrElementCollection);
+		assertSortedState(emailColumn, true);
+		assertNoCartesianProduct();
+
+		globalFilter.clear();
+		guardAjax(globalFilterButton).click();
+		assertPaginatorState(1, TOTAL_RECORDS, oneToManyOrElementCollection);
 		assertNoCartesianProduct();
 	}
 
@@ -1064,6 +1154,17 @@ public abstract class OptimusFacesIT {
 
 		List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
 		assertTrue(field + " filtering " + actualValues + " matches " + filterValue, actualValues.stream().allMatch(value -> value.contains(filterValue)));
+	}
+
+	protected void assertGlobalFilterState(String filterValue) {
+		String actualFilterValue = globalFilter.getAttribute("value");
+		assertEquals("filter value", filterValue, actualFilterValue);
+		assertEquals("filter query string", actualFilterValue, getQueryParameter("q"));
+
+		for (WebElement row : rows) {
+			String rowAsString = row.getText();
+			assertTrue("row " + rowAsString + " matches global filter " + filterValue, rowAsString.contains(filterValue));
+		}
 	}
 
 	protected void assertCriteriaState(WebElement column, Criteria<?> criteria, Function<String, ?> parser) {

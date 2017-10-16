@@ -20,7 +20,6 @@ import static java.util.Collections.unmodifiableSet;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static javax.faces.component.UINamingContainer.getSeparatorChar;
 import static org.omnifaces.persistence.model.Identifiable.ID;
 import static org.omnifaces.util.Ajax.oncomplete;
 import static org.omnifaces.util.Components.getCurrentComponent;
@@ -48,6 +47,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javax.faces.component.UIComponent;
+import javax.faces.component.UINamingContainer;
 import javax.faces.context.FacesContext;
 
 import org.omnifaces.component.ParamHolder;
@@ -123,8 +123,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
 		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
 		ordering = processPageAndOrdering(context, table, limit, tableSortField, tableSortOrder);
-		filters = processFilters(context, processableColumns, tableFilters);
-		globalFilter = processGlobalFilter(context, tableFilters);
+		filters = processFilters(context, table, processableColumns, tableFilters);
+		globalFilter = processGlobalFilter(context, table, tableFilters);
 		selection = processSelectionIfNecessary(context, selection);
 
 		Map<String, Object> requiredCriteria = new HashMap<>();
@@ -234,15 +234,15 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return ordering;
 	}
 
-	protected LinkedHashMap<String, Object> processFilters(FacesContext context, List<UIColumn> processableColumns, Map<String, Object> tableFilters) {
+	protected LinkedHashMap<String, Object> processFilters(FacesContext context, DataTable table, List<UIColumn> processableColumns, Map<String, Object> tableFilters) {
 		LinkedHashMap<String, Object> mergedFilters = new LinkedHashMap<>();
 
 		for (UIColumn column : processableColumns) {
 			String field = column.getField();
 			Object value = tableFilters.get(field);
 
-			if (isEmpty(value) && !context.isPostback()) {
-				value = getTrimmedQueryParameters(context, queryParameterPrefix + field);
+			if (isEmpty(value)) {
+				value = getTrimmedQueryParameters(context, getFilterParameterName(context, table, field));
 			}
 
 			if (!isEmpty(value)) {
@@ -262,22 +262,32 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return selection.isEmpty() ? emptyList() : new ArrayList<>(load(new Page(0, selection.size(), null, singletonMap(ID, selection), null), false));
 	}
 
-	protected String processGlobalFilter(FacesContext context, Map<String, Object> tableFilters) {
+	protected String processGlobalFilter(FacesContext context, DataTable table, Map<String, Object> tableFilters) {
 		String globalFilter = (String) tableFilters.get(GLOBAL_FILTER);
 
 		if (globalFilter != null) {
 			globalFilter = globalFilter.trim();
 		}
 
-		if (isEmpty(globalFilter) && !context.isPostback()) {
-			globalFilter = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_SEARCH);
-		}
-
 		if (isEmpty(globalFilter)) {
-			globalFilter = getTrimmedQueryParameter(context, getCurrentComponent().getClientId(context) + getSeparatorChar(context) + GLOBAL_FILTER);
+			globalFilter = getTrimmedQueryParameter(context, getFilterParameterName(context, table, null));
 		}
 
 		return isEmpty(globalFilter) ? null : globalFilter;
+	}
+
+	private String getFilterParameterName(FacesContext context, DataTable table, String field) {
+		String param;
+
+		if (context.isPostback()) {
+			char separatorChar = UINamingContainer.getSeparatorChar(context);
+			param = table.getClientId(context) + separatorChar + (field == null ? "" : (field + separatorChar)) + "filter";
+		}
+		else {
+			param = queryParameterPrefix + ((field == null) ? QUERY_PARAMETER_SEARCH : field);
+		}
+
+		return param;
 	}
 
 	protected void processCriteria(List<UIColumn> processableColumns, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
