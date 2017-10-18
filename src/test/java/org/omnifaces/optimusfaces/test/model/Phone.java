@@ -16,6 +16,8 @@ import static javax.persistence.EnumType.STRING;
 
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -32,6 +34,9 @@ public class Phone extends LocalBaseEntity {
 	private @NotNull @Enumerated(STRING) Type type;
 	private @NotNull String number;
 
+	@ManyToOne(optional=false, fetch=FetchType.LAZY)
+	private @NotNull Person owner;
+
 	public Type getType() {
 		return type;
 	}
@@ -46,6 +51,14 @@ public class Phone extends LocalBaseEntity {
 
 	public void setNumber(String number) {
 		this.number = number;
+	}
+
+	public Person getOwner() {
+		return owner;
+	}
+
+	public void setOwner(Person owner) {
+		this.owner = owner;
 	}
 
 }

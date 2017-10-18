@@ -71,6 +71,7 @@ public class StartupService {
 				Phone phone = new Phone();
 				phone.setType(phoneTypes[random.nextInt(phoneTypes.length)]);
 				phone.setNumber("0" + abs(random.nextInt()));
+				phone.setOwner(person);
 				person.getPhones().add(phone);
 			}
 
