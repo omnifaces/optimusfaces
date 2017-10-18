@@ -26,7 +26,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>2.6.4</version><!-- Minimum supported version is 2.2 -->
+        <version>2.6.5</version><!-- Minimum supported version is 2.2 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
@@ -144,4 +144,4 @@ Each environment will run the IT on following databases:
 - MySQL 5.5.41 (provided by Travis) with JDBC driver 5.1.42
 - PostgreSQL 9.1.14 (provided by Travis) with JDBC driver 42.1.1
 
-Effectively, there are thus 9 full test runs of each [24 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L372) on [14 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 9 full test runs of each [26 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L372) on [16 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
