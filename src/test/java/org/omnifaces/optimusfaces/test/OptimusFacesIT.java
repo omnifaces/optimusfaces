@@ -1029,10 +1029,8 @@ public abstract class OptimusFacesIT {
 		assertNoCartesianProduct();
 		assertPaginatorState(1, TOTAL_RECORDS, true);
 
-		if (isOpenJPA())
-		{
+		if (isOpenJPA()) {
 			System.out.println("SKIPPING testGlobalFilter() in testElementCollection() for OpenJPA because it doesn't like a LIKE on @ElementCollection"); // TODO: improve?
-			return;
 		}
 		else {
 			testGlobalFilter(true);
