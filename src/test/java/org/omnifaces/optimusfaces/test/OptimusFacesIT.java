@@ -1134,25 +1134,25 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, 39, oneToManyOrElementCollection);
 		assertNoCartesianProduct();
 
-		globalFilter.sendKeys("19");
+		globalFilter.sendKeys("name1");
 		guardAjax(globalFilterButton).click();
-		assertPaginatorState(1, oneToManyOrElementCollection ? getRowCount() : 4, oneToManyOrElementCollection);
-		assertGlobalFilterState("19");
+		assertPaginatorState(1, 23);
+		assertGlobalFilterState("name1");
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
 		guardAjax(emailColumn).click();
-		assertPaginatorState(1, oneToManyOrElementCollection ? getRowCount() : 4, oneToManyOrElementCollection);
+		assertPaginatorState(1, 20);
 		assertSortedState(emailColumn, true);
-		assertGlobalFilterState("19");
+		assertGlobalFilterState("name1");
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
 		idColumnFilter.clear();
 		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
-		assertPaginatorState(1, oneToManyOrElementCollection ? getRowCount() : 15, oneToManyOrElementCollection);
+		assertPaginatorState(1, 111);
 		assertSortedState(emailColumn, true);
-		assertGlobalFilterState("19");
+		assertGlobalFilterState("name1");
 		assertNoCartesianProduct();
 
 		globalFilter.clear();
