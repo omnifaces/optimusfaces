@@ -34,7 +34,7 @@
 				<op:column field="id" />
 				<op:column field="email" />
 				<op:column field="gender" />
-				<op:column field="groups" sortable="false" filterable="false" /> <!-- TODO: support sorting as well. -->
+				<op:column field="groups" sortable="false" /> <!-- TODO: support sorting as well. -->
 			</op:dataTable>
 
 			<h:selectManyCheckbox id="groups" value="#{optimusFacesITLazyWithElementCollectionBean.selectedGroups}" converter="omnifaces.GenericEnumConverter">
