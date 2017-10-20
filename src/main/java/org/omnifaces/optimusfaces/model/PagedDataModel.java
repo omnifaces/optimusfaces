@@ -948,9 +948,9 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
 		 * <ul>
 		 * <li>value = <code>null</code>, this will create IS NULL predicate.
+		 * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
 		 * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
-		 * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * <li>value = {@link BaseEntity}, this will create an EQUAL predicate on entity ID.
 		 * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
 		 * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
