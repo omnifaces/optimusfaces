@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_ORDER;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_PAGE;
+import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_SEARCH;
 import static org.omnifaces.optimusfaces.test.service.StartupService.ROWS_PER_PAGE;
 import static org.omnifaces.optimusfaces.test.service.StartupService.TOTAL_RECORDS;
 import static org.omnifaces.persistence.Database.POSTGRESQL;
@@ -1256,7 +1257,7 @@ public abstract class OptimusFacesIT {
 	protected void assertGlobalFilterState(String filterValue) {
 		String actualFilterValue = globalFilter.getAttribute("value");
 		assertEquals("filter value", filterValue, actualFilterValue);
-		assertEquals("filter query string", actualFilterValue, getQueryParameter("q"));
+		assertEquals("filter query string", actualFilterValue, getQueryParameter(QUERY_PARAMETER_SEARCH));
 
 		for (WebElement row : rows) {
 			String rowAsString = row.getText();
