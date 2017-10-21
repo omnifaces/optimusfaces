@@ -100,16 +100,16 @@
 							<p:splitButton id="#{id}_export" value="#{exportButtonLabel}" styleClass="export"
 								actionListener="#{value.prepareExportVisible(id)}" ajax="false">
 								<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
-								<f:param name="export" value="visible" />
+								<f:param name="$export" value="visible" />
 								<p:menuitem id="#{id}_exportVisible" value="#{exportVisibleColumnsButtonLabel}" styleClass="visible" 
 									actionListener="#{value.prepareExportVisible(id)}" ajax="false">
 									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
-									<f:param name="export" value="visible" />
+									<f:param name="$export" value="visible" />
 								</p:menuitem>
 								<p:menuitem id="#{id}_exportAll" value="#{exportAllColumnsButtonLabel}" styleClass="all"
 									actionListener="#{value.prepareExportAll(id)}" ajax="false">
 									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
-									<f:param name="export" value="all" />
+									<f:param name="$export" value="all" />
 								</p:menuitem>
 							</p:splitButton>
 							<p:columnToggler id="#{id}_toggler" trigger="columnToggler" datasource="#{id}">

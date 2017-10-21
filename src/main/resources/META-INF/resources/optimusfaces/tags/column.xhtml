@@ -26,7 +26,7 @@
 	<!-- NOTE: Internal variables start with an unconventional $ in order to prevent interfering with user defined variables in same scope. -->
 	<c:set var="$dataTable" value="#{component.namingContainer}" />
 	<c:set var="$pagedDataModel" value="#{$dataTable.value}" />
-	<c:set var="$exporting" value="#{not empty param.export}" scope="request" />
+	<c:set var="$exporting" value="#{not empty param.$export}" scope="request" />
 	<c:set var="$ITERABLE_CLASS" value="#{{}['class'].interfaces[0].interfaces[0].interfaces[0]}" scope="application" /><!-- TODO: this is hacky -->
 
 	<o:tagAttribute name="field" />
