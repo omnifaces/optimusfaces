@@ -1043,11 +1043,6 @@ public abstract class OptimusFacesIT {
 		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 		assertNoCartesianProduct();
 
-		if (isHibernate() && database == POSTGRESQL) {
-			System.out.println("SKIPPING testElementCollection() with multiple values for Hibernate+PostgreSQL because Hibernate doesn't group by on owning side of @ElementCollection"); // TODO: improve?
-			return;
-		}
-
 		guardAjax(criteriaGroupMANAGER).click();
 		assertCriteriaState(groupsColumn, "USER", "MANAGER");
 		int rowCount2 = getRowCount();
