@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
@@ -37,8 +36,6 @@ public class Person extends LocalBaseEntity {
 
 	private @NotNull String email;
 	private @NotNull @Enumerated(STRING) Gender gender;
-
-	@Column(columnDefinition="date") // Otherwise EclipseLink 2.7.0 assumes VARCHAR(255)
 	private @NotNull LocalDate dateOfBirth;
 
 	@OneToOne(cascade=PERSIST, fetch=LAZY)
