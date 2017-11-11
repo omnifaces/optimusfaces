@@ -136,11 +136,11 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on following environments:
 - WildFly 10.1.0 with Mojarra 2.2.13 and Hibernate 5.0.10
-- WildFly 10.1.0 with Mojarra 2.2.13 and EclipseLink 2.6.4
+- Payara 5.0.0.Alpha3 with Mojarra 2.3.3 and EclipseLink 2.7.0
 - TomEE 7.0.3 with MyFaces 2.2.11 and OpenJPA 2.4.2
 
 Each environment will run the IT on following databases:
-- H2 1.3.173 on WildFly and H2 1.4.196 on TomEE (embedded database)
+- H2 1.3.173 on WildFly and H2 1.4.196 on Payara and TomEE (embedded database)
 - MySQL 5.5.41 (provided by Travis) with JDBC driver 5.1.42
 - PostgreSQL 9.1.14 (provided by Travis) with JDBC driver 42.1.1
 
