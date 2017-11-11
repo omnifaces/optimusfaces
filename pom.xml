@@ -516,14 +516,14 @@
 			</build>
 		</profile>
 
-		<!-- Payara/EclipseLink integration test profile: mvn verify -P payara-eclipselink -->
+		<!-- WildFly/EclipseLink integration test profile: mvn verify -P wildfly-eclipselink -->
 		<profile>
-			<id>payara-eclipselink</id>
+			<id>wildfly-eclipselink</id>
 			<dependencies>
 				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-					<artifactId>arquillian-glassfish-managed-3.1</artifactId>
-					<version>1.0.0.Final</version>
+					<groupId>org.wildfly.arquillian</groupId>
+					<artifactId>wildfly-arquillian-container-managed</artifactId>
+					<version>2.0.2.Final</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
@@ -537,34 +537,16 @@
 								<configuration>
 									<artifactItems>
 										<artifactItem>
-											<groupId>fish.payara.distributions</groupId>
-											<artifactId>payara-web</artifactId>
-											<version>${test.payara.version}</version>
+											<groupId>org.wildfly</groupId>
+											<artifactId>wildfly-dist</artifactId>
+											<version>${test.wildfly.version}</version>
 											<type>zip</type>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
 							<execution>
-								<id>install-h2-in-payara</id>
-								<phase>pre-integration-test</phase>
-								<goals>
-									<goal>copy</goal>
-								</goals>
-								<configuration>
-									<artifactItems>
-										<artifactItem>
-											<groupId>com.h2database</groupId>
-											<artifactId>h2</artifactId>
-											<version>1.4.196</version>
-											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
-										</artifactItem>
-									</artifactItems>
-								</configuration>
-							</execution>
-							<execution>
-								<id>install-mysql-driver-in-payara</id>
+								<id>install-mysql-driver-in-wildfly</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy</goal>
@@ -576,13 +558,14 @@
 											<artifactId>mysql-connector-java</artifactId>
 											<version>5.1.42</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<destFileName>mysql.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
 							<execution>
-								<id>install-psql-driver-in-payara</id>
+								<id>install-psql-driver-in-wildfly</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy</goal>
@@ -594,7 +577,27 @@
 											<artifactId>postgresql</artifactId>
 											<version>42.1.1</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<destFileName>postgresql.jar</destFileName>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-eclipselink-in-wildfly</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.eclipse.persistence</groupId>
+											<artifactId>eclipselink</artifactId>
+											<version>2.6.4</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
+											<destFileName>eclipselink.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -603,11 +606,37 @@
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>3.0.2</version>
+						<executions>
+							<execution>
+								<id>register-eclipselink-in-wildfly</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${project.basedir}/src/test/resources/wildfly-eclipselink</directory>
+											<includes>
+												<include>module.xml</include>
+											</includes>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
-							<environmentVariables>
-								<GLASSFISH_HOME>${project.build.directory}/payara5</GLASSFISH_HOME>
-							</environmentVariables>
+							<systemPropertyVariables>
+								<jboss.home>${project.build.directory}/wildfly-${test.wildfly.version}</jboss.home>
+								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+							</systemPropertyVariables>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -707,6 +736,104 @@
 							<systemPropertyVariables>
 								<tomee.dir>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}</tomee.dir>
 							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- Payara/EclipseLink integration test profile: mvn verify -P payara-eclipselink -->
+		<profile>
+			<id>payara-eclipselink</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.jboss.arquillian.container</groupId>
+					<artifactId>arquillian-glassfish-managed-3.1</artifactId>
+					<version>1.0.0.Final</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>fish.payara.distributions</groupId>
+											<artifactId>payara-web</artifactId>
+											<version>${test.payara.version}</version>
+											<type>zip</type>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-h2-in-payara</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>com.h2database</groupId>
+											<artifactId>h2</artifactId>
+											<version>1.4.196</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-mysql-driver-in-payara</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>mysql</groupId>
+											<artifactId>mysql-connector-java</artifactId>
+											<version>5.1.42</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<execution>
+								<id>install-psql-driver-in-payara</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.postgresql</groupId>
+											<artifactId>postgresql</artifactId>
+											<version>42.1.1</version>
+											<type>jar</type>
+											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<environmentVariables>
+								<GLASSFISH_HOME>${project.build.directory}/payara5</GLASSFISH_HOME>
+							</environmentVariables>
 						</configuration>
 					</plugin>
 				</plugins>
