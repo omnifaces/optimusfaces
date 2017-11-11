@@ -12,7 +12,7 @@ services:
 # Do integration test on configured servers.
 env:
    - SERVER=wildfly-hibernate
-   - SERVER=payara-eclipselink
+   - SERVER=wildfly-eclipselink
    - SERVER=tomee-openjpa
 before_script:
    - mysql -u root -e 'CREATE DATABASE test;'
