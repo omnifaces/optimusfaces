@@ -109,8 +109,12 @@ public abstract class OptimusFacesIT {
 			archive.addAsWebInfResource("WEB-INF/glassfish-resources.xml/" + database.name().toLowerCase() + ".xml", "glassfish-resources.xml");
 
 			if (isHibernate()) {
-				// Does not work when placed in glassfish/modules? TODO: investigate
+				// Does not work when placed in glassfish/modules? TODO: investigate.
 				archive.addAsLibraries(maven.resolve("org.hibernate:hibernate-core:5.2.12.Final", "dom4j:dom4j:1.6.1").withTransitivity().asFile());
+			}
+			else if (isEclipseLink()) {
+				// orm.xml should not be necessary, but EclipseLink 2.7.0 bugs on creating LocalDate column. So we need to override its definition without breaking JPA 2.1. TODO: report/improve.
+				archive.addAsResource("META-INF/orm.xml/" + System.getProperty("profile.id") + ".xml", "META-INF/orm.xml");
 			}
 		}
 		else if (isTomEE()) {
