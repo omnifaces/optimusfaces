@@ -135,14 +135,15 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 - OpenJPA ignores any `AttributeConverter` when setting a criteria parameter. This has as consequence that e.g. a `LocalDate`/`LocalDateTime` criteria parameter won't work until OpenJPA itself natively supports `java.time` API. You should for now declare such columns as `java.util.Date`/`java.util.Calendar`.
 
 The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on following environments:
-- WildFly 10.1.0 with Mojarra 2.2.13 and Hibernate 5.0.10
-- WildFly 10.1.0 with Mojarra 2.2.13 and EclipseLink 2.6.4
+- WildFly 11.0.0 with Mojarra 2.2.13 and Hibernate 5.1.10
+- WildFly 11.0.0 with Mojarra 2.2.13 and EclipseLink 2.6.5
 - Payara 5.0.0.Alpha3 with Mojarra 2.3.3 and Hibernate 5.2.12
-- TomEE 7.0.3 with MyFaces 2.2.11 and OpenJPA 2.4.2
+- Payara 5.0.0.Alpha3 with Mojarra 2.3.3 and EclipseLink 2.7.0
+- TomEE 7.0.4 with MyFaces 2.2.12 and OpenJPA 2.4.2
 
 Each environment will run the IT on following databases:
-- H2 1.3.173 on WildFly and H2 1.4.196 on TomEE (embedded database)
-- MySQL 5.5.41 (provided by Travis) with JDBC driver 5.1.42
-- PostgreSQL 9.1.14 (provided by Travis) with JDBC driver 42.1.1
+- H2 1.4.193 on WildFly and H2 1.4.196 on Payara and TomEE (embedded database)
+- MySQL 5.6.33 (provided by Travis) with JDBC driver 5.1.44
+- PostgreSQL 9.6.4 (provided by Travis) with JDBC driver 42.1.4
 
-Effectively, there are thus 12 full test runs of each [26 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L389) on [16 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [26 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L389) on [16 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
