@@ -89,9 +89,12 @@
 		<test.payara.version>5.0.0.Alpha3</test.payara.version>
 		<test.tomee.version>7.0.4</test.tomee.version>
 		<test.wildfly-eclipselink.version>2.6.5</test.wildfly-eclipselink.version>
+		<test.payara-hibernate.version>5.2.12.Final</test.payara-hibernate.version>
 		<test.h2.version>1.4.196</test.h2.version>
 		<test.mysql-driver.version>5.1.44</test.mysql-driver.version>
 		<test.postgresql-driver.version>42.1.4</test.postgresql-driver.version>
+		<test.omnifaces.version>2.6.6</test.omnifaces.version>
+		<test.primefaces.version>6.1</test.primefaces.version>
 	</properties>
 
 	<dependencies>
@@ -415,6 +418,9 @@
 						<systemPropertyVariables>
 							<profile.id>${project.activeProfiles[0].id}</profile.id>
 							<optimusfaces.jar>${project.build.directory}/${project.build.finalName}.jar</optimusfaces.jar>
+							<test.omnifaces.version>${test.omnifaces.version}</test.omnifaces.version>
+							<test.primefaces.version>${test.primefaces.version}</test.primefaces.version>
+							<test.payara-hibernate.version>${test.payara-hibernate.version}</test.payara-hibernate.version>
 						</systemPropertyVariables>
 					</configuration>
 				</plugin>

@@ -13,6 +13,7 @@
 package org.omnifaces.optimusfaces.test;
 
 import static java.lang.Math.min;
+import static java.lang.System.getProperty;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.naturalOrder;
@@ -96,33 +97,41 @@ public abstract class OptimusFacesIT {
 			.addPackage(packageName + ".model.dto")
 			.addPackage(packageName + ".service")
 			.addPackage(packageName + ".view")
-			.addAsResource("META-INF/persistence.xml/" + System.getProperty("profile.id") + ".xml", "META-INF/persistence.xml")
 			.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-			.addAsLibrary(new File(System.getProperty("optimusfaces.jar")))
+			.addAsLibrary(new File(getProperty("optimusfaces.jar")))
 			.addAsLibraries(maven.loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile())
-			.addAsLibraries(maven.resolve("org.omnifaces:omnifaces:2.6.3", "org.primefaces:primefaces:6.1").withTransitivity().asFile());
+			.addAsLibraries(maven.resolve("org.omnifaces:omnifaces:" + getProperty("test.omnifaces.version"), "org.primefaces:primefaces:" + getProperty("test.primefaces.version")).withTransitivity().asFile());
 
-		if (isWildFly()) {
-			archive.addAsWebInfResource("WEB-INF/wildfly-ds.xml/" + database.name().toLowerCase() + ".xml", "wildfly-ds.xml");
-		}
-		else if (isPayara()) {
-			archive.addAsWebInfResource("WEB-INF/glassfish-resources.xml/" + database.name().toLowerCase() + ".xml", "glassfish-resources.xml");
-
-			if (isHibernate()) {
-				// Does not work when placed in glassfish/modules? TODO: investigate.
-				archive.addAsLibraries(maven.resolve("org.hibernate:hibernate-core:5.2.12.Final", "dom4j:dom4j:1.6.1").withTransitivity().asFile());
-			}
-			else if (isEclipseLink()) {
-				// orm.xml should not be necessary, but EclipseLink 2.7.0 bugs on creating LocalDate column. So we need to override its definition without breaking JPA 2.1. TODO: report/improve.
-				archive.addAsResource("META-INF/orm.xml/" + System.getProperty("profile.id") + ".xml", "META-INF/orm.xml");
-			}
-		}
-		else if (isTomEE()) {
-			archive.addAsWebInfResource("WEB-INF/resources.xml/" + database.name().toLowerCase() + ".xml", "resources.xml");
-		}
-
+		addDataSourceConfig(database, archive);
+		addPersistenceConfig(maven, archive);
 		addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
+
 		return archive;
+	}
+
+	private static void addDataSourceConfig(Database database, WebArchive archive) {
+		String dataSourceConfigXml = isWildFly() ? "wildfly-ds.xml" : isPayara() ? "glassfish-resources.xml" : isTomEE() ? "resources.xml" : null;
+
+		if (dataSourceConfigXml != null) {
+			archive.addAsWebInfResource("WEB-INF/" + dataSourceConfigXml + "/" + database.name().toLowerCase() + ".xml", dataSourceConfigXml);
+		}
+	}
+
+	private static void addPersistenceConfig(MavenResolverSystem maven, WebArchive archive) {
+		String persistenceConfigXml = getProperty("profile.id") + ".xml";
+		String persistenceXml = "META-INF/persistence.xml";
+		String ormXml = "META-INF/orm.xml";
+
+		archive.addAsResource(persistenceXml + "/" + persistenceConfigXml, persistenceXml);
+
+		if (OptimusFacesIT.class.getClassLoader().getResource(ormXml + "/" + persistenceConfigXml) != null) {
+			archive.addAsResource(ormXml + "/" + persistenceConfigXml, ormXml);
+		}
+
+		if (isPayara() && isHibernate()) {
+			// Does not work when placed in glassfish/modules? TODO: investigate.
+			archive.addAsLibraries(maven.resolve("org.hibernate:hibernate-core:" + getProperty("test.payara-hibernate.version"), "dom4j:dom4j:1.6.1").withTransitivity().asFile());
+		}
 	}
 
 	private static void addResources(File root, String directory, BiConsumer<File, String> archiveConsumer) {
@@ -229,27 +238,27 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected static boolean isWildFly() {
-		return System.getProperty("profile.id").startsWith("wildfly-");
+		return getProperty("profile.id").startsWith("wildfly-");
 	}
 
 	protected static boolean isPayara() {
-		return System.getProperty("profile.id").startsWith("payara-");
+		return getProperty("profile.id").startsWith("payara-");
 	}
 
 	protected static boolean isTomEE() {
-		return System.getProperty("profile.id").startsWith("tomee-");
+		return getProperty("profile.id").startsWith("tomee-");
 	}
 
 	protected static boolean isHibernate() {
-		return System.getProperty("profile.id").endsWith("-hibernate");
+		return getProperty("profile.id").endsWith("-hibernate");
 	}
 
 	protected static boolean isEclipseLink() {
-		return System.getProperty("profile.id").endsWith("-eclipselink");
+		return getProperty("profile.id").endsWith("-eclipselink");
 	}
 
 	protected static boolean isOpenJPA() {
-		return System.getProperty("profile.id").endsWith("-openjpa");
+		return getProperty("profile.id").endsWith("-openjpa");
 	}
 
 	protected boolean isPostgreSQL() {
@@ -906,12 +915,8 @@ public abstract class OptimusFacesIT {
 
 		assertNoCartesianProduct();
 
-		if (isEclipseLink()) {
-			System.out.println("SKIPPING assertFilteredState(address.string) for EclipseLink because it doesn't support derived properties like Hibernate @Formula;"
-				+ " the intended test is however already covered by testDTO().");
-		}
-		else if (isOpenJPA()) {
-			System.out.println("SKIPPING assertFilteredState(address.string) for OpenJPA because it doesn't support derived properties like Hibernate @Formula;"
+		if (isOpenJPA() || isEclipseLink()) {
+			System.out.println("SKIPPING assertFilteredState(address.string) for OpenJPA and EclipseLink because it doesn't support derived properties like Hibernate @Formula;"
 				+ " the intended test is however already covered by testDTO().");
 		}
 		else {
