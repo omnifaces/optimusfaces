@@ -357,6 +357,9 @@ public abstract class OptimusFacesIT {
 	@FindBy(id="form:table:owner_email:filter")
 	private WebElement owner_emailColumnFilter;
 
+	@FindBy(id="form:table:city:filter")
+	private WebElement cityColumnFilter;
+
 	@FindBy(css="#form\\:table_data tr")
 	private List<WebElement> rows;
 
@@ -1148,8 +1151,20 @@ public abstract class OptimusFacesIT {
 		assertSortedState(owner_emailColumn, true);
 		assertNoCartesianProduct();
 
+		guardAjax(cityColumnFilter).sendKeys("3");
+		assertFilteredState(cityColumnFilter, "3");
+		assertFilteredState(owner_emailColumnFilter, "2");
+		assertSortedState(owner_emailColumn, true);
+		assertNoCartesianProduct();
+
 		owner_emailColumnFilter.clear();
 		guardAjax(owner_emailColumnFilter).sendKeys(Keys.TAB);
+		assertFilteredState(cityColumnFilter, "3");
+		assertSortedState(owner_emailColumn, true);
+		assertNoCartesianProduct();
+
+		cityColumnFilter.clear();
+		guardAjax(cityColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, totalRecords);
 		assertSortedState(owner_emailColumn, true);
 		assertNoCartesianProduct();

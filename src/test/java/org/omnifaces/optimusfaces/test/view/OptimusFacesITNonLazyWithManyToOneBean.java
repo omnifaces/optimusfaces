@@ -29,18 +29,18 @@ public class OptimusFacesITNonLazyWithManyToOneBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<Phone> nonLazyPhonesWithOwners;
+	private PagedDataModel<Phone> nonLazyPhonesWithOwnerAddresses;
 
 	@Inject
 	private PhoneService phoneService;
 
 	@PostConstruct
 	public void init() {
-		nonLazyPhonesWithOwners = PagedDataModel.nonLazy(phoneService.getAllWithOwners()).build();
+		nonLazyPhonesWithOwnerAddresses = PagedDataModel.nonLazy(phoneService.getAllWithOwnerAddresses()).build();
 	}
 
-	public PagedDataModel<Phone> getNonLazyPhonesWithOwners() {
-		return nonLazyPhonesWithOwners;
+	public PagedDataModel<Phone> getNonLazyPhonesWithOwnerAddresses() {
+		return nonLazyPhonesWithOwnerAddresses;
 	}
 
 }

@@ -28,15 +28,16 @@
 
 	<h:body>
 		<o:form id="form" useRequestURI="true">
-			<op:dataTable id="table" value="#{optimusFacesITNonLazyWithManyToOneBean.nonLazyPhonesWithOwners}" searchable="true">
+			<op:dataTable id="table" value="#{optimusFacesITNonLazyWithManyToOneBean.nonLazyPhonesWithOwnerAddresses}" searchable="true">
 				<op:column field="id" />
 				<op:column field="type" />
 				<op:column field="number" />
 				<op:column field="owner.email" />
 				<op:column field="owner.gender" />
+				<op:column field="city" />
 			</op:dataTable>
 		</o:form>
 
-		<h:outputText id="rowCount" value="#{optimusFacesITNonLazyWithManyToOneBean.nonLazyPhonesWithOwners.rowCount}" styleClass="updateOnDataTableFilter" />
+		<h:outputText id="rowCount" value="#{optimusFacesITNonLazyWithManyToOneBean.nonLazyPhonesWithOwnerAddresses.rowCount}" styleClass="updateOnDataTableFilter" />
 	</h:body>
 </html>

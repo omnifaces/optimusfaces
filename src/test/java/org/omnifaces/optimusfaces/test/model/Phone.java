@@ -18,6 +18,7 @@ import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -59,6 +60,11 @@ public class Phone extends LocalBaseEntity {
 
 	public void setOwner(Person owner) {
 		this.owner = owner;
+	}
+
+	@Transient
+	public String getCity() {
+		return getOwner().getAddress().getCity();
 	}
 
 }
