@@ -312,9 +312,6 @@ public abstract class OptimusFacesIT {
 	@FindBy(id="form:table:phones_number")
 	private WebElement phones_numberColumn;
 
-	@FindBy(id="form:table:owner_email")
-	private WebElement owner_emailColumn;
-
 	@FindBy(id="form:table:groups")
 	private WebElement groupsColumn;
 
@@ -353,12 +350,6 @@ public abstract class OptimusFacesIT {
 
 	@FindBy(id="form:table:phones_number:filter")
 	private WebElement phones_numberColumnFilter;
-
-	@FindBy(id="form:table:owner_email:filter")
-	private WebElement owner_emailColumnFilter;
-
-	@FindBy(id="form:table:city:filter")
-	private WebElement cityColumnFilter;
 
 	@FindBy(css="#form\\:table_data tr")
 	private List<WebElement> rows;
@@ -1127,8 +1118,8 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
-		guardAjax(owner_emailColumn).click();
-		assertSortedState(owner_emailColumn, true);
+		guardAjax(emailColumn).click();
+		assertSortedState(emailColumn, true);
 		assertGlobalFilterState("19");
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
@@ -1136,37 +1127,25 @@ public abstract class OptimusFacesIT {
 		idColumnFilter.clear();
 		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
 		assertGlobalFilterState("19");
-		assertSortedState(owner_emailColumn, true);
+		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(owner_emailColumnFilter).sendKeys("2");
+		guardAjax(emailColumnFilter).sendKeys("2");
 		assertGlobalFilterState("19");
-		assertFilteredState(owner_emailColumnFilter, "2");
-		assertSortedState(owner_emailColumn, true);
+		assertFilteredState(emailColumnFilter, "2");
+		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
 		globalFilter.clear();
 		guardAjax(globalFilterButton).click();
-		assertFilteredState(owner_emailColumnFilter, "2");
-		assertSortedState(owner_emailColumn, true);
+		assertFilteredState(emailColumnFilter, "2");
+		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(cityColumnFilter).sendKeys("3");
-		assertFilteredState(cityColumnFilter, "3");
-		assertFilteredState(owner_emailColumnFilter, "2");
-		assertSortedState(owner_emailColumn, true);
-		assertNoCartesianProduct();
-
-		owner_emailColumnFilter.clear();
-		guardAjax(owner_emailColumnFilter).sendKeys(Keys.TAB);
-		assertFilteredState(cityColumnFilter, "3");
-		assertSortedState(owner_emailColumn, true);
-		assertNoCartesianProduct();
-
-		cityColumnFilter.clear();
-		guardAjax(cityColumnFilter).sendKeys(Keys.TAB);
+		emailColumnFilter.clear();
+		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, totalRecords);
-		assertSortedState(owner_emailColumn, true);
+		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 	}
 

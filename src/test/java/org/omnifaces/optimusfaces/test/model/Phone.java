@@ -63,8 +63,8 @@ public class Phone extends LocalBaseEntity {
 	}
 
 	@Transient
-	public String getCity() {
-		return getOwner().getAddress().getCity();
+	public String getEmail() {
+		return getOwner().getEmail();
 	}
 
 }
