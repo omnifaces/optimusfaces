@@ -13,6 +13,7 @@
 package org.omnifaces.optimusfaces.test;
 
 import static java.lang.Math.min;
+import static java.lang.System.getProperty;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.naturalOrder;
@@ -96,21 +97,41 @@ public abstract class OptimusFacesIT {
 			.addPackage(packageName + ".model.dto")
 			.addPackage(packageName + ".service")
 			.addPackage(packageName + ".view")
-			.addAsResource("META-INF/persistence.xml/" + System.getProperty("profile.id") + ".xml", "META-INF/persistence.xml")
 			.addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-			.addAsLibrary(new File(System.getProperty("optimusfaces.jar")))
+			.addAsLibrary(new File(getProperty("optimusfaces.jar")))
 			.addAsLibraries(maven.loadPomFromFile("pom.xml").importRuntimeDependencies().resolve().withTransitivity().asFile())
-			.addAsLibraries(maven.resolve("org.omnifaces:omnifaces:2.6.3", "org.primefaces:primefaces:6.1").withTransitivity().asFile());
+			.addAsLibraries(maven.resolve("org.omnifaces:omnifaces:" + getProperty("test.omnifaces.version"), "org.primefaces:primefaces:" + getProperty("test.primefaces.version")).withTransitivity().asFile());
 
-		if (isWildFly()) {
-			archive.addAsWebInfResource("WEB-INF/wildfly-ds.xml/" + database.name().toLowerCase() + ".xml", "wildfly-ds.xml");
-		}
-		else if (isTomEE()) {
-			archive.addAsWebInfResource("WEB-INF/resources.xml/" + database.name().toLowerCase() + ".xml", "resources.xml");
-		}
-
+		addDataSourceConfig(database, archive);
+		addPersistenceConfig(maven, archive);
 		addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
+
 		return archive;
+	}
+
+	private static void addDataSourceConfig(Database database, WebArchive archive) {
+		String dataSourceConfigXml = isWildFly() ? "wildfly-ds.xml" : isPayara() ? "glassfish-resources.xml" : isTomEE() ? "resources.xml" : null;
+
+		if (dataSourceConfigXml != null) {
+			archive.addAsWebInfResource("WEB-INF/" + dataSourceConfigXml + "/" + database.name().toLowerCase() + ".xml", dataSourceConfigXml);
+		}
+	}
+
+	private static void addPersistenceConfig(MavenResolverSystem maven, WebArchive archive) {
+		String persistenceConfigXml = getProperty("profile.id") + ".xml";
+		String persistenceXml = "META-INF/persistence.xml";
+		String ormXml = "META-INF/orm.xml";
+
+		archive.addAsResource(persistenceXml + "/" + persistenceConfigXml, persistenceXml);
+
+		if (OptimusFacesIT.class.getClassLoader().getResource(ormXml + "/" + persistenceConfigXml) != null) {
+			archive.addAsResource(ormXml + "/" + persistenceConfigXml, ormXml);
+		}
+
+		if (isPayara() && isHibernate()) {
+			// Does not work when placed in glassfish/modules? TODO: investigate.
+			archive.addAsLibraries(maven.resolve("org.hibernate:hibernate-core:" + getProperty("test.payara-hibernate.version"), "dom4j:dom4j:1.6.1").withTransitivity().asFile());
+		}
 	}
 
 	private static void addResources(File root, String directory, BiConsumer<File, String> archiveConsumer) {
@@ -217,23 +238,27 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected static boolean isWildFly() {
-		return System.getProperty("profile.id").startsWith("wildfly-");
+		return getProperty("profile.id").startsWith("wildfly-");
+	}
+
+	protected static boolean isPayara() {
+		return getProperty("profile.id").startsWith("payara-");
 	}
 
 	protected static boolean isTomEE() {
-		return System.getProperty("profile.id").startsWith("tomee-");
+		return getProperty("profile.id").startsWith("tomee-");
 	}
 
 	protected static boolean isHibernate() {
-		return System.getProperty("profile.id").endsWith("-hibernate");
+		return getProperty("profile.id").endsWith("-hibernate");
 	}
 
 	protected static boolean isEclipseLink() {
-		return System.getProperty("profile.id").endsWith("-eclipselink");
+		return getProperty("profile.id").endsWith("-eclipselink");
 	}
 
 	protected static boolean isOpenJPA() {
-		return System.getProperty("profile.id").endsWith("-openjpa");
+		return getProperty("profile.id").endsWith("-openjpa");
 	}
 
 	protected boolean isPostgreSQL() {
@@ -242,6 +267,10 @@ public abstract class OptimusFacesIT {
 
 	protected boolean isLazy() {
 		return browser.getCurrentUrl().contains("OptimusFacesITLazy");
+	}
+
+	protected boolean isJPA22() {
+		return isPayara(); // For now, the Payara test is the only one which uses JPA 2.2 (with LocalDate support).
 	}
 
 
@@ -283,9 +312,6 @@ public abstract class OptimusFacesIT {
 	@FindBy(id="form:table:phones_number")
 	private WebElement phones_numberColumn;
 
-	@FindBy(id="form:table:owner_email")
-	private WebElement owner_emailColumn;
-
 	@FindBy(id="form:table:groups")
 	private WebElement groupsColumn;
 
@@ -324,9 +350,6 @@ public abstract class OptimusFacesIT {
 
 	@FindBy(id="form:table:phones_number:filter")
 	private WebElement phones_numberColumnFilter;
-
-	@FindBy(id="form:table:owner_email:filter")
-	private WebElement owner_emailColumnFilter;
 
 	@FindBy(css="#form\\:table_data tr")
 	private List<WebElement> rows;
@@ -621,8 +644,8 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, 38);
 		assertFilteredState(idColumnFilter, "3");
 
-		if ((isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
+		if (!isJPA22() && (isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
+			System.out.println("SKIPPING globalFilter test for non-JPA 2.2 OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
 			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
 		}
 		else {
@@ -688,8 +711,8 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(emailColumn, true);
 
-		if ((isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
+		if (!isJPA22() && (isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
+			System.out.println("SKIPPING globalFilter test for non-JPA 2.2 OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
 			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
 		}
 		else {
@@ -734,8 +757,8 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, 38);
 		assertSortedState(emailColumn, true);
 
-		if ((isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
+		if (!isJPA22() && (isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
+			System.out.println("SKIPPING globalFilter test for non-JPA 2.2 OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
 			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
 		}
 		else {
@@ -886,12 +909,8 @@ public abstract class OptimusFacesIT {
 
 		assertNoCartesianProduct();
 
-		if (isEclipseLink()) {
-			System.out.println("SKIPPING assertFilteredState(address.string) for EclipseLink because it doesn't support derived properties like Hibernate @Formula;"
-				+ " the intended test is however already covered by testDTO().");
-		}
-		else if (isOpenJPA()) {
-			System.out.println("SKIPPING assertFilteredState(address.string) for OpenJPA because it doesn't support derived properties like Hibernate @Formula;"
+		if (isOpenJPA() || isEclipseLink()) {
+			System.out.println("SKIPPING assertFilteredState(address.string) for OpenJPA and EclipseLink because it doesn't support derived properties like Hibernate @Formula;"
 				+ " the intended test is however already covered by testDTO().");
 		}
 		else {
@@ -1043,11 +1062,6 @@ public abstract class OptimusFacesIT {
 		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
 		assertNoCartesianProduct();
 
-		if (isHibernate() && database == POSTGRESQL) {
-			System.out.println("SKIPPING testElementCollection() with multiple values for Hibernate+PostgreSQL because Hibernate doesn't group by on owning side of @ElementCollection"); // TODO: improve?
-			return;
-		}
-
 		guardAjax(criteriaGroupMANAGER).click();
 		assertCriteriaState(groupsColumn, "USER", "MANAGER");
 		int rowCount2 = getRowCount();
@@ -1104,8 +1118,8 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
-		guardAjax(owner_emailColumn).click();
-		assertSortedState(owner_emailColumn, true);
+		guardAjax(emailColumn).click();
+		assertSortedState(emailColumn, true);
 		assertGlobalFilterState("19");
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
@@ -1113,25 +1127,25 @@ public abstract class OptimusFacesIT {
 		idColumnFilter.clear();
 		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
 		assertGlobalFilterState("19");
-		assertSortedState(owner_emailColumn, true);
+		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(owner_emailColumnFilter).sendKeys("2");
+		guardAjax(emailColumnFilter).sendKeys("2");
 		assertGlobalFilterState("19");
-		assertFilteredState(owner_emailColumnFilter, "2");
-		assertSortedState(owner_emailColumn, true);
+		assertFilteredState(emailColumnFilter, "2");
+		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
 		globalFilter.clear();
 		guardAjax(globalFilterButton).click();
-		assertFilteredState(owner_emailColumnFilter, "2");
-		assertSortedState(owner_emailColumn, true);
+		assertFilteredState(emailColumnFilter, "2");
+		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
-		owner_emailColumnFilter.clear();
-		guardAjax(owner_emailColumnFilter).sendKeys(Keys.TAB);
+		emailColumnFilter.clear();
+		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, totalRecords);
-		assertSortedState(owner_emailColumn, true);
+		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 	}
 

@@ -13,6 +13,8 @@ services:
 env:
    - SERVER=wildfly-hibernate
    - SERVER=wildfly-eclipselink
+   - SERVER=payara-hibernate
+   - SERVER=payara-eclipselink
    - SERVER=tomee-openjpa
 before_script:
    - mysql -u root -e 'CREATE DATABASE test;'

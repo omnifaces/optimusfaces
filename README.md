@@ -26,7 +26,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>2.6.5</version><!-- Minimum supported version is 2.2 -->
+        <version>2.6.6</version><!-- Minimum supported version is 2.2 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
@@ -36,7 +36,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.4</version>
+        <version>0.5</version>
     </dependency>
 </dependencies>
 ```
@@ -121,27 +121,29 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 ### Advanced Usage
 
-[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.4/org/omnifaces/optimusfaces/model/PagedDataModel.html).
+[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.5/org/omnifaces/optimusfaces/model/PagedDataModel.html).
 
 
-### Known Issues (OptimusFaces 0.4)
+### Known Issues
 
-- Hibernate performs the `GROUP BY` of a `@ElementCollection` on the wrong side (in the non-owning side) causing PostgreSQL to error on this. Other databases don't have a problem with it. There is no clear solution/workaround for that yet.
+- Hibernate performs the `GROUP BY` of a `@ElementCollection` on the wrong side (in the non-owning side) causing PostgreSQL to error on this. Other databases don't have a problem with it. There is no clear solution/workaround for that yet. UPDATE: workarounded in 0.6-SNAPSHOT.
 - EclipseLink refuses to perform a `JOIN` with Criteria API when setFirstResult/setMaxResults is used. This returns a cartesian product. This has been workarounded, but this removes the ability to perform sorting on a column referenced by a join (`@OneToMany` and `@ElementCollection`). You should set such columns as `<op:column ... sortable="false">`. Another consequence is that you cannot search with a multi-valued criteria in a field referenced by a `@OneToMany` relationship. You should consider using a DTO instead.
-- EclipseLink refuses to perform a `GROUP BY` with Criteria API when setFirstResult/setMaxResults is used. This has as consequence that an `IN` clause performed on a column referenced by `@ElementCollection` will return a cartesian product. There is no clear solution/workaround for that yet.
+- EclipseLink refuses to perform a `GROUP BY` with Criteria API when setFirstResult/setMaxResults is used. This has as consequence that an `IN` clause performed on a column referenced by `@ElementCollection` will return a cartesian product. You can consider using `@OneToMany` instead. This will be workarounded later. UPDATE: workarounded in 0.6-SNAPSHOT.
 - OpenJPA adds internally a second `JOIN` when sorting a column referenced by a join (`@OneToMany` and `@ElementCollection`). This has as consequence that the sorting is performed on a different join than the one referenced in `GROUP BY` and will thus be off from what's presented. You should for now set such columns as `<op:column ... sortable="false">` or consider using a DTO instead.
 - OpenJPA bugs on setting a criteria parameter in a nested subquery. This has as consequence that you cannot search with a multi-valued criteria in a field referenced by a `@OneToMany` relationship. You should consider using a DTO instead.
 - OpenJPA does not correctly apply setFirstResult/setMaxResults when an `@OneToMany` relationship is involved in the query. It will basically apply it on the results of the `@OneToMany` relationship instead of on the query root, causing the page to contain fewer records than expected. There is no clear solution/workaround for that yet.
 - OpenJPA ignores any `AttributeConverter` when setting a criteria parameter. This has as consequence that e.g. a `LocalDate`/`LocalDateTime` criteria parameter won't work until OpenJPA itself natively supports `java.time` API. You should for now declare such columns as `java.util.Date`/`java.util.Calendar`.
 
 The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on following environments:
-- WildFly 10.1.0 with Mojarra 2.2.13 and Hibernate 5.0.10
-- WildFly 10.1.0 with Mojarra 2.2.13 and EclipseLink 2.6.4
-- TomEE 7.0.3 with MyFaces 2.2.11 and OpenJPA 2.4.2
+- WildFly 11.0.0 with Mojarra 2.2.13 and Hibernate 5.1.10
+- WildFly 11.0.0 with Mojarra 2.2.13 and EclipseLink 2.6.5
+- Payara 5.0.0.Alpha3 with Mojarra 2.3.3 and Hibernate 5.2.12
+- Payara 5.0.0.Alpha3 with Mojarra 2.3.3 and EclipseLink 2.7.0
+- TomEE 7.0.4 with MyFaces 2.2.12 and OpenJPA 2.4.2
 
 Each environment will run the IT on following databases:
-- H2 1.3.173 on WildFly and H2 1.4.196 on TomEE (embedded database)
-- MySQL 5.5.41 (provided by Travis) with JDBC driver 5.1.42
-- PostgreSQL 9.1.14 (provided by Travis) with JDBC driver 42.1.1
+- H2 1.4.193 on WildFly and H2 1.4.196 on Payara and TomEE (embedded database)
+- MySQL 5.6.33 (provided by Travis) with JDBC driver 5.1.44
+- PostgreSQL 9.6.4 (provided by Travis) with JDBC driver 42.1.4
 
-Effectively, there are thus 9 full test runs of each [26 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L388) on [16 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [26 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L389) on [16 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
