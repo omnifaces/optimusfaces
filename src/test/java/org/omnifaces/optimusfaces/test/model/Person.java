@@ -35,7 +35,7 @@ public class Person extends LocalBaseEntity {
 	private static final long serialVersionUID = 1L;
 
 	private @NotNull String email;
-	private @NotNull @Enumerated(STRING) Gender gender;
+	private @NotNull @Enumerated Gender gender;
 	private @NotNull LocalDate dateOfBirth;
 
 	@OneToOne(cascade=PERSIST, fetch=LAZY)
