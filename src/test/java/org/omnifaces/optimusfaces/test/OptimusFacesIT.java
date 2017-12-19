@@ -696,20 +696,22 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");
 
-		guardAjax(genderColumn).click();
-		assertPaginatorState(1, 119);
-		assertFilteredState(emailColumnFilter, "1");
-		assertSortedState(genderColumn, true);
-
-		guardAjax(pageNext).click();
-		assertPaginatorState(2, 119);
-		assertFilteredState(emailColumnFilter, "1");
-		assertSortedState(genderColumn, true);
-
 		guardAjax(emailColumn).click();
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(emailColumn, true);
+
+		for (int nextPage = 2; nextPage <= 10; nextPage++) {
+			guardAjax(pageNext).click();
+			assertPaginatorState(nextPage, 119);
+			assertFilteredState(emailColumnFilter, "1");
+			assertSortedState(emailColumn, true);
+		}
+
+		guardAjax(emailColumn).click();
+		assertPaginatorState(1, 119);
+		assertFilteredState(emailColumnFilter, "1");
+		assertSortedState(emailColumn, false);
 
 		if (!isJPA22() && (isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
 			System.out.println("SKIPPING globalFilter test for non-JPA 2.2 OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
@@ -722,7 +724,7 @@ public abstract class OptimusFacesIT {
 			assertTrue(totalRecords1 + " must be less than 119", totalRecords1 < 119);
 			assertFilteredState(emailColumnFilter, "1");
 			assertGlobalFilterState("FEMALE");
-			assertSortedState(emailColumn, true);
+			assertSortedState(emailColumn, false);
 
 			guardAjax(idColumn).click();
 			int totalRecords2 = getRowCount();
