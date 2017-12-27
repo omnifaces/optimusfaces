@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import javax.faces.model.SelectItem;
 import javax.persistence.ElementCollection;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -137,29 +138,29 @@ import org.primefaces.model.Visibility;
  *
  * <h3 id="relationships"><a href="#relationships">Relationships</a></h3>
  * <p>
- * The <code>&lt;op:dataTable&gt;</code> supports models with {@link OneToOne}, {@link OneToMany} and
+ * The <code>&lt;op:dataTable&gt;</code> supports models with {@link OneToOne}, {@link ManyToOne}, {@link OneToMany} and
  * {@link ElementCollection} relationships. The <code>field</code> attribute of <code>&lt;op:column&gt;</code> can take
  * a JavaBean path, like as you would do in EL, <code>parent.child.subchild</code>. Below are some examples.
  *
- * <h4>OneToOne</h4>
+ * <h4>OneToOne/ManyToOne</h4>
  * <p>
- * Given an <code>Invoice</code> with <code>&#64;OneToOne private Order order;</code>
+ * Given an <code>Invoice</code> with <code>&#64;OneToOne private Order order</code>, <code>&#64;ManyToOne User seller</code> and <code>&#64;ManyToOne User buyer</code>:
  * <pre>
  * &lt;op:dataTable id="invoicesTable" value="#{shop.invoices}"&gt;
  *     &lt;op:column field="id" /&gt;
- *     &lt;op:column field="seller" /&gt;
- *     &lt;op:column field="order.buyer" /&gt;
+ *     &lt;op:column field="seller.name" /&gt;
+ *     &lt;op:column field="order.buyer.name" /&gt;
  *     &lt;op:column field="order.totalPrice" /&gt;
  * &lt;/op:dataTable&gt;
  * </pre>
  *
  * <h4>OneToMany</h4>
  * <p>
- * Given a <code>Order</code> with <code>&#64;OneToMany List&lt;Product&gt; products;</code>
+ * Given a <code>Order</code> with <code>&#64;OneToMany List&lt;Product&gt; products</code>:
  * <pre>
  * &lt;op:dataTable id="ordersTable" value="#{shop.orders}"&gt;
  *     &lt;op:column field="id" /&gt;
- *     &lt;op:column field="buyer" /&gt;
+ *     &lt;op:column field="buyer.name" /&gt;
  *     &lt;op:column field="totalPrice" /&gt;
  *     &lt;op:column field="products.name" /&gt;
  *     &lt;op:column field="products.price" /&gt;
@@ -168,7 +169,7 @@ import org.primefaces.model.Visibility;
  *
  * <h4>ElementCollection</h4>
  * <p>
- * Given a <code>Product</code> with <code>&#64;ElementCollection List&lt;Tag&gt; tags;</code>
+ * Given a <code>Product</code> with <code>&#64;ElementCollection List&lt;Tag&gt; tags</code>:
  * <pre>
  * &lt;op:dataTable id="productsTable" value="#{shop.products}"&gt;
  *     &lt;op:column field="id" /&gt;
