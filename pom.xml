@@ -301,7 +301,9 @@
 					<doctitle>OptimusFaces API documentation</doctitle>
 					<links>
 						<link>https://docs.oracle.com/javaee/${javaee.version}/api/</link>
+						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.5/</link>
 					</links>
+					<additionalJOption>-J-Dhttp.agent=maven-javadoc-plugin-${pom‌​.name}</additionalJOption>
 				</configuration>
 				<executions>
 					<execution>
