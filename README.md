@@ -1,4 +1,9 @@
-# OptimusFaces [![Build Status](https://travis-ci.org/omnifaces/optimusfaces.svg?branch=develop)](https://travis-ci.org/omnifaces/optimusfaces) [![Maven](https://maven-badges.herokuapp.com/maven-central/org.omnifaces/optimusfaces/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.omnifaces/optimusfaces) [![Javadocs](http://javadoc.io/badge/org.omnifaces/optimusfaces.svg)](http://javadoc.io/doc/org.omnifaces/optimusfaces)
+[![Maven](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/org/omnifaces/optimusfaces/maven-metadata.xml.svg)](http://central.maven.org/maven2/org/omnifaces/optimusfaces/)
+[![Javadoc](http://javadoc.io/badge/org.omnifaces/optimusfaces.svg)](http://javadoc.io/doc/org.omnifaces/optimusfaces) 
+[![Travis](https://travis-ci.org/omnifaces/optimusfaces.svg?branch=develop)](https://travis-ci.org/omnifaces/optimusfaces)
+[![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+
+# OptimusFaces
 
 Utility library for OmniFaces + PrimeFaces combined.
 
