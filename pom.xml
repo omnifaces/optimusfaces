@@ -87,14 +87,14 @@
 		<!-- Test versions. -->
 		<test.wildfly.version>12.0.0.Final</test.wildfly.version>
 		<test.payara.version>5.Beta2</test.payara.version>
-		<test.tomee.version>7.0.4</test.tomee.version>
+		<test.tomee.version>7.0.4</test.tomee.version> <!-- TODO: upgrade to Java EE 8 compatible version. -->
 		<test.wildfly-eclipselink.version>2.7.1</test.wildfly-eclipselink.version>
 		<test.payara-hibernate.version>5.3.0.CR1</test.payara-hibernate.version>
 		<test.h2.version>1.4.196</test.h2.version>
 		<test.mysql-driver.version>5.1.45</test.mysql-driver.version>
 		<test.postgresql-driver.version>42.2.1</test.postgresql-driver.version>
-		<test.omnifaces.version>2.6.8</test.omnifaces.version> <!-- TODO: 3.0 -->
-		<test.primefaces.version>6.1</test.primefaces.version> <!-- TODO: 6.2 -->
+		<test.omnifaces.version>2.6.8</test.omnifaces.version> <!-- TODO: upgrade to 3.x once TomEE is upgraded. -->
+		<test.primefaces.version>6.2</test.primefaces.version>
 	</properties>
 
 	<dependencies>
@@ -150,7 +150,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>5.2.12.Final</version> <!-- As used by Payara 5.0.0.Alpha3. -->
+			<version>${test.payara-hibernate.version}</version>
 			<scope>test</scope> <!-- Only for the @Formula annotation on Address entity. -->
 			<exclusions>
 				<exclusion> <!-- Conflicts with Selenium's own one. -->
@@ -168,7 +168,7 @@
 			<dependency>
 				<groupId>org.jboss.arquillian</groupId>
 				<artifactId>arquillian-bom</artifactId>
-				<version>1.1.13.Final</version>
+				<version>1.4.0.Final</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -176,13 +176,6 @@
 				<groupId>org.jboss.arquillian.extension</groupId>
 				<artifactId>arquillian-drone-bom</artifactId>
 				<version>2.0.1.Final</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.arquillian.selenium</groupId>
-				<artifactId>selenium-bom</artifactId>
-				<version>3.3.1</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

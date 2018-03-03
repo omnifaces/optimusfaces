@@ -208,6 +208,10 @@ public abstract class OptimusFacesIT {
 		}, browser, Default.class);
 	}
 
+	protected void open(String type) {
+		open(type, null);
+	}
+
 	protected void open(String type, String queryString) {
 		String url = baseURL + OptimusFacesIT.class.getSimpleName() + type + (isTomEE() ? ".jsf" : ".xhtml"); // MyFaces has no implicit mapping for .xhtml (yet).
 
@@ -217,6 +221,14 @@ public abstract class OptimusFacesIT {
 
 		browser.get(url);
 		waitGui(browser);
+
+		// Hack :(
+		try {
+			Thread.sleep(200); // Since PrimeFaces 6.2, the p:dataTable paginator appears to be refreshed after window load, causing pagination tests to randomly fail.
+		}
+		catch (Exception ignore) {
+			//
+		}
 	}
 
 	protected String getQueryParameter(String name) {
@@ -409,61 +421,61 @@ public abstract class OptimusFacesIT {
 
 	@Test
 	public void testLazyDefaultState() {
-		open("Lazy", null);
+		open("Lazy");
 		testDefaultState();
 	}
 
 	@Test
 	public void testNonLazyDefaultState() {
-		open("NonLazy", null);
+		open("NonLazy");
 		testDefaultState();
 	}
 
 	@Test
 	public void testLazyPaging() {
-		open("Lazy", null);
+		open("Lazy");
 		testPaging();
 	}
 
 	@Test
 	public void testNonLazyPaging() {
-		open("NonLazy", null);
+		open("NonLazy");
 		testPaging();
 	}
 
 	@Test
 	public void testLazySorting() {
-		open("Lazy", null);
+		open("Lazy");
 		testSorting();
 	}
 
 	@Test
 	public void testNonLazySorting() {
-		open("NonLazy", null);
+		open("NonLazy");
 		testSorting();
 	}
 
 	@Test
 	public void testLazyFiltering() {
-		open("Lazy", null);
+		open("Lazy");
 		testFiltering();
 	}
 
 	@Test
 	public void testNonLazyFiltering() {
-		open("NonLazy", null);
+		open("NonLazy");
 		testFiltering();
 	}
 
 	@Test
 	public void testLazyPagingSortingAndFiltering() {
-		open("Lazy", null);
+		open("Lazy");
 		testPagingSortingAndFiltering();
 	}
 
 	@Test
 	public void testNonLazyPagingSortingAndFiltering() {
-		open("NonLazy", null);
+		open("NonLazy");
 		testPagingSortingAndFiltering();
 	}
 
@@ -479,85 +491,85 @@ public abstract class OptimusFacesIT {
 
 	@Test
 	public void testLazyWithCriteria() {
-		open("LazyWithCriteria", null);
+		open("LazyWithCriteria");
 		testCriteria();
 	}
 
 	@Test
 	public void testNonLazyWithCriteria() {
-		open("NonLazyWithCriteria", null);
+		open("NonLazyWithCriteria");
 		testCriteria();
 	}
 
 	@Test
 	public void testLazyWithFilterOptions() {
-		open("LazyWithFilterOptions", null);
+		open("LazyWithFilterOptions");
 		testFilterOptions();
 	}
 
 	@Test
 	public void testNonLazyWithFilterOptions() {
-		open("NonLazyWithFilterOptions", null);
+		open("NonLazyWithFilterOptions");
 		testFilterOptions();
 	}
 
 	@Test
 	public void testLazyWithDTO() {
-		open("LazyWithDTO", null);
+		open("LazyWithDTO");
 		testDTO();
 	}
 
 	@Test
 	public void testNonLazyWithDTO() {
-		open("NonLazyWithDTO", null);
+		open("NonLazyWithDTO");
 		testDTO();
 	}
 
 	@Test
 	public void testLazyWithOneToOne() {
-		open("LazyWithOneToOne", null);
+		open("LazyWithOneToOne");
 		testOneToOne();
 	}
 
 	@Test
 	public void testNonLazyWithOneToOne() {
-		open("NonLazyWithOneToOne", null);
+		open("NonLazyWithOneToOne");
 		testOneToOne();
 	}
 
 	@Test
 	public void testLazyWithOneToMany() {
-		open("LazyWithOneToMany", null);
+		open("LazyWithOneToMany");
 		testOneToMany();
 	}
 
 	@Test
 	public void testNonLazyWithOneToMany() {
-		open("NonLazyWithOneToMany", null);
+		open("NonLazyWithOneToMany");
 		testOneToMany();
 	}
 
 	@Test
 	public void testLazyWithElementCollection() {
-		open("LazyWithElementCollection", null);
+		open("LazyWithElementCollection");
 		testElementCollection();
 	}
 
 	@Test
 	public void testNonLazyWithElementCollection() {
-		open("NonLazyWithElementCollection", null);
+		open("NonLazyWithElementCollection");
 		testElementCollection();
 	}
 
 	@Test
 	public void testLazyWithManyToOne() {
-		open("LazyWithManyToOne", null);
+		open("LazyWithManyToOne");
 		testManyToOne();
 	}
 
 	@Test
 	public void testNonLazyWithManyToOne() {
-		open("NonLazyWithManyToOne", null);
+		open("NonLazyWithManyToOne");
 		testManyToOne();
 	}
 
