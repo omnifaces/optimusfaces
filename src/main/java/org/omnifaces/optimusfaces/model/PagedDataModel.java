@@ -565,6 +565,12 @@ import org.primefaces.model.Visibility;
  * <p>
  * Note: the <code>#{id}</code> of the <code>exportFilename</code> represents the ID of the
  * <code>&lt;op:dataTable&gt;</code>.
+ * <p>
+ * By default, every column is exportable. In the frontend you can optionally set <code>exportable</code> attribute of
+ * <code>&lt;op:column&gt;</code> to <code>false</code> to make a column non-exportable, irrespective of its visibility.
+ * <pre>
+ * &lt;op:column ... exportable="false" /&gt;
+ * </pre>
  *
  *
  * <h3 id="selection"><a href="#selection">Selection</a></h3>
@@ -854,7 +860,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 	 */
 	default void prepareExportVisible(String tableId) {
 		DataTable table = (DataTable) getCurrentComponent().findComponent(tableId);
-		table.getColumns().forEach(column -> ((Column) column).setExportable(column.isVisible()));
+		table.getColumns().forEach(column -> setExportable((Column) column, column.isVisible()));
 	}
 
 	/**
@@ -863,7 +869,18 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 	 */
 	default void prepareExportAll(String tableId) {
 		DataTable table = (DataTable) getCurrentComponent().findComponent(tableId);
-		table.getColumns().forEach(column -> ((Column) column).setExportable(true));
+		table.getColumns().forEach(column -> setExportable((Column) column, true));
+	}
+
+	/**
+	 * Remembers original value of "exportable" attribute in case it's been explicitly set.
+	 */
+	static void setExportable(Column column, boolean exportable) {
+		boolean wasExportable = column.getAttributes().putIfAbsent("wasExportable", column.isExportable()) == Boolean.TRUE || column.isExportable();
+
+		if (wasExportable) {
+			column.setExportable(exportable);
+		}
 	}
 
 

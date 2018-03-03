@@ -37,6 +37,7 @@
 		<o:tagAttribute name="styleClass" />
 		<o:tagAttribute name="rendered" default="#{true}" />
 		<o:tagAttribute name="visible" default="#{true}" />
+		<o:tagAttribute name="exportable" default="#{true}" />
 		<o:tagAttribute name="width" />
 		<o:tagAttribute name="iterable" default="#{$ITERABLE_CLASS.isInstance(value)}" />
 
@@ -54,7 +55,7 @@
 		field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" sortBy="#{value}"
 		filterable="#{filterable}" filterBy="#{value}" filterValue="#{$pagedDataModel.filters[field]}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
 		styleClass="#{styleClass}#{sortable and $dataTable.sortField eq field ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
-		rendered="#{rendered}" visible="#{visible}"
+		rendered="#{rendered}" visible="#{visible}" exportable="#{exportable}"
 	>
 		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
 		<c:if test="#{not empty filterOptions}">
@@ -67,7 +68,7 @@
 		<ui:fragment rendered="#{not $exporting}">
 			<span title="#{tooltip}">
 				<ui:insert name="cell">
-					<ui:fragment rendered="#{not iterable}">#{value}</ui:fragment>
+					<ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment> <!-- Explicit toString() call makes sure that it's also called on enums instead of name(). -->
 					<ui:repeat rendered="#{iterable}" value="#{iterable ? of:iterableToList(value) : []}" var="$value" 
 						varStatus="loop"><span>#{$value}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
 				</ui:insert>
