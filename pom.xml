@@ -85,16 +85,16 @@
 		<maven.source.excludeResources>true</maven.source.excludeResources>
 
 		<!-- Test versions. -->
-		<test.wildfly.version>11.0.0.Final</test.wildfly.version>
-		<test.payara.version>5.0.0.Alpha3</test.payara.version>
+		<test.wildfly.version>12.0.0.Final</test.wildfly.version>
+		<test.payara.version>5.Beta2</test.payara.version>
 		<test.tomee.version>7.0.4</test.tomee.version>
-		<test.wildfly-eclipselink.version>2.6.5</test.wildfly-eclipselink.version>
-		<test.payara-hibernate.version>5.2.12.Final</test.payara-hibernate.version>
+		<test.wildfly-eclipselink.version>2.7.1</test.wildfly-eclipselink.version>
+		<test.payara-hibernate.version>5.3.0.CR1</test.payara-hibernate.version>
 		<test.h2.version>1.4.196</test.h2.version>
-		<test.mysql-driver.version>5.1.44</test.mysql-driver.version>
-		<test.postgresql-driver.version>42.1.4</test.postgresql-driver.version>
-		<test.omnifaces.version>2.6.6</test.omnifaces.version>
-		<test.primefaces.version>6.1</test.primefaces.version>
+		<test.mysql-driver.version>5.1.45</test.mysql-driver.version>
+		<test.postgresql-driver.version>42.2.1</test.postgresql-driver.version>
+		<test.omnifaces.version>2.6.8</test.omnifaces.version> <!-- TODO: 3.0 -->
+		<test.primefaces.version>6.1</test.primefaces.version> <!-- TODO: 6.2 -->
 	</properties>
 
 	<dependencies>
@@ -168,21 +168,21 @@
 			<dependency>
 				<groupId>org.jboss.arquillian</groupId>
 				<artifactId>arquillian-bom</artifactId>
-				<version>1.1.11.Final</version>
+				<version>1.1.13.Final</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.jboss.arquillian.extension</groupId>
 				<artifactId>arquillian-drone-bom</artifactId>
-				<version>2.0.0.Final</version>
+				<version>2.0.1.Final</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.jboss.arquillian.selenium</groupId>
 				<artifactId>selenium-bom</artifactId>
-				<version>2.53.1</version>
+				<version>3.3.1</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -207,7 +207,7 @@
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>2.11</version>
+				<version>3.0</version>
 				<configuration>
 					<header>license.txt</header>
 					<excludes>
@@ -231,7 +231,7 @@
 			<plugin>
 				<groupId>com.samaxes.maven</groupId>
 				<artifactId>minify-maven-plugin</artifactId>
-				<version>1.7.4</version>
+				<version>1.7.6</version>
 				<configuration>
 					<webappSourceDir>${basedir}/src/main/resources</webappSourceDir>
 					<webappTargetDir>${project.build.outputDirectory}</webappTargetDir>
@@ -259,7 +259,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.6</version>
+				<version>3.0.2</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -293,7 +293,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.4</version>
+				<version>3.0.0</version>
 				<configuration>
 					<javadocVersion>${javase.version}</javadocVersion>
 					<notimestamp>true</notimestamp>
@@ -319,23 +319,12 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.5</version>
+				<version>1.6.8</version>
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>
 					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
 					<autoReleaseAfterClose>true</autoReleaseAfterClose>
-				</configuration>
-			</plugin>
-
-			<!-- Configure git-flow style releases via Maven. -->
-			<plugin>
-				<groupId>external.atlassian.jgitflow</groupId>
-				<artifactId>jgitflow-maven-plugin</artifactId>
-				<version>1.0-m5.1</version>
-				<configuration>
-					<noDeploy>true</noDeploy>
-					<enableFeatureVersions>true</enableFeatureVersions>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -355,7 +344,7 @@
 									<pluginExecutionFilter>
 										<groupId>com.mycila</groupId>
 										<artifactId>license-maven-plugin</artifactId>
-										<versionRange>[2.11,)</versionRange>
+										<versionRange>[3.0,)</versionRange>
 										<goals>
 											<goal>format</goal>
 										</goals>
@@ -390,7 +379,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-dependency-plugin</artifactId>
-					<version>2.10</version>
+					<version>3.0.2</version>
 					<executions>
 						<execution>
 							<phase>process-test-classes</phase>
@@ -406,7 +395,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-failsafe-plugin</artifactId>
-					<version>2.19.1</version>
+					<version>2.20.1</version>
 					<executions>
 						<execution>
 							<goals>
@@ -445,7 +434,7 @@
 				<dependency>
 					<groupId>org.wildfly.arquillian</groupId>
 					<artifactId>wildfly-arquillian-container-managed</artifactId>
-					<version>2.0.0.Final</version>
+					<version>2.1.0.Final</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
@@ -528,7 +517,7 @@
 				<dependency>
 					<groupId>org.wildfly.arquillian</groupId>
 					<artifactId>wildfly-arquillian-container-managed</artifactId>
-					<version>2.0.2.Final</version>
+					<version>2.1.0.Final</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
@@ -655,7 +644,7 @@
 				<dependency>
 					<groupId>org.jboss.arquillian.container</groupId>
 					<artifactId>arquillian-glassfish-managed-3.1</artifactId>
-					<version>1.0.0.Final</version>
+					<version>1.0.2</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
@@ -706,7 +695,7 @@
 										<artifactItem>
 											<groupId>mysql</groupId>
 											<artifactId>mysql-connector-java</artifactId>
-											<version>5.1.44</version>
+											<version>${test.mysql-driver.version}</version>
 											<type>jar</type>
 											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
 										</artifactItem>
@@ -724,7 +713,7 @@
 										<artifactItem>
 											<groupId>org.postgresql</groupId>
 											<artifactId>postgresql</artifactId>
-											<version>42.1.4</version>
+											<version>${test.postgresql-driver.version}</version>
 											<type>jar</type>
 											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
 										</artifactItem>
@@ -753,7 +742,7 @@
 				<dependency>
 					<groupId>org.jboss.arquillian.container</groupId>
 					<artifactId>arquillian-glassfish-managed-3.1</artifactId>
-					<version>1.0.0.Final</version>
+					<version>1.0.2</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>

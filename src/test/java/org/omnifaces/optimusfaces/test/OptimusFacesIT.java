@@ -269,10 +269,6 @@ public abstract class OptimusFacesIT {
 		return browser.getCurrentUrl().contains("OptimusFacesITLazy");
 	}
 
-	protected boolean isJPA22() {
-		return isPayara(); // For now, the Payara test is the only one which uses JPA 2.2 (with LocalDate support).
-	}
-
 
 	// Elements -------------------------------------------------------------------------------------------------------
 
@@ -644,8 +640,8 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, 38);
 		assertFilteredState(idColumnFilter, "3");
 
-		if (!isJPA22() && (isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for non-JPA 2.2 OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
+		if (isOpenJPA() && isPostgreSQL()) {
+			System.out.println("SKIPPING globalFilter test for OpenJPA on PostgreSQL because it doesn't support LocalDate in LIKE");
 			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
 		}
 		else {
@@ -713,8 +709,8 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(emailColumn, false);
 
-		if (!isJPA22() && (isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for non-JPA 2.2 OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
+		if (isOpenJPA() && isPostgreSQL()) {
+			System.out.println("SKIPPING globalFilter test for OpenJPA on PostgreSQL because it doesn't support LocalDate in LIKE");
 			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
 		}
 		else {
@@ -759,8 +755,8 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, 38);
 		assertSortedState(emailColumn, true);
 
-		if (!isJPA22() && (isOpenJPA() || isEclipseLink()) && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for non-JPA 2.2 OpenJPA and EclipseLink on PostgreSQL because it doesn't support LocalDate in LIKE");
+		if (isOpenJPA() && isPostgreSQL()) {
+			System.out.println("SKIPPING globalFilter test for OpenJPA on PostgreSQL because it doesn't support LocalDate in LIKE");
 			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
 		}
 		else {
