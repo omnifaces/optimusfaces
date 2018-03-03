@@ -679,6 +679,22 @@ import org.primefaces.model.Visibility;
  * <code>.ui-datatable tbody td &gt; span</code>.
  *
  *
+ * <h3 id="adding-buttons"><a href="#adding-buttons">Adding custom action buttons</a></h3>
+ * <p>
+ * When you want more buttons in the <code>.ui-datatable-actions</code> div, then you can use <code>&lt;ui:define name="actions"&gt;</code>
+ * for this.
+ * <pre>
+ * &lt;op:dataTable ...&gt;
+ *     &lt;ui:define name="actions"&gt;
+ *         &lt;p:commandButton ... /&gt;
+ *     &lt;/ui:define&gt;
+ *     ...
+ * &lt;/op:dataTable&gt;
+ * </pre>
+ * <p>
+ * They will end up after the search and export buttons.
+ *
+ *
  * <h3 id="setting-attributes"><a href="#setting-attributes">Setting PrimeFaces-specific attributes</a></h3>
  * <p>
  * In case you'd like to finetune the underlying <code>&lt;p:dataTable&gt;</code> further with additional attributes
