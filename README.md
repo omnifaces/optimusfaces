@@ -19,11 +19,11 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 
 ```XML
 <dependencies>
-    <!-- Target Java EE 7 or 8 server. E.g. WildFly 11 or 12, or Payara 4 or 5. -->
+    <!-- Target Java EE server. -->
     <dependency>
         <groupId>javax</groupId>
         <artifactId>javaee-api</artifactId>
-        <version>7.0</version>
+        <version>8.0</version><!-- Minimum supported version is 7.0 -->
         <scope>provided</scope>
     </dependency>
 
@@ -31,7 +31,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>2.6.8</version><!-- Minimum supported version is 2.2 -->
+        <version>3.0</version><!-- Minimum supported version is 2.2 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
