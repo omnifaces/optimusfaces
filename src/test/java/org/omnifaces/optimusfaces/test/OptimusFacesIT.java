@@ -221,14 +221,6 @@ public abstract class OptimusFacesIT {
 
 		browser.get(url);
 		waitGui(browser);
-
-		// Hack :(
-		try {
-			Thread.sleep(200); // Since PrimeFaces 6.2, the p:dataTable paginator appears to be refreshed after window load, causing pagination tests to randomly fail.
-		}
-		catch (Exception ignore) {
-			//
-		}
 	}
 
 	protected String getQueryParameter(String name) {
