@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -890,6 +891,8 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
 	/**
 	 * Remembers original value of "exportable" attribute in case it's been explicitly set.
+	 * @param column The column.
+	 * @param exportable Whether it should be set exportable if not already explicitly disabled.
 	 */
 	static void setExportable(Column column, boolean exportable) {
 		boolean wasExportable = column.getAttributes().putIfAbsent("wasExportable", column.isExportable()) == Boolean.TRUE || column.isExportable();
@@ -902,6 +905,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
 	// op:dataTable properties ----------------------------------------------------------------------------------------
 
+	Entry<String, Boolean> getOrdering();
 	Map<String, Object> getFilters();
 
 	List<E> getFilteredValue();

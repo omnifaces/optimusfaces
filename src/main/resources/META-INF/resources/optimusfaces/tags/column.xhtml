@@ -68,7 +68,7 @@
 		<ui:fragment rendered="#{not $exporting}">
 			<span title="#{tooltip}">
 				<ui:insert name="cell">
-					<ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment> <!-- Explicit toString() call makes sure that it's also called on enums instead of name(). -->
+					<ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment><ui:remove><!-- Explicit toString() call makes sure that it's also called on enums instead of name(). --></ui:remove>
 					<ui:repeat rendered="#{iterable}" value="#{iterable ? of:iterableToList(value) : []}" var="$value" 
 						varStatus="loop"><span>#{$value}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
 				</ui:insert>

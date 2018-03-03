@@ -1218,9 +1218,10 @@ public abstract class OptimusFacesIT {
 
 	protected void assertSortedState(WebElement column, boolean ascending) {
 		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+		String sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
 
 		assertTrue(field + " column must be active", activeColumn.getText().equals(field));
-		assertEquals(field + " column must be sorted", ascending ? "ascending" : "descending", activeColumn.getAttribute("aria-sort"));
+		assertEquals(field + " column must be sorted", ascending, sortableColumnClass.contains("ui-icon-triangle-1-n"));
 		assertEquals("order query string", ("id".equals(field) && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
 
 		List<WebElement> cells = getCells(column);

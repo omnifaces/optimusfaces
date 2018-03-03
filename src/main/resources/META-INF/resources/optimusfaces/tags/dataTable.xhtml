@@ -68,6 +68,9 @@
 			<p:ajax event="page" update="@(.updateOnDataTablePage)" />
 		</c:if>
 		<c:if test="#{sortable}">
+			<f:attribute name="sortBy" value="id" />
+			<f:attribute name="sortField" value="#{value.ordering.key}" />
+			<f:attribute name="sortOrder" value="#{value.ordering.value ? 'ascending' : 'descending'}" />
 			<p:ajax event="sort" update="@(.updateOnDataTableSort)" />
 		</c:if>
 		<c:if test="#{filterable or searchable}">

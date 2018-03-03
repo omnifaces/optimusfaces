@@ -187,10 +187,6 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	protected LinkedHashMap<String, Boolean> processPageAndOrdering(FacesContext context, DataTable table, int limit, String tableSortField, SortOrder tableSortOrder) {
 		LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
 
-		if (!isEmpty(tableSortField)) {
-			ordering.put(tableSortField, tableSortOrder == ASCENDING);
-		}
-
 		if (!context.isPostback()) {
 			String page = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_PAGE);
 
@@ -228,6 +224,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 			Entry<String, Boolean> defaultOrder = defaultOrdering.entrySet().iterator().next();
 			table.setSortField(coalesce(sortField, tableSortField, defaultOrder.getKey()));
 			table.setSortOrder(coalesce(sortOrder, sortField != null ? tableSortOrder : defaultOrder.getValue() ? ASCENDING : DESCENDING).name());
+		}
+		else if (!isEmpty(tableSortField)) {
+			ordering.put(tableSortField, tableSortOrder == ASCENDING);
 		}
 
 		defaultOrdering.forEach((defaultSortField, defaultSortAscending) -> ordering.putIfAbsent(defaultSortField, defaultSortAscending));
@@ -376,6 +375,11 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	@Override
 	public E getRowData(String rowKey) {
 		return load(new Page(0, 1, null, singletonMap(ID, rowKey), null), false).get(0);
+	}
+
+	@Override
+	public Entry<String, Boolean> getOrdering() {
+		return ordering != null ? ordering.entrySet().iterator().next() : null;
 	}
 
 	@Override
