@@ -121,7 +121,7 @@ of `<p:column>`.
 
 Here's how it looks like with default PrimeFaces UI and all. This example uses **exactly** the above Java and XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `LocalDate dateOfBirth` fields.
 
-![example of op:dataTable](http://i.imgur.com/nnB6RJZ.png)
+![example of op:dataTable](https://i.imgur.com/VJyNKMH.png)
 
 
 ### Advanced Usage
