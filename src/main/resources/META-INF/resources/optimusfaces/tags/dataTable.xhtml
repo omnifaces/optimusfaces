@@ -115,9 +115,11 @@
 									<f:param name="$export" value="all" />
 								</p:menuitem>
 							</p:splitButton>
-							<p:columnToggler id="#{id}_toggler" trigger="columnToggler" datasource="#{id}">
-								<p:ajax event="toggle" listener="#{value.toggleColumn}" />
-							</p:columnToggler>
+							<span class="ui-menubutton">
+								<p:columnToggler id="#{id}_toggler" trigger="columnToggler" datasource="#{id}">
+									<p:ajax event="toggle" listener="#{value.toggleColumn}" />
+								</p:columnToggler>
+							</span>
 						</span>
 					</c:if>
 					
