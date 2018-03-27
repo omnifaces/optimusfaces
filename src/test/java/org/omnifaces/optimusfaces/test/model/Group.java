@@ -12,7 +12,6 @@
  */
 package org.omnifaces.optimusfaces.test.model;
 
-
 public enum Group {
 
 	USER,

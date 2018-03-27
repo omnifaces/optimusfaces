@@ -22,7 +22,7 @@ import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 @Entity
-public class Phone extends LocalBaseEntity {
+public class Phone extends LocalGeneratedIdEntity {
 
 	private static final long serialVersionUID = 1L;
 

@@ -18,7 +18,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.annotations.Formula;
 
 @Entity
-public class Address extends LocalBaseEntity {
+public class Address extends LocalGeneratedIdEntity {
 
 	private static final long serialVersionUID = 1L;
 

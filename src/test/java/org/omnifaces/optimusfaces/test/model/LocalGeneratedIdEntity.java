@@ -18,18 +18,18 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import org.omnifaces.persistence.model.BaseEntity;
+import org.omnifaces.persistence.model.GeneratedIdEntity;
 
 /**
  * This is needed by OpenJPA because it doesn't recognize a parameterized ID in a MappedSuperClass in a JAR.
  * <pre>
- * WARN openjpa.Runtime - Fields "org.omnifaces.persistence.model.BaseEntity.id" are not a default persistent type,
+ * WARN openjpa.Runtime - Fields "org.omnifaces.persistence.model.GeneratedIdEntity.id" are not a default persistent type,
  * and do not have any annotations indicating their persistence strategy. They will be treated as non-persistent.
  * </pre>
- * This is <strong>NOT</strong> needed for Hibernate and EclipseLink. You can just extend from {@link BaseEntity} directly.
+ * This is <strong>NOT</strong> needed for Hibernate and EclipseLink. You can just extend from {@link GeneratedIdEntity} directly.
  */
 @MappedSuperclass
-public class LocalBaseEntity extends BaseEntity<Long> {
+public class LocalGeneratedIdEntity extends GeneratedIdEntity<Long> {
 
 	private static final long serialVersionUID = 1L;
 

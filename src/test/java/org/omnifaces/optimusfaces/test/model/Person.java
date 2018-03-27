@@ -30,7 +30,7 @@ import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
 
 @Entity
-public class Person extends LocalBaseEntity {
+public class Person extends LocalGeneratedIdEntity {
 
 	private static final long serialVersionUID = 1L;
 
