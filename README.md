@@ -65,7 +65,7 @@ And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEnt
 @Entity
 public class YourEntity extends BaseEntity<Long> {
 
-    @Id GeneratedValue(strategy=IDENTITY)
+    @Id @GeneratedValue(strategy=IDENTITY)
     private Long id;
     private Instant created;
     private String name;
