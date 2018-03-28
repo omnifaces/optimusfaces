@@ -26,11 +26,10 @@
 		<class>org.omnifaces.optimusfaces.test.model.Address</class>
 		<class>org.omnifaces.optimusfaces.test.model.Person</class>
 		<class>org.omnifaces.optimusfaces.test.model.Phone</class>
-		<class>org.omnifaces.persistence.model.BaseEntity</class>
 
 		<properties>
 			<property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />
-			<property name="eclipselink.target-server" value="JBoss" />
+			<property name="eclipselink.target-server" value="Glassfish" />
 			<property name="eclipselink.logging.level" value="FINE" />
 			<property name="eclipselink.logging.level.sql" value="FINE" />
 			<property name="eclipselink.logging.timestamp" value="false" />
