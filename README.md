@@ -41,7 +41,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.6</version>
+        <version>0.8</version>
     </dependency>
 </dependencies>
 ```
@@ -128,7 +128,7 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 ### Advanced Usage
 
-[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.6/org/omnifaces/optimusfaces/model/PagedDataModel.html).
+[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.8/org/omnifaces/optimusfaces/model/PagedDataModel.html).
 
 
 ### Known Issues
