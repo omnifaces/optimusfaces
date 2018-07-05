@@ -25,7 +25,8 @@ import org.primefaces.component.datatable.DataTableRenderer;
  * <p>
  * This extended data table renderer is already automatically registered via our <code>faces-config.xml</code>. This
  * will prevent hackers from being able to exceed the <code>rows</code> attribute of the <code>&lt;p:dataTable&gt;</code>
- * which could cause a heavy load on large datasets.
+ * which could cause a heavy load on large datasets. PrimeFaces integrates this code as of version 6.3.
+ * @see <a href="https://github.com/primefaces/primefaces/issues/3519">PrimeFaces #3519</a>
  */
 public class ExtendedDataTableRenderer extends DataTableRenderer {
 
