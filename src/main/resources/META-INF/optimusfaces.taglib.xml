@@ -74,6 +74,12 @@
 			<required>false</required>
 			<type>boolean</type>
 		</attribute>
+		<attribute>
+			<description><![CDATA[Whether you want to show the contents of <code>&lt;ui:define name="actions"&gt;</code> in top of table. Defaults to searchable or exportable.]]></description>
+			<name>actionable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
 	</tag>
 
 	<tag>

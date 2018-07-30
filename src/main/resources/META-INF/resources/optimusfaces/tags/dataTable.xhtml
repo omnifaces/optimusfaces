@@ -52,6 +52,8 @@
 		<o:tagAttribute name="exportAllColumnsButtonLabel" default="All Columns" />
 		<o:tagAttribute name="exportFilename" default="#{id}-#{of:formatDate(now, 'yyyyMMddHHmmss')}" />
 
+	<o:tagAttribute name="actionable" default="#{false}" />
+
 	<o:tagAttribute name="selectable" default="#{false}" />
 
 	<p:dataTable id="#{id}" widgetVar="#{id}" value="#{value}" var="item" lazy="true" filteredValue="#{value.filteredValue}"
@@ -82,7 +84,7 @@
 			<p:ajax event="rowSelect" update="@(.updateOnDataTableSelect)" />
 			<p:ajax event="rowUnselect" update="@(.updateOnDataTableSelect)" />
 		</c:if>
-		<c:if test="#{searchable or exportable}">
+		<c:if test="#{searchable or exportable or actionable}">
 			<f:facet name="header">
 				<div class="ui-datatable-actions ui-helper-clearfix">
 					<c:if test="#{searchable}">
