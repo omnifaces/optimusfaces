@@ -96,7 +96,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 		int offset = min(data.size(), page.getOffset());
 		int limit = min(data.size() - offset, page.getLimit());
-		return new PartialResultList<>(data.subList(offset, offset + limit), offset, data.size());
+		return new PartialResultList<>(new ArrayList<>(data.subList(offset, offset + limit)), offset, data.size());
 	}
 
 	/**
