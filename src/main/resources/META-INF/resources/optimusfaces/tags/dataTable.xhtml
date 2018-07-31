@@ -51,6 +51,8 @@
 		<o:tagAttribute name="exportVisibleColumnsButtonLabel" default="Visible Columns" />
 		<o:tagAttribute name="exportAllColumnsButtonLabel" default="All Columns" />
 		<o:tagAttribute name="exportFilename" default="#{id}-#{of:formatDate(now, 'yyyyMMddHHmmss')}" />
+		<o:methodParam name="exportPreProcessorMethod" value="#{exportPreProcessor}" />
+		<o:methodParam name="exportPostProcessorMethod" value="#{exportPostProcessor}" />
 
 	<o:tagAttribute name="actionable" default="#{false}" />
 
@@ -104,16 +106,22 @@
 							<p:commandButton id="columnToggler" type="button" value="#{columnTogglerButtonLabel}" styleClass="toggle" />
 							<p:splitButton id="#{id}_export" value="#{exportButtonLabel}" styleClass="export"
 								actionListener="#{value.prepareExportVisible(id)}" ajax="false">
-								<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
+								<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
+									preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
+								</p:dataExporter>
 								<f:param name="$export" value="visible" />
 								<p:menuitem id="#{id}_exportVisible" value="#{exportVisibleColumnsButtonLabel}" styleClass="visible" 
 									actionListener="#{value.prepareExportVisible(id)}" ajax="false">
-									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
+									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
+										preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
+									</p:dataExporter>
 									<f:param name="$export" value="visible" />
 								</p:menuitem>
 								<p:menuitem id="#{id}_exportAll" value="#{exportAllColumnsButtonLabel}" styleClass="all"
 									actionListener="#{value.prepareExportAll(id)}" ajax="false">
-									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}" />
+									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
+										preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
+									</p:dataExporter>
 									<f:param name="$export" value="all" />
 								</p:menuitem>
 							</p:splitButton>
