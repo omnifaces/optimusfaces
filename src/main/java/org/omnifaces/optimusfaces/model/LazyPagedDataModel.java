@@ -92,6 +92,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	protected LinkedHashMap<String, Object> filters;
 	protected String globalFilter;
 	protected Page page;
+	private E last;
 
 
 	// op:dataTable properties ----------------------------------------------------------------------------------------
@@ -132,6 +133,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		processCriteria(processableColumns, requiredCriteria, optionalCriteria);
 
 		PartialResultList<E> list = loadPage(table, limit, requiredCriteria, optionalCriteria);
+		last = list.isEmpty() ? null : list.get(list.size() - 1);
 		updateQueryStringIfNecessary(context);
 
 		return list;
@@ -139,7 +141,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 	private PartialResultList<E> loadPage(DataTable table, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
 		boolean countNeedsUpdate = getRowCount() <= 0 || !requiredCriteria.equals(page.getRequiredCriteria()) || !optionalCriteria.equals(page.getOptionalCriteria());
-		page = new Page(table.getFirst(), limit, ordering, requiredCriteria, optionalCriteria);
+		page = new Page(table.getFirst(), limit, last, ordering, requiredCriteria, optionalCriteria);
 		PartialResultList<E> list = load(page, countNeedsUpdate);
 
 		if (countNeedsUpdate) {
