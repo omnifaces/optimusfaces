@@ -78,11 +78,11 @@ import org.primefaces.model.Visibility;
  * }
  * </pre>
  * <p>
- * And make sure <code>YourEntity</code> extends {@link BaseEntity} from OmniPersistence project.
+ * And make sure <code>YourEntity</code> extends {@link BaseEntity} or one of its subclasses from OmniPersistence project.
  * <pre>
  *
  * &#64;Entity
- * public class YourEntity extends BaseEntity&lt;Long&gt; {
+ * public class YourEntity extends GeneratedIdEntity&lt;Long&gt; {
  *
  *     private Instant created;
  *     private String name;
