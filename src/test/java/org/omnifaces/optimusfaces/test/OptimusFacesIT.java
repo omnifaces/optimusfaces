@@ -448,6 +448,12 @@ public abstract class OptimusFacesIT {
 	}
 
 	@Test
+	public void testLazyWithDefaultOrderBy() {
+		open("LazyWithDefaultOrderBy");
+		testDefaultOrderBy();
+	}
+
+	@Test
 	public void testLazyFiltering() {
 		open("Lazy");
 		testFiltering();
@@ -636,6 +642,23 @@ public abstract class OptimusFacesIT {
 		guardAjax(dateOfBirthColumn).click();
 		assertPaginatorState(1);
 		assertSortedState(dateOfBirthColumn, false);
+	}
+
+	protected void testDefaultOrderBy() {
+		assertPaginatorState(1);
+		assertSortedState(emailColumn, false, true);
+
+		guardAjax(emailColumn).click();
+		assertPaginatorState(1);
+		assertSortedState(emailColumn, true);
+
+		guardAjax(idColumn).click();
+		assertPaginatorState(1);
+		assertSortedState(idColumn, true);
+
+		guardAjax(genderColumn).click();
+		assertPaginatorState(1);
+		assertSortedState(genderColumn, true);
 	}
 
 	protected void testFiltering() {
@@ -1218,11 +1241,17 @@ public abstract class OptimusFacesIT {
 
 	protected void assertSortedState(WebElement column, boolean ascending) {
 		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+
+		assertSortedState(column, ascending, "id".equals(field));
+	}
+
+	protected void assertSortedState(WebElement column, boolean ascending, boolean isDefaultOrderBy) {
+		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 		String sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
 
 		assertTrue(field + " column must be active", activeColumn.getText().equals(field));
 		assertEquals(field + " column must be sorted", ascending, sortableColumnClass.contains("ui-icon-triangle-1-n"));
-		assertEquals("order query string", ("id".equals(field) && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
+		assertEquals("order query string", (isDefaultOrderBy && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
 
 		List<WebElement> cells = getCells(column);
 		List<String> actualValues = cells.stream().map(this::sortIterableIfNecessary).collect(toList());

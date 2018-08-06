@@ -224,7 +224,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 			}
 
 			Entry<String, Boolean> defaultOrder = defaultOrdering.entrySet().iterator().next();
-			table.setSortField(coalesce(sortField, tableSortField, defaultOrder.getKey()));
+			table.setSortField(coalesce(sortField, defaultOrder.getKey(), tableSortField));
 			table.setSortOrder(coalesce(sortOrder, sortField != null ? tableSortOrder : defaultOrder.getValue() ? ASCENDING : DESCENDING).name());
 		}
 		else if (!isEmpty(tableSortField)) {
