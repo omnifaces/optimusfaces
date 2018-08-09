@@ -13,6 +13,7 @@
 package org.omnifaces.optimusfaces.model;
 
 import static java.lang.Boolean.parseBoolean;
+import static java.lang.Math.abs;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -92,7 +93,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	protected LinkedHashMap<String, Object> filters;
 	protected String globalFilter;
 	protected Page page;
-	private E last;
+	private List<E> list;
 
 
 	// op:dataTable properties ----------------------------------------------------------------------------------------
@@ -123,33 +124,49 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
 		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
-		ordering = processPageAndOrdering(context, table, limit, tableSortField, tableSortOrder);
-		filters = processFilters(context, table, processableColumns, tableFilters);
-		globalFilter = processGlobalFilter(context, table, tableFilters);
+		LinkedHashMap<String, Boolean> ordering = processPageAndOrdering(context, table, limit, tableSortField, tableSortOrder);
+		LinkedHashMap<String, Object> filters = processFilters(context, table, processableColumns, tableFilters);
+		String globalFilter = processGlobalFilter(context, table, tableFilters);
 		selection = processSelectionIfNecessary(context, selection);
+
+		if (abs(offset - page.getOffset()) != limit || !Objects.equals(this.ordering, ordering) || !Objects.equals(this.filters, filters) || !Objects.equals(this.globalFilter, globalFilter)) {
+			list = null;
+		}
+
+		this.ordering = ordering;
+		this.filters = filters;
+		this.globalFilter = globalFilter;
 
 		Map<String, Object> requiredCriteria = new HashMap<>();
 		Map<String, Object> optionalCriteria = new HashMap<>();
 		processCriteria(processableColumns, requiredCriteria, optionalCriteria);
 
-		PartialResultList<E> list = loadPage(table, limit, requiredCriteria, optionalCriteria);
-		last = list.isEmpty() ? null : list.get(list.size() - 1);
+		list = loadPage(table, limit, requiredCriteria, optionalCriteria);
 		updateQueryStringIfNecessary(context);
 
 		return list;
 	}
 
 	private PartialResultList<E> loadPage(DataTable table, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
+		int offset = table.getFirst();
 		boolean countNeedsUpdate = getRowCount() <= 0 || !requiredCriteria.equals(page.getRequiredCriteria()) || !optionalCriteria.equals(page.getOptionalCriteria());
-		page = new Page(table.getFirst(), limit, last, ordering, requiredCriteria, optionalCriteria);
+		E last = null;
+		Boolean reversed = null;
+
+		if (list != null && !list.isEmpty()) {
+			reversed = (offset < page.getOffset());
+			last = list.get(reversed ? 0 : list.size() - 1);
+		}
+
+		page = new Page(offset, limit, last, reversed, ordering, requiredCriteria, optionalCriteria);
 		PartialResultList<E> list = load(page, countNeedsUpdate);
 
 		if (countNeedsUpdate) {
 			int count = list.getEstimatedTotalNumberOfResults();
 			setRowCount(count);
 
-			if (count != 0 && table.getFirst() > count) { // Can happen when user has paginated too far and then changed criteria which returned fewer results.
-				table.setFirst(table.getFirst() - ((((table.getFirst() - count) / table.getRows()) + 1) * table.getRows()));
+			if (count != 0 && offset > count) { // Can happen when user has paginated too far and then changed criteria which returned fewer results.
+				table.setFirst(offset - ((((offset - count) / table.getRows()) + 1) * table.getRows()));
 				list = loadPage(table, limit, requiredCriteria, optionalCriteria);
 			}
 		}

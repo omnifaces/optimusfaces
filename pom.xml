@@ -85,15 +85,15 @@
 		<maven.source.excludeResources>true</maven.source.excludeResources>
 
 		<!-- Test versions. -->
-		<test.wildfly.version>12.0.0.Final</test.wildfly.version>
-		<test.payara.version>5.Beta2</test.payara.version>
-		<test.tomee.version>7.0.4</test.tomee.version> <!-- TODO: upgrade to Java EE 8 compatible version. -->
+		<test.wildfly.version>13.0.0.Final</test.wildfly.version>
+		<test.payara.version>5.182</test.payara.version>
+		<test.tomee.version>7.0.5</test.tomee.version> <!-- TODO: upgrade to Java EE 8 compatible version. -->
 		<test.wildfly-eclipselink.version>2.7.1</test.wildfly-eclipselink.version>
-		<test.payara-hibernate.version>5.3.0.CR1</test.payara-hibernate.version>
-		<test.h2.version>1.4.196</test.h2.version>
+		<test.payara-hibernate.version>5.3.4.Final</test.payara-hibernate.version>
+		<test.h2.version>1.4.197</test.h2.version>
 		<test.mysql-driver.version>5.1.45</test.mysql-driver.version>
 		<test.postgresql-driver.version>42.2.1</test.postgresql-driver.version>
-		<test.omnifaces.version>2.6.8</test.omnifaces.version> <!-- TODO: upgrade to 3.x once TomEE is upgraded. -->
+		<test.omnifaces.version>3.2</test.omnifaces.version>
 		<test.primefaces.version>6.1</test.primefaces.version> <!-- TODO: upgrade to 6.2+ once IT problem with paginator state is solved. -->
 	</properties>
 
