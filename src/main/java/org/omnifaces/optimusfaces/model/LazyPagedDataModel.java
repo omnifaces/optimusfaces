@@ -384,6 +384,14 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	}
 
 
+	// PagedDataModel state -------------------------------------------------------------------------------------------
+
+	@Override
+	public Page getPage() {
+		return page;
+	}
+
+
 	// Getters+setters for op:dataTable and op:column -----------------------------------------------------------------
 
 	@Override

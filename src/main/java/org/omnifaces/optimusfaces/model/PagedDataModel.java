@@ -903,6 +903,15 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 	}
 
 
+	// PagedDataModel state -------------------------------------------------------------------------------------------
+
+	/**
+	 * Returns the current Page.
+	 * @return The current Page.
+	 */
+	Page getPage();
+
+
 	// op:dataTable properties ----------------------------------------------------------------------------------------
 
 	Entry<String, Boolean> getOrdering();
