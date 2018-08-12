@@ -607,6 +607,16 @@ import org.primefaces.model.Visibility;
  * Note that you can't show the selection in a <code>&lt;op:dataTable&gt;</code> as the selection returns a {@link List}
  * not a {@link PagedDataModel}. You can however keep using <code>&lt;op:column&gt;</code> the usual way as long as you
  * use <code>var="item"</code> as shown above.
+ * <p>
+ * You can obtain the current selection in backing bean as below:
+ * <pre>
+ * List&lt;YourEntity&gt; selection = model.getSelection();
+ * </pre>
+ * <p>
+ * Alternatively, you can obtain all records matching the current filtering and ordering as below:
+ * <pre>
+ * List&lt;YourEntity&gt; filtered = yourEntityService.getPage(model.getPage().all(), false);
+ * </pre>
  *
  *
  * <h3 id="ajax-events"><a href="#ajax-events">Ajax events</a></h3>
