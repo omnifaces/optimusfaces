@@ -37,7 +37,6 @@
 		<o:tagAttribute name="styleClass" />
 		<o:tagAttribute name="rendered" default="#{true}" />
 		<o:tagAttribute name="visible" default="#{true}" />
-		<o:tagAttribute name="exportable" default="#{true}" />
 		<o:tagAttribute name="width" />
 		<o:tagAttribute name="iterable" default="#{$ITERABLE_CLASS.isInstance(value)}" />
 
@@ -48,7 +47,8 @@
 		<o:tagAttribute name="filterMode" />
 		<o:tagAttribute name="filterOptions" />
 
-	<o:tagAttribute name="exportValue" default="#{value}" />
+	<o:tagAttribute name="exportable" default="#{true}" />
+		<o:tagAttribute name="exportValue" default="#{value}" />
 
 
 	<p:column

@@ -26,18 +26,44 @@
 		<description>Renders a table based on p:dataTable with PagedDataModel. Each item is available by #{item}.</description>
 		<tag-name>dataTable</tag-name>
 		<source>resources/optimusfaces/tags/dataTable.xhtml</source>
+
 		<attribute>
 			<description>The id of the p:dataTable. Will also be used as widgetVar name.</description>
 			<name>id</name>
 			<required>true</required>
 			<type>java.lang.String</type>
 		</attribute>
-		<attribute>
-			<description>Data model must be an instance of PagedDataModel.</description>
-			<name>value</name>
-			<required>true</required>
-			<type>org.omnifaces.optimusfaces.model.PagedDataModel</type>
-		</attribute>
+			<attribute>
+				<description>Data model must be an instance of PagedDataModel.</description>
+				<name>value</name>
+				<required>true</required>
+				<type>org.omnifaces.optimusfaces.model.PagedDataModel</type>
+			</attribute>
+			<attribute>
+				<description>The style class of the p:dataTable. Defaults to null.</description>
+				<name>styleClass</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>Whether the table is rendered. Defaults to true.</description>
+				<name>rendered</name>
+				<required>false</required>
+				<type>boolean</type>
+			</attribute>
+			<attribute>
+				<description>Whether to update the query string on every paging, sorting, filtering, searching and selection action. Defaults to true.</description>
+				<name>updateQueryString</name>
+				<required>false</required>
+				<type>boolean</type>
+			</attribute>
+			<attribute>
+				<description>The unique prefix of the query string parameter name in case you're having multiple tables in the same page while having updateQueryString. Defaults to empty string.</description>
+				<name>queryParameterPrefix</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+
 		<attribute>
 			<description>Whether the table is sortable. Defaults to true. This can be overriden on a per-column basis when same attribute is also set in op:column.</description>
 			<name>sortable</name>
@@ -56,39 +82,127 @@
 			<required>false</required>
 			<type>boolean</type>
 		</attribute>
-		<attribute>
-			<description>Number of rows to display per page. Defaults to 10.</description>
-			<name>rows</name>
-			<required>false</required>
-			<type>java.lang.Integer</type>
-		</attribute>
+			<attribute>
+				<description>Number of rows to display per page. Defaults to 10.</description>
+				<name>rows</name>
+				<required>false</required>
+				<type>java.lang.Integer</type>
+			</attribute>
+			<attribute>
+				<description>Options to show in rows per page dropdown of p:dataTable paginator template. Defaults to 10,25,50</description>
+				<name>rowsPerPage</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The p:dataTable paginator template. Defaults to {CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}</description>
+				<name>paginatorTemplate</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>Text to display before the {CurrentPageReport} template. Defaults to "Showing".</description>
+				<name>currentPageReportPrefix</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The {CurrentPageReport} template. Defaults to {startRecord} - {endRecord} of {totalRecords}</description>
+				<name>currentPageReportTemplate</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>Text to display after the {CurrentPageReport} template. Defaults to "records"</description>
+				<name>currentPageReportSuffix</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+
 		<attribute>
 			<description>Whether the table is searchable. Defaults to false. This will show a global filter input field in top of table.</description>
 			<name>searchable</name>
 			<required>false</required>
 			<type>boolean</type>
 		</attribute>
+			<attribute>
+				<description>The placeholder of the global search field. Defaults to "Search…".</description>
+				<name>searchPlaceholder</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The label of the global search button. Defaults to "Search".</description>
+				<name>searchButtonLabel</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+
 		<attribute>
 			<description>Whether the table is exportable. Defaults to false. This will show a column toggler and export button in top of table.</description>
 			<name>exportable</name>
 			<required>false</required>
 			<type>boolean</type>
 		</attribute>
-		<attribute>
-			<description>Method to pre-process the exported document.</description>
-			<name>exportPreProcessor</name>
-			<required>false</required>
-			<method-signature>void preProcess(java.lang.Object)</method-signature>
-		</attribute>
-		<attribute>
-			<description>Method to post-process the exported document.</description>
-			<name>exportPostProcessor</name>
-			<required>false</required>
-			<method-signature>void postProcess(java.lang.Object)</method-signature>
-		</attribute>
+			<attribute>
+				<description>The label of the column toggler button. Defaults to "Columns".</description>
+				<name>columnTogglerButtonLabel</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The export file type. Defaults to "csv". This delegates to p:dataExporter type.</description>
+				<name>exportType</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The label of the export button. Defaults to "CSV".</description>
+				<name>exportButtonLabel</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The label of the export visible columns button. Defaults to "Visible Columns".</description>
+				<name>exportVisibleColumnsButtonLabel</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The label of the export all columns button. Defaults to "All Columns".</description>
+				<name>exportAllColumnsButtonLabel</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The file name format of the exported file. Defaults to #{id}-#{of:formatDate(now, 'yyyyMMddHHmmss')}.</description>
+				<name>exportFilename</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>Method to pre-process the exported document.</description>
+				<name>exportPreProcessor</name>
+				<required>false</required>
+				<method-signature>void preProcess(java.lang.Object)</method-signature>
+			</attribute>
+			<attribute>
+				<description>Method to post-process the exported document.</description>
+				<name>exportPostProcessor</name>
+				<required>false</required>
+				<method-signature>void postProcess(java.lang.Object)</method-signature>
+			</attribute>
+
 		<attribute>
 			<description><![CDATA[Whether you want to show the contents of <code>&lt;ui:define name="actions"&gt;</code> in top of table. Defaults to searchable or exportable.]]></description>
 			<name>actionable</name>
+			<required>false</required>
+			<type>boolean</type>
+		</attribute>
+
+		<attribute>
+			<description>Whether the table is selectable. Defaults to false.</description>
+			<name>selectable</name>
 			<required>false</required>
 			<type>boolean</type>
 		</attribute>
@@ -98,60 +212,112 @@
 		<description>Renders a column based on p:column for op:dataTable. Each item is available by #{item}.</description>
 		<tag-name>column</tag-name>
 		<source>resources/optimusfaces/tags/column.xhtml</source>
+
 		<attribute>
 			<description>The field (property) name of the #{item} representing the column value. By default, this is used in id, field, headerText, value and filterBy attributes of p:column.</description>
 			<name>field</name>
 			<required>true</required>
 			<type>java.lang.String</type>
 		</attribute>
+			<attribute>
+				<description>The column ID. Defaults to field.</description>
+				<name>id</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The column header text. Defaults to field.</description>
+				<name>head</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The column value. Defaults to #{item[field]}.</description>
+				<name>value</name>
+				<required>false</required>
+				<type>java.lang.Object</type>
+			</attribute>
+			<attribute>
+				<description>The column cell tooltip. Defaults to nothing.</description>
+				<name>tooltip</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The style class of the p:column. Defaults to null.</description>
+				<name>styleClass</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>Whether the column is rendered. Defaults to true.</description>
+				<name>rendered</name>
+				<required>false</required>
+				<type>boolean</type>
+			</attribute>
+			<attribute>
+				<description>Whether the column is by default visible when using column toggler. Defaults to true.</description>
+				<name>visible</name>
+				<required>false</required>
+				<type>boolean</type>
+			</attribute>
+			<attribute>
+				<description>The width of the p:column. Defaults to null.</description>
+				<name>width</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>Whether the value is iterable. This will trigger the value to be rendered in an ui:repeat with linebreaks. Defaults to whether the field property is an instance of Iterable.</description>
+				<name>iterable</name>
+				<required>false</required>
+				<type>boolean</type>
+			</attribute>
+
 		<attribute>
-			<description>The column header text. Defaults to field. By default, this is used in headerText attribute of p:column.</description>
-			<name>head</name>
-			<required>false</required>
-			<type>java.lang.String</type>
-		</attribute>
-		<attribute>
-			<description>The column cell tooltip. Defaults to nothing.</description>
-			<name>tooltip</name>
-			<required>false</required>
-			<type>java.lang.String</type>
-		</attribute>
-		<attribute>
-			<description>Whether the column is sortable. Defaults to true.</description>
+			<description>Whether the column is sortable. Defaults to sortable attribute of parent op:dataTable.</description>
 			<name>sortable</name>
 			<required>false</required>
 			<type>boolean</type>
 		</attribute>
+			<attribute>
+				<description>Whether to sort column descending on first click. Defaults to false. This attribute is ignored when sortable=false.</description>
+				<name>sortDescending</name>
+				<required>false</required>
+				<type>boolean</type>
+			</attribute>
+
 		<attribute>
-			<description>Whether to sort column descending on first click. Defaults to false. This attribute is ignored when sortable=false.</description>
-			<name>sortDescending</name>
-			<required>false</required>
-			<type>boolean</type>
-		</attribute>
-		<attribute>
-			<description>Whether the column is filterable. Defaults to true.</description>
+			<description>Whether the column is filterable. Defaults to filterable attribute of parent op:dataTable.</description>
 			<name>filterable</name>
 			<required>false</required>
 			<type>boolean</type>
 		</attribute>
+			<attribute>
+				<description>The filter mode of the field. Supported values are "contains", "startsWith", "endsWith" and "exact". Defaults to "contains" when filterOptions=null, else "exact". Any unsupported value is interpreted as "exact". This attribute is ignored when filterable=false.</description>
+				<name>filterMode</name>
+				<required>false</required>
+				<type>java.lang.String</type>
+			</attribute>
+			<attribute>
+				<description>The filter options of the field. Supported values are Object[], Collection and Map. This attribute is ignored when filterable=false.</description>
+				<name>filterOptions</name>
+				<required>false</required>
+				<type>java.lang.Object</type>
+			</attribute>
+
 		<attribute>
-			<description>The filter mode of the field. Supported values are "contains", "startsWith", "endsWith" and "exact". Defaults to "contains" when filterOptions=null, else "exact". Any unsupported value is interpreted as "exact". This attribute is ignored when filterable=false.</description>
-			<name>filterMode</name>
-			<required>false</required>
-			<type>java.lang.String</type>
-		</attribute>
-		<attribute>
-			<description>The filter options of the field. Supported values are Object[], Collection and Map. This attribute is ignored when filterable=false.</description>
-			<name>filterOptions</name>
-			<required>false</required>
-			<type>java.lang.Object</type>
-		</attribute>
-		<attribute>
-			<description>Whether the value is iterable. This will trigger the value to be rendered in an ui:repeat with linebreaks. Defaults to whether the field property is an instance of Iterable.</description>
-			<name>iterable</name>
+			<description>Whether the column is exportable. Defaults to true.</description>
+			<name>exportable</name>
 			<required>false</required>
 			<type>boolean</type>
 		</attribute>
+			<attribute>
+				<description>The export value. Defaults to #{value}.</description>
+				<name>exportValue</name>
+				<required>false</required>
+				<type>java.lang.Object</type>
+			</attribute>
 	</tag>
 
 </facelet-taglib>
