@@ -92,8 +92,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	protected LinkedHashMap<String, Boolean> ordering;
 	protected LinkedHashMap<String, Object> filters;
 	protected String globalFilter;
-	protected Page page;
-	private List<E> list;
+
+	private Page page;
+	private PartialResultList<E> list;
 
 
 	// op:dataTable properties ----------------------------------------------------------------------------------------
@@ -124,54 +125,43 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
 		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
-		LinkedHashMap<String, Boolean> ordering = processPageAndOrdering(context, table, limit, tableSortField, tableSortOrder);
-		LinkedHashMap<String, Object> filters = processFilters(context, table, processableColumns, tableFilters);
-		String globalFilter = processGlobalFilter(context, table, tableFilters);
+		ordering = processPageAndOrdering(context, table, limit, tableSortField, tableSortOrder);
+		filters = processFilters(context, table, processableColumns, tableFilters);
+		globalFilter = processGlobalFilter(context, table, tableFilters);
 		selection = processSelectionIfNecessary(context, selection);
 
-		if (abs(offset - page.getOffset()) != limit || !Objects.equals(this.ordering, ordering) || !Objects.equals(this.filters, filters) || !Objects.equals(this.globalFilter, globalFilter)) {
-			list = null;
-		}
-
-		this.ordering = ordering;
-		this.filters = filters;
-		this.globalFilter = globalFilter;
-
-		Map<String, Object> requiredCriteria = new HashMap<>();
-		Map<String, Object> optionalCriteria = new HashMap<>();
-		processCriteria(processableColumns, requiredCriteria, optionalCriteria);
-
-		list = loadPage(table, limit, requiredCriteria, optionalCriteria);
+		loadPage(table, processableColumns, limit);
 		updateQueryStringIfNecessary(context);
 
 		return list;
 	}
 
-	private PartialResultList<E> loadPage(DataTable table, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
+	private void loadPage(DataTable table, List<UIColumn> processableColumns, int limit) {
+		Map<String, Object> requiredCriteria = processRequiredCriteria(processableColumns);
+		Map<String, Object> optionalCriteria = processOptionalCriteria(processableColumns);
+
 		int offset = table.getFirst();
-		boolean countNeedsUpdate = getRowCount() <= 0 || !requiredCriteria.equals(page.getRequiredCriteria()) || !optionalCriteria.equals(page.getOptionalCriteria());
-		E last = null;
-		Boolean reversed = null;
+		boolean pageOfSameCriteria = requiredCriteria.equals(page.getRequiredCriteria()) && optionalCriteria.equals(page.getOptionalCriteria());
+		boolean nextOrPreviousPageOfSameCriteria = pageOfSameCriteria && !isEmpty(list) && abs(offset - page.getOffset()) == limit && ordering.equals(page.getOrdering());
+		boolean previousPageOfSameCriteria = nextOrPreviousPageOfSameCriteria && offset < page.getOffset();
+		boolean rowCountNeedsUpdate = getRowCount() <= 0 || !pageOfSameCriteria;
+		E last = nextOrPreviousPageOfSameCriteria ? list.get(previousPageOfSameCriteria ? 0 : list.size() - 1) : null;
 
-		if (list != null && !list.isEmpty()) {
-			reversed = (offset < page.getOffset());
-			last = list.get(reversed ? 0 : list.size() - 1);
-		}
+		page = new Page(offset, limit, last, previousPageOfSameCriteria, ordering, requiredCriteria, optionalCriteria);
+		list = load(page, rowCountNeedsUpdate);
 
-		page = new Page(offset, limit, last, reversed, ordering, requiredCriteria, optionalCriteria);
-		PartialResultList<E> list = load(page, countNeedsUpdate);
-
-		if (countNeedsUpdate) {
+		if (rowCountNeedsUpdate) {
 			int count = list.getEstimatedTotalNumberOfResults();
-			setRowCount(count);
 
-			if (count != 0 && offset > count) { // Can happen when user has paginated too far and then changed criteria which returned fewer results.
-				table.setFirst(offset - ((((offset - count) / table.getRows()) + 1) * table.getRows()));
-				list = loadPage(table, limit, requiredCriteria, optionalCriteria);
+			if (list.isEmpty() && count > 0 && offset > count) { // Can happen when user has paginated too far and then changed criteria which returned fewer results.
+				int offsetOfLastPage = offset - ((((offset - count) / table.getRows()) + 1) * table.getRows());
+				table.setFirst(offsetOfLastPage);
+				page = new Page(offsetOfLastPage, limit, ordering, requiredCriteria, optionalCriteria);
+				list = load(page, false);
 			}
-		}
 
-		return list;
+			setRowCount(count);
+		}
 	}
 
 	protected PartialResultList<E> load(Page page, boolean estimateTotalNumberOfResults) {
@@ -308,7 +298,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return param;
 	}
 
-	protected void processCriteria(List<UIColumn> processableColumns, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
+	protected Map<String, Object> processRequiredCriteria(List<UIColumn> processableColumns) {
+		Map<String, Object> requiredCriteria = new HashMap<>();
+
 		if (criteria != null) {
 			ofNullable(criteria.get()).orElse(emptyMap()).forEach((getter, value) -> processCriteriaSupplier(getter.getPropertyName(), value, requiredCriteria));
 		}
@@ -332,11 +324,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 				requiredCriteria.merge(field, value, LazyPagedDataModel::mergeCriteriaValue);
 			}
-
-			if (!isEmpty(globalFilter)) {
-				optionalCriteria.put(field, Like.contains(globalFilter));
-			}
 		}
+
+		return requiredCriteria;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -348,6 +338,20 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		else {
 			requiredCriteria.put(field, value);
 		}
+	}
+
+	protected Map<String, Object> processOptionalCriteria(List<UIColumn> processableColumns) {
+		Map<String, Object> optionalCriteria = new HashMap<>();
+
+		for (UIColumn column : processableColumns) {
+			String field = column.getField();
+
+			if (!isEmpty(globalFilter)) {
+				optionalCriteria.put(field, Like.contains(globalFilter));
+			}
+		}
+
+		return optionalCriteria;
 	}
 
 	protected void updateQueryStringIfNecessary(FacesContext context) {
