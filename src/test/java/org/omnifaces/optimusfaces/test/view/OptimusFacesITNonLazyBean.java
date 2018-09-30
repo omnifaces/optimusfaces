@@ -36,7 +36,7 @@ public class OptimusFacesITNonLazyBean implements Serializable {
 
 	@PostConstruct
 	public void init() {
-		nonLazyPersons = PagedDataModel.nonLazy(personService.getAll()).build();
+		nonLazyPersons = PagedDataModel.nonLazy(personService.list()).build();
 	}
 
 	public PagedDataModel<Person> getNonLazyPersons() {

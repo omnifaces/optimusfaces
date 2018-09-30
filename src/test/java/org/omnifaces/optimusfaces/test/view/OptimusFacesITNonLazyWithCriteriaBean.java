@@ -60,7 +60,7 @@ public class OptimusFacesITNonLazyWithCriteriaBean implements Serializable {
 
 	@PostConstruct
 	public void init() {
-		nonLazyPersonsWithCriteria = PagedDataModel.nonLazy(personService.getAll()).criteria(this::mapSelectedCriteria).build();
+		nonLazyPersonsWithCriteria = PagedDataModel.nonLazy(personService.list()).criteria(this::mapSelectedCriteria).build();
 	}
 
 	private Map<Getter<Person>, Object> mapSelectedCriteria() {
