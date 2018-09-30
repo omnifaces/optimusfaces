@@ -31,7 +31,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>3.0</version><!-- Minimum supported version is 2.2 -->
+        <version>3.2</version><!-- Minimum supported version is 2.2 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
@@ -41,14 +41,14 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.8</version>
+        <version>0.9</version>
     </dependency>
 </dependencies>
 ```
 
 ### Basic Usage
 
-First create your entity service extending [`org.omnifaces.omnipersistence.service.BaseEntityService`](https://static.javadoc.io/org.omnifaces/omnipersistence/0.5/org/omnifaces/persistence/service/BaseEntityService.html). You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
+First create your entity service extending [`org.omnifaces.omnipersistence.service.BaseEntityService`](https://static.javadoc.io/org.omnifaces/omnipersistence/0.8/org/omnifaces/persistence/service/BaseEntityService.html). You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
 
 ```Java
 @Stateless
@@ -59,7 +59,7 @@ public class YourEntityService extends BaseEntityService<Long, YourEntity> {
 }
 ```
 
-And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://static.javadoc.io/org.omnifaces/omnipersistence/0.5/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity` or `VersionedEntity`.
+And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://static.javadoc.io/org.omnifaces/omnipersistence/0.8/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity`, `TimestampedBaseEntity`, `VersionedEntity` or `VersionedBaseEntity`.
 
 ```Java
 @Entity
@@ -103,7 +103,7 @@ public class YourBackingBean implements Serializable {
 Finally use `<op:dataTable>` to have a semi-dynamic lazy-loaded, pageable, sortable and filterable 
 `<p:dataTable>` without much hassle.
 
-```XHTML
+```XML
 <... xmlns:op="http://omnifaces.org/optimusfaces">
 
 <h:form id="yourEntitiesForm">
@@ -128,7 +128,7 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 ### Advanced Usage
 
-[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.8/org/omnifaces/optimusfaces/model/PagedDataModel.html).
+[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.9/org/omnifaces/optimusfaces/model/PagedDataModel.html).
 
 
 ### Known Issues
