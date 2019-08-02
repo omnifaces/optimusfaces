@@ -149,10 +149,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 		page = new Page(offset, limit, last, previousPageOfSameCriteria, ordering, requiredCriteria, optionalCriteria);
 		list = load(page, rowCountNeedsUpdate);
+		int count = list.getEstimatedTotalNumberOfResults();
 
-		if (rowCountNeedsUpdate) {
-			int count = list.getEstimatedTotalNumberOfResults();
-
+		if (count != -1 && count != getRowCount()) {
 			if (list.isEmpty() && count > 0 && offset > count) { // Can happen when user has paginated too far and then changed criteria which returned fewer results.
 				int offsetOfLastPage = offset - ((((offset - count) / table.getRows()) + 1) * table.getRows());
 				table.setFirst(offsetOfLastPage);
