@@ -1,7 +1,7 @@
-[![Maven](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/org/omnifaces/optimusfaces/maven-metadata.xml.svg)](http://central.maven.org/maven2/org/omnifaces/optimusfaces/)
-[![Javadoc](http://javadoc.io/badge/org.omnifaces/optimusfaces.svg)](http://javadoc.io/doc/org.omnifaces/optimusfaces) 
+[![Maven](https://img.shields.io/maven-metadata/v/https/repo.maven.apache.org/maven2/org/omnifaces/optimusfaces/maven-metadata.xml.svg)](https://repo.maven.apache.org/maven2/org/omnifaces/optimusfaces/)
+[![Javadoc](https://javadoc.io/badge/org.omnifaces/optimusfaces.svg)](https://javadoc.io/doc/org.omnifaces/optimusfaces) 
 [![Travis](https://travis-ci.org/omnifaces/optimusfaces.svg?branch=develop)](https://travis-ci.org/omnifaces/optimusfaces)
-[![License](http://img.shields.io/:license-apache-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
+[![License](https://img.shields.io/:license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 # OptimusFaces
 
@@ -31,7 +31,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>3.2</version><!-- Minimum supported version is 2.2 -->
+        <version>3.4.1</version><!-- Minimum supported version is 2.2 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
@@ -41,7 +41,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.9</version>
+        <version>0.10</version>
     </dependency>
 </dependencies>
 ```
