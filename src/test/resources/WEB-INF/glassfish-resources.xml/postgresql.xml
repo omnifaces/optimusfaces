@@ -14,7 +14,7 @@
 
 -->
 <!-- 
-	H2 data source configuration for GlassFish/Payara.
+	PostgreSQL data source configuration for GlassFish/Payara.
  -->
 <!DOCTYPE resources PUBLIC
 	"-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN"

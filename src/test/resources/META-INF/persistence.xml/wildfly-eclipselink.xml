@@ -23,14 +23,9 @@
 		<provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 		<jta-data-source>OptimusFacesIT</jta-data-source>
 
-		<class>org.omnifaces.optimusfaces.test.model.Address</class>
-		<class>org.omnifaces.optimusfaces.test.model.Person</class>
-		<class>org.omnifaces.optimusfaces.test.model.Phone</class>
-
 		<properties>
 			<property name="javax.persistence.schema-generation.database.action" value="drop-and-create" />
-			<property name="eclipselink.target-server" value="JBoss" />
-			<property name="eclipselink.logging.level" value="FINE" />
+			<property name="eclipselink.logging.logger" value="ServerLogger"/>
 			<property name="eclipselink.logging.level.sql" value="FINE" />
 			<property name="eclipselink.logging.timestamp" value="false" />
 			<property name="eclipselink.logging.thread" value="false" />

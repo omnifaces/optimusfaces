@@ -19,7 +19,7 @@
 <resources>
 	<Resource id="OptimusFacesIT" type="javax.sql.DataSource">
 		JdbcDriver com.mysql.jdbc.Driver
-		JdbcUrl jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF-8
+		JdbcUrl jdbc:mysql://localhost:3306/test
 		UserName root
 		Password 
 		jtaManaged = true

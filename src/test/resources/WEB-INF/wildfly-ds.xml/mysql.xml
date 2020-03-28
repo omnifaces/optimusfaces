@@ -18,8 +18,8 @@
  -->
 <datasources>
 	<datasource jta="true" jndi-name="java:/OptimusFacesIT" pool-name="OptimusFacesIT" enabled="true" use-java-context="true">
-		<connection-url>jdbc:mysql://localhost:3306/test?useUnicode=true&amp;characterEncoding=UTF-8</connection-url>
-		<driver>mysql.jar_com.mysql.jdbc.Driver_5_1</driver>
+		<connection-url>jdbc:mysql://localhost:3306/test</connection-url>
+		<driver>mysql.jar</driver>
 		<security>
 			<user-name>root</user-name>
 			<password></password>

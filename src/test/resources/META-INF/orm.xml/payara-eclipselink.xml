@@ -16,12 +16,12 @@
 <entity-mappings
 	xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/orm http://xmlns.jcp.org/xml/ns/persistence/orm_2_1.xsd"
-	version="2.1"
-> <!-- NOTE: orm_2_2.xsd and version=2.2 is not yet supported by EclipseLink 2.7.0. -->
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/orm http://xmlns.jcp.org/xml/ns/persistence/orm_2_2.xsd"
+	version="2.2"
+>
 	<entity class="org.omnifaces.optimusfaces.test.model.Person">
 		<attribute-override name="dateOfBirth">
-			<column column-definition="DATE" /> <!-- Otherwise schema generation defaults to VARCHAR(255) for some reason. -->
+			<column column-definition="DATE" /> <!-- Otherwise schema generation fails in EclipseLink+PostgreSQL for some reason. -->
 		</attribute-override>
 	</entity>
 </entity-mappings>

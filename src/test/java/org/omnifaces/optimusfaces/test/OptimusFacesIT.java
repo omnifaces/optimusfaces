@@ -213,7 +213,7 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void open(String type, String queryString) {
-		String url = baseURL + OptimusFacesIT.class.getSimpleName() + type + (isTomEE() ? ".jsf" : ".xhtml"); // MyFaces has no implicit mapping for .xhtml (yet).
+		String url = baseURL + "/" + OptimusFacesIT.class.getSimpleName() + type + ".xhtml";
 
 		if (queryString != null) {
 			url += "?" + queryString;
