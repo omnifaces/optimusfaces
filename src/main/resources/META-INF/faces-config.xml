@@ -30,12 +30,4 @@
 	<application>
 		<el-resolver>org.omnifaces.optimusfaces.el.NestedBaseEntityELResolver</el-resolver>
 	</application>
-
-	<render-kit>
-		<renderer>
-			<component-family>org.primefaces.component</component-family>
-			<renderer-type>org.primefaces.component.DataTableRenderer</renderer-type>
-			<renderer-class>org.omnifaces.optimusfaces.renderer.ExtendedDataTableRenderer</renderer-class>
-		</renderer>
-	</render-kit>
 </faces-config>
