@@ -30,6 +30,7 @@ import static org.omnifaces.util.FacesLocal.getRequestParameterValues;
 import static org.omnifaces.util.FacesLocal.isAjaxRequest;
 import static org.omnifaces.utils.Lang.coalesce;
 import static org.omnifaces.utils.Lang.isEmpty;
+import static org.omnifaces.utils.reflect.Reflections.invokeGetter;
 import static org.omnifaces.utils.stream.Collectors.toLinkedMap;
 import static org.omnifaces.utils.stream.Collectors.toLinkedSet;
 import static org.omnifaces.utils.stream.Streams.stream;
@@ -246,7 +247,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 		for (UIColumn column : processableColumns) {
 			String field = column.getField();
-			Object value = tableFilters.get(field);
+			Object value = getFilterValue(tableFilters, field);
 
 			if (isEmpty(value)) {
 				value = getTrimmedQueryParameters(context, getFilterParameterName(context, table, field));
@@ -270,7 +271,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	}
 
 	protected String processGlobalFilter(FacesContext context, DataTable table, Map<String, Object> tableFilters) {
-		String globalFilter = (String) tableFilters.get(GLOBAL_FILTER);
+		String globalFilter = getFilterValue(tableFilters, GLOBAL_FILTER);
 
 		if (globalFilter != null) {
 			globalFilter = globalFilter.trim();
@@ -281,6 +282,20 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		}
 
 		return isEmpty(globalFilter) ? null : globalFilter;
+	}
+
+	private String getFilterValue(Map<String, Object> tableFilters, String field) {
+		Object filterValue = tableFilters.get(field);
+
+		if (filterValue == null) {
+			return null;
+		}
+		else if (filterValue instanceof String) {
+			return (String) filterValue;
+		}
+		else {
+			return invokeGetter(filterValue, "filterValue"); // org.primefaces.model.FilterMeta, introduced since PrimeFaces 8.0
+		}
 	}
 
 	private String getFilterParameterName(FacesContext context, DataTable table, String field) {
