@@ -219,6 +219,7 @@ public abstract class OptimusFacesIT {
 			url += "?" + queryString;
 		}
 
+		browser.manage().deleteAllCookies(); // Else IT on pagination/sorting may fail because they're apparently cached somewhere in session. TODO: investigate
 		browser.get(url);
 		waitGui(browser);
 	}

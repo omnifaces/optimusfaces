@@ -94,7 +94,7 @@
 		<test.mysql-driver.version>8.0.19</test.mysql-driver.version>
 		<test.postgresql-driver.version>42.2.11</test.postgresql-driver.version>
 		<test.omnifaces.version>3.4.1</test.omnifaces.version>
-		<test.primefaces.version>6.1</test.primefaces.version> <!-- TODO: upgrade to 6.2+ once IT problem with paginator state is solved. -->
+		<test.primefaces.version>8.0</test.primefaces.version>
 	</properties>
 
 	<dependencies>
