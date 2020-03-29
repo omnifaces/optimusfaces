@@ -983,45 +983,56 @@ public abstract class OptimusFacesIT {
 
 		assertNoCartesianProduct();
 
-		boolean skipAssertCriteriaState = (isEclipseLink() || isOpenJPA()) && isLazy();
+		boolean skipAssertCriteriaState = isEclipseLink() && isLazy();
 
 		if (skipAssertCriteriaState) {
-			if (isEclipseLink()) {
-				System.out.println("SKIPPING assertCriteriaState(phones.type) for EclipseLink because it refuses to perform a JOIN when setFirstResult/setMaxResults is used");
-			}
-			else if (isOpenJPA()) {
-				System.out.println("SKIPPING assertCriteriaState(phones.type) for OpenJPA because it does not support setting parameters in a nested subquery");
-			}
+			System.out.println("SKIPPING assertCriteriaState(phones.type) for EclipseLink because it refuses to perform a JOIN when setFirstResult/setMaxResults is used");
 		}
 		else {
+			boolean skipAssertRowCount = isOpenJPA() && isLazy();
+
+			if (skipAssertRowCount) {
+				System.out.println("SKIPPING skipAssertRowCount(phones.type) for OpenJPA because BaseEntityService somehow performs a double join for the table"); // TODO: fix it
+			}
+
 			guardAjax(criteriaPhoneTypeMOBILE).click();
 			assertCriteriaState(phones_typeColumn, "MOBILE");
 			int rowCount4 = getRowCount();
-			assertTrue(rowCount4 + " must be less than " + TOTAL_RECORDS, rowCount4 < TOTAL_RECORDS);
+			if (!skipAssertRowCount) {
+				assertTrue(rowCount4 + " must be less than " + TOTAL_RECORDS, rowCount4 < TOTAL_RECORDS);
+			}
 			assertNoCartesianProduct();
 
 			guardAjax(criteriaPhoneTypeHOME).click();
 			assertCriteriaState(phones_typeColumn, "MOBILE", "HOME");
 			int rowCount5 = getRowCount();
-			assertTrue(rowCount5 + " must be less than " + rowCount4, rowCount5 < rowCount4);
+			if (!skipAssertRowCount) {
+				assertTrue(rowCount5 + " must be less than " + rowCount4, rowCount5 < rowCount4);
+			}
 			assertNoCartesianProduct();
 
 			guardAjax(criteriaPhoneTypeWORK).click();
 			assertCriteriaState(phones_typeColumn, "MOBILE", "HOME", "WORK");
 			int rowCount6 = getRowCount();
-			assertTrue(rowCount6 + " must be less than " + rowCount5, rowCount6 < rowCount5);
+			if (!skipAssertRowCount) {
+				assertTrue(rowCount6 + " must be less than " + rowCount5, rowCount6 < rowCount5);
+			}
 			assertNoCartesianProduct();
 
 			guardAjax(criteriaPhoneTypeMOBILE).click(); // Uncheck
 			assertCriteriaState(phones_typeColumn, "HOME", "WORK");
 			int rowCount7 = getRowCount();
-			assertTrue(rowCount7 + " must be more than " + rowCount6, rowCount7 > rowCount6);
+			if (!skipAssertRowCount) {
+				assertTrue(rowCount7 + " must be more than " + rowCount6, rowCount7 > rowCount6);
+			}
 			assertNoCartesianProduct();
 
 			guardAjax(criteriaPhoneTypeHOME).click(); // Uncheck
 			assertCriteriaState(phones_typeColumn, "WORK");
 			int rowCount8 = getRowCount();
-			assertTrue(rowCount8 + " must be more than " + rowCount7, rowCount8 > rowCount7);
+			if (!skipAssertRowCount) {
+				assertTrue(rowCount8 + " must be more than " + rowCount7, rowCount8 > rowCount7);
+			}
 			assertNoCartesianProduct();
 
 			guardAjax(criteriaPhoneTypeWORK).click(); // Uncheck
