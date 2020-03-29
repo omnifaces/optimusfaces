@@ -15,7 +15,7 @@ env:
    - SERVER=wildfly-eclipselink
    - SERVER=payara-hibernate
    - SERVER=payara-eclipselink
-#  - SERVER=tomee-openjpa <-- disabled for now because it conflicts with hibernate-jpamodelgen for some reason.
+   - SERVER=tomee-openjpa
 before_script:
    - mysql -u root -e 'CREATE DATABASE test;'
    - psql -c 'CREATE DATABASE test;' -U postgres
