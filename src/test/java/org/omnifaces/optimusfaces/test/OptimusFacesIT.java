@@ -671,23 +671,17 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, 38);
 		assertFilteredState(idColumnFilter, "3");
 
-		if (isOpenJPA() && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for OpenJPA on PostgreSQL because it doesn't support LocalDate in LIKE");
-			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
-		}
-		else {
-			globalFilter.sendKeys("FEMALE");
-			guardAjax(globalFilterButton).click();
-			int totalRecords2 = getRowCount();
-			assertTrue(totalRecords2 + " must be less than " + totalRecords1, totalRecords2 < totalRecords1);
-			assertGlobalFilterState("FEMALE");
-			assertFilteredState(idColumnFilter, "3");
+		globalFilter.sendKeys("FEMALE");
+		guardAjax(globalFilterButton).click();
+		int totalRecords2 = getRowCount();
+		assertTrue(totalRecords2 + " must be less than " + totalRecords1, totalRecords2 < totalRecords1);
+		assertGlobalFilterState("FEMALE");
+		assertFilteredState(idColumnFilter, "3");
 
-			globalFilter.sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE);
-			guardAjax(globalFilterButton).click();
-			assertPaginatorState(1, 38);
-			assertFilteredState(idColumnFilter, "3");
-		}
+		globalFilter.sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE);
+		guardAjax(globalFilterButton).click();
+		assertPaginatorState(1, 38);
+		assertFilteredState(idColumnFilter, "3");
 
 		guardAjax(idColumnFilter).sendKeys(Keys.BACK_SPACE);
 		assertPaginatorState(1, TOTAL_RECORDS);
@@ -737,32 +731,26 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(emailColumn, false);
 
-		if (isOpenJPA() && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for OpenJPA on PostgreSQL because it doesn't support LocalDate in LIKE");
-			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
-		}
-		else {
-			globalFilter.sendKeys("FEMALE");
-			guardAjax(globalFilterButton).click();
-			int totalRecords1 = getRowCount();
-			assertTrue(totalRecords1 + " must be less than 119", totalRecords1 < 119);
-			assertFilteredState(emailColumnFilter, "1");
-			assertGlobalFilterState("FEMALE");
-			assertSortedState(emailColumn, false);
+		globalFilter.sendKeys("FEMALE");
+		guardAjax(globalFilterButton).click();
+		int totalRecords1 = getRowCount();
+		assertTrue(totalRecords1 + " must be less than 119", totalRecords1 < 119);
+		assertFilteredState(emailColumnFilter, "1");
+		assertGlobalFilterState("FEMALE");
+		assertSortedState(emailColumn, false);
 
-			guardAjax(idColumn).click();
-			int totalRecords2 = getRowCount();
-			assertTrue(totalRecords1 + " must be equal to " + totalRecords2, totalRecords1 == totalRecords2);
-			assertFilteredState(emailColumnFilter, "1");
-			assertGlobalFilterState("FEMALE");
-			assertSortedState(idColumn, true);
+		guardAjax(idColumn).click();
+		int totalRecords2 = getRowCount();
+		assertTrue(totalRecords1 + " must be equal to " + totalRecords2, totalRecords1 == totalRecords2);
+		assertFilteredState(emailColumnFilter, "1");
+		assertGlobalFilterState("FEMALE");
+		assertSortedState(idColumn, true);
 
-			globalFilter.sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE);;
-			guardAjax(globalFilterButton).click();
-			assertPaginatorState(1, 119);
-			assertFilteredState(emailColumnFilter, "1");
-			assertSortedState(idColumn, true);
-		}
+		globalFilter.sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE);;
+		guardAjax(globalFilterButton).click();
+		assertPaginatorState(1, 119);
+		assertFilteredState(emailColumnFilter, "1");
+		assertSortedState(idColumn, true);
 
 		guardAjax(emailColumnFilter).sendKeys(Keys.BACK_SPACE);
 		assertPaginatorState(1, TOTAL_RECORDS);
@@ -782,21 +770,15 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, 38);
 		assertSortedState(emailColumn, true);
 
-		if (isOpenJPA() && isPostgreSQL()) {
-			System.out.println("SKIPPING globalFilter test for OpenJPA on PostgreSQL because it doesn't support LocalDate in LIKE");
-			// org.postgresql.util.PSQLException: ERROR: function lower(bytea) does not exist
-		}
-		else {
-			open(type, "p=3&o=-email&q=MALE");
-			int totalRecords = getRowCount();
-			assertPaginatorState(3, totalRecords);
-			assertSortedState(emailColumn, false);
-			assertGlobalFilterState("MALE");
-			guardAjax(emailColumn).click();
-			assertPaginatorState(1, totalRecords);
-			assertSortedState(emailColumn, true);
-			assertGlobalFilterState("MALE");
-		}
+		open(type, "p=3&o=-email&q=MALE");
+		int totalRecords = getRowCount();
+		assertPaginatorState(3, totalRecords);
+		assertSortedState(emailColumn, false);
+		assertGlobalFilterState("MALE");
+		guardAjax(emailColumn).click();
+		assertPaginatorState(1, totalRecords);
+		assertSortedState(emailColumn, true);
+		assertGlobalFilterState("MALE");
 
 		open(type, "o=dateOfBirth");
 		assertPaginatorState(1);
@@ -821,20 +803,13 @@ public abstract class OptimusFacesIT {
 		int rowCount2 = getRowCount();
 		assertTrue(rowCount2 + " must be less than " + rowCount1, rowCount2 < rowCount1);
 
-		int rowCount3 = rowCount2;
-		if (isOpenJPA()) {
-			System.out.println("SKIPPING criteriaDateOfBirthBefore1950 for OpenJPA because it doesn't support LocalDate in Criteria API");
-			// org.apache.openjpa.persistence.ArgumentException: The specified parameter of type "class java.time.LocalDate" is not a valid query parameter
-		}
-		else {
-			guardAjax(criteriaDateOfBirthBefore1950).click();
-			assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
-			assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
-			assertCriteriaState(genderColumn, "FEMALE");
-			assertCriteriaState(dateOfBirthColumn, Order.lessThan(LocalDate.of(1950, 1, 1)), LocalDate::parse);
-			rowCount3 = getRowCount();
-			assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
-		}
+		guardAjax(criteriaDateOfBirthBefore1950).click();
+		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
+		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
+		assertCriteriaState(genderColumn, "FEMALE");
+		assertCriteriaState(dateOfBirthColumn, Order.lessThan(LocalDate.of(1950, 1, 1)), LocalDate::parse);
+		int rowCount3 = getRowCount();
+		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
 
 		guardAjax(criteriaIdBetween50And150).click(); // Uncheck
 		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
@@ -851,10 +826,7 @@ public abstract class OptimusFacesIT {
 		int rowCount6 = getRowCount();
 		assertTrue(rowCount6 + " must be more than " + rowCount5, rowCount6 > rowCount5);
 
-		if (!isOpenJPA()) {
-			guardAjax(criteriaDateOfBirthBefore1950).click(); // Uncheck
-		}
-
+		guardAjax(criteriaDateOfBirthBefore1950).click(); // Uncheck
 		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
