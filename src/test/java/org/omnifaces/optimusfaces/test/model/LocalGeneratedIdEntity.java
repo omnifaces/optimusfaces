@@ -18,6 +18,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.GeneratedIdEntity;
 
 /**
@@ -35,7 +36,7 @@ import org.omnifaces.persistence.model.GeneratedIdEntity;
  * This is <strong>NOT</strong> needed for Hibernate and EclipseLink. You can just extend from {@link GeneratedIdEntity} directly.
  */
 @MappedSuperclass
-public class LocalGeneratedIdEntity extends GeneratedIdEntity<Long> {
+public class LocalGeneratedIdEntity extends BaseEntity<Long> {
 
 	private static final long serialVersionUID = 1L;
 

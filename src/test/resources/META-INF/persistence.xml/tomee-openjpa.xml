@@ -23,7 +23,6 @@
 		<jta-data-source>java:openejb/Resource/OptimusFacesIT</jta-data-source>
 
 		<class>org.omnifaces.persistence.model.BaseEntity</class>
-		<class>org.omnifaces.persistence.model.GeneratedIdEntity</class>
 
 		<properties>
 			<property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema(foreignKeys=true,schemaAction='dropDB,add')" />

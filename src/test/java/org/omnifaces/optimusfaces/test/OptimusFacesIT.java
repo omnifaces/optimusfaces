@@ -52,6 +52,7 @@ import org.jboss.arquillian.graphene.proxy.GrapheneProxyInstance;
 import org.jboss.arquillian.graphene.spi.configuration.GrapheneConfiguration;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolverSystem;
@@ -105,6 +106,8 @@ public abstract class OptimusFacesIT {
 		addDataSourceConfig(database, archive);
 		addPersistenceConfig(maven, archive);
 		addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
+
+		archive.as(ZipExporter.class).exportTo(new File("/tmp/test.war"), true);
 
 		return archive;
 	}
