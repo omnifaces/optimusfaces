@@ -24,7 +24,7 @@
 	xmlns:p="http://primefaces.org/ui"
 >
 	<!-- NOTE: Internal variables start with an unconventional $ in order to prevent interfering with user defined variables in same scope. -->
-	<c:set var="$dataTable" value="#{component.namingContainer}" />
+	<c:set var="$dataTable" value="#{component.findComponent(id).namingContainer}" />
 	<c:set var="$pagedDataModel" value="#{$dataTable.value}" />
 	<c:set var="$exporting" value="#{not empty param.$export}" scope="request" />
 	<c:set var="$ITERABLE_CLASS" value="#{{}['class'].interfaces[0].interfaces[0].interfaces[0]}" scope="application" /><!-- TODO: this is hacky -->
@@ -71,7 +71,7 @@
 					<ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment>
 					<ui:repeat rendered="#{iterable}" value="#{iterable ? of:iterableToList(value) : []}" var="$value" 
 						varStatus="loop"><span>#{$value.toString()}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
-					<ui:remove><!-- NOTE: explicit toString() call on value makes sure that it's also called on enums instead of name(). --></ui:remove>
+					<ui:remove><!-- NOTE: explicit toString() call on value makes sure that it's also called on enums instead of name() (because that's not overridable). --></ui:remove>
 				</ui:insert>
 			</span>
 		</ui:fragment>
