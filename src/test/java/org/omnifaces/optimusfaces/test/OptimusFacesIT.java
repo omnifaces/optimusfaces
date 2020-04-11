@@ -52,7 +52,6 @@ import org.jboss.arquillian.graphene.proxy.GrapheneProxyInstance;
 import org.jboss.arquillian.graphene.spi.configuration.GrapheneConfiguration;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolverSystem;
@@ -106,8 +105,6 @@ public abstract class OptimusFacesIT {
 		addDataSourceConfig(database, archive);
 		addPersistenceConfig(maven, archive);
 		addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
-
-		archive.as(ZipExporter.class).exportTo(new File("/tmp/test.war"), true);
 
 		return archive;
 	}
@@ -678,12 +675,13 @@ public abstract class OptimusFacesIT {
 		assertGlobalFilterState("FEMALE");
 		assertFilteredState(idColumnFilter, "3");
 
-		globalFilter.sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE);
+		globalFilter.clear();
 		guardAjax(globalFilterButton).click();
 		assertPaginatorState(1, 38);
 		assertFilteredState(idColumnFilter, "3");
 
-		guardAjax(idColumnFilter).sendKeys(Keys.BACK_SPACE);
+		idColumnFilter.clear();
+		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
 
 		guardAjax(genderColumnFilter).sendKeys("FEMALE");
@@ -698,11 +696,13 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(emailColumnFilter, "1");
 		assertFilteredState(genderColumnFilter, "FEMALE");
 
-		guardAjax(genderColumnFilter).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE);
+		genderColumnFilter.clear();
+		guardAjax(genderColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");
 
-		guardAjax(emailColumnFilter).sendKeys(Keys.BACK_SPACE);
+		emailColumnFilter.clear();
+		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
@@ -746,13 +746,14 @@ public abstract class OptimusFacesIT {
 		assertGlobalFilterState("FEMALE");
 		assertSortedState(idColumn, true);
 
-		globalFilter.sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE, Keys.BACK_SPACE);;
+		globalFilter.clear();
 		guardAjax(globalFilterButton).click();
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(idColumn, true);
 
-		guardAjax(emailColumnFilter).sendKeys(Keys.BACK_SPACE);
+		emailColumnFilter.clear();
+		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
@@ -860,7 +861,8 @@ public abstract class OptimusFacesIT {
 		assertSortedState(totalPhonesColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(addressStringColumnFilter).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE);
+		addressStringColumnFilter.clear();
+		guardAjax(addressStringColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
 		assertSortedState(totalPhonesColumn, true);
 		assertNoCartesianProduct();
@@ -895,7 +897,8 @@ public abstract class OptimusFacesIT {
 
 		assertNoCartesianProduct();
 
-		guardAjax(address_houseNumberColumnFilter).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE);
+		address_houseNumberColumnFilter.clear();
+		guardAjax(address_houseNumberColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS);
 
 		if (!(isHibernate() && database == POSTGRESQL)) {
@@ -913,7 +916,8 @@ public abstract class OptimusFacesIT {
 			assertFilteredState(address_stringColumnFilter, "11");
 			assertNoCartesianProduct();
 
-			guardAjax(address_stringColumnFilter).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE);
+			address_stringColumnFilter.clear();
+			guardAjax(address_stringColumnFilter).sendKeys(Keys.TAB);
 			assertPaginatorState(1, TOTAL_RECORDS);
 		}
 	}
@@ -960,24 +964,18 @@ public abstract class OptimusFacesIT {
 		int rowCount3 = getRowCount();
 		assertTrue(rowCount3 + " must be less than " + rowCount1, rowCount3 < rowCount1);
 
-		guardAjax(phones_numberColumnFilter).sendKeys(Keys.BACK_SPACE, Keys.BACK_SPACE);
+		phones_numberColumnFilter.clear();
+		guardAjax(phones_numberColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, 119, true);
 		assertNoCartesianProduct();
 
-		guardAjax(emailColumnFilter).sendKeys(Keys.BACK_SPACE);
+		emailColumnFilter.clear();
+		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, TOTAL_RECORDS, true);
 		assertNoCartesianProduct();
 
 		if (!skipAssertSortedState) {
 			guardAjax(phones_numberColumn).click();
-			assertSortedState(phones_numberColumn, true);
-			assertNoCartesianProduct();
-		}
-
-		guardAjax(emailColumnFilter).sendKeys(Keys.BACK_SPACE);
-		assertPaginatorState(1, TOTAL_RECORDS, true);
-
-		if (!skipAssertSortedState) {
 			assertSortedState(phones_numberColumn, true);
 		}
 
@@ -1120,7 +1118,8 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
-		guardAjax(idColumnFilter).sendKeys(Keys.BACK_SPACE);
+		idColumnFilter.clear();
+		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
 		assertGlobalFilterState("19");
 		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
@@ -1137,7 +1136,8 @@ public abstract class OptimusFacesIT {
 		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(emailColumnFilter).sendKeys(Keys.BACK_SPACE);
+		emailColumnFilter.clear();
+		guardAjax(emailColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, totalRecords);
 		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
@@ -1163,7 +1163,8 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
-		guardAjax(idColumnFilter).sendKeys(Keys.BACK_SPACE);
+		idColumnFilter.clear();
+		guardAjax(idColumnFilter).sendKeys(Keys.TAB);
 		assertPaginatorState(1, 111);
 		assertSortedState(emailColumn, true);
 		assertGlobalFilterState("name1");
