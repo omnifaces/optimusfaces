@@ -726,6 +726,13 @@ public abstract class OptimusFacesIT {
 			assertSortedState(emailColumn, true);
 		}
 
+		for (int previousPage = 9; previousPage >= 1; previousPage--) {
+			guardAjax(pagePrevious).click();
+			assertPaginatorState(previousPage, 119);
+			assertFilteredState(emailColumnFilter, "1");
+			assertSortedState(emailColumn, true);
+		}
+
 		guardAjax(emailColumn).click();
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");

@@ -103,7 +103,7 @@
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnipersistence</artifactId>
-			<version>0.13</version>
+			<version>0.14-SNAPSHOT</version>
 		</dependency>
 
 		<!-- PrimeFaces dependencies. -->
