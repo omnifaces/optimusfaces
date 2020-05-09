@@ -79,7 +79,7 @@
 		<test.h2.version>1.4.200</test.h2.version>
 		<test.mysql-driver.version>8.0.19</test.mysql-driver.version>
 		<test.postgresql-driver.version>42.2.11</test.postgresql-driver.version>
-		<test.omnifaces.version>3.4.1</test.omnifaces.version>
+		<test.omnifaces.version>3.6</test.omnifaces.version>
 		<test.primefaces.version>8.0</test.primefaces.version>
 	</properties>
 
@@ -103,7 +103,7 @@
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnipersistence</artifactId>
-			<version>0.14-SNAPSHOT</version>
+			<version>0.14</version>
 		</dependency>
 
 		<!-- PrimeFaces dependencies. -->

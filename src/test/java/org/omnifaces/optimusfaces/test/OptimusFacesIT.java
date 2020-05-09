@@ -747,10 +747,19 @@ public abstract class OptimusFacesIT {
 		guardAjax(fifthRow).click();
 		assertSelectedState(196);
 
-		guardAjax(pageNext).click();
-		guardAjax(fifthRow).click();
-		assertPaginatorState(2);
-		assertSelectedState(186);
+		for (int nextPage = 2; nextPage <= 5; nextPage++) {
+			guardAjax(pageNext).click();
+			assertPaginatorState(nextPage);
+			guardAjax(fifthRow).click();
+			assertSelectedState(206 - nextPage * 10);
+		}
+
+		for (int previousPage = 4; previousPage >= 1; previousPage--) {
+			guardAjax(pagePrevious).click();
+			assertPaginatorState(previousPage);
+			guardAjax(fifthRow).click();
+			assertSelectedState(206 - previousPage * 10);
+		}
 	}
 
 	protected void testPagingSortingFilteringAndSelection() {
@@ -771,8 +780,6 @@ public abstract class OptimusFacesIT {
 			assertPaginatorState(nextPage, 119);
 			assertFilteredState(emailColumnFilter, "1");
 			assertSortedState(emailColumn, true);
-			guardAjax(fifthRow).click();
-			assertSelectedState(96 + nextPage * 9);
 		}
 
 		for (int previousPage = 4; previousPage >= 1; previousPage--) {
@@ -780,8 +787,6 @@ public abstract class OptimusFacesIT {
 			assertPaginatorState(previousPage, 119);
 			assertFilteredState(emailColumnFilter, "1");
 			assertSortedState(emailColumn, true);
-			guardAjax(fifthRow).click();
-			assertSelectedState(96 + previousPage * 9);
 		}
 
 		guardAjax(emailColumn).click();
