@@ -29,7 +29,7 @@
 	<h:body>
 		<o:importConstants type="org.omnifaces.optimusfaces.test.model.Phone.Type" var="PhoneType" />
 
-		<o:form id="form" useRequestURI="true">
+		<o:form id="form">
 			<op:dataTable id="table" value="#{optimusFacesITLazyWithOneToManyBean.lazyPersonsWithPhones}" searchable="true">
 				<op:column field="id" />
 				<op:column field="email" />
