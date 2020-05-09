@@ -12,6 +12,7 @@
  */
 package org.omnifaces.optimusfaces.test;
 
+import static java.lang.Boolean.parseBoolean;
 import static java.lang.Math.min;
 import static java.lang.System.getProperty;
 import static java.util.Arrays.asList;
@@ -70,11 +71,14 @@ import org.omnifaces.persistence.criteria.Like;
 import org.omnifaces.persistence.criteria.Order;
 import org.omnifaces.util.Servlets;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.Select;
+
+import com.google.common.base.Predicate;
 
 public abstract class OptimusFacesIT {
 
@@ -222,7 +226,11 @@ public abstract class OptimusFacesIT {
 
 		browser.manage().deleteAllCookies(); // Else IT on pagination/sorting may fail because they're apparently cached somewhere in session. TODO: investigate
 		browser.get(url);
-		waitGui(browser);
+		waitGui(browser).until(primeFacesWidgetsInitialized());
+	}
+
+	protected static Predicate<WebDriver> primeFacesWidgetsInitialized() {
+		return browser -> parseBoolean(String.valueOf(((JavascriptExecutor) browser).executeScript("return !!Object.keys(window.PrimeFaces.widgets).length;")));
 	}
 
 	protected String getQueryParameter(String name) {
