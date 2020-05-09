@@ -31,24 +31,24 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>3.4.1</version><!-- Minimum supported version is 2.2 -->
+        <version>3.6</version><!-- Minimum supported version is 2.2 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
-        <version>6.2</version><!-- Minimum supported version is 5.2 -->
+        <version>8.0</version><!-- Minimum supported version is 7.0 -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.10</version>
+        <version>0.12</version>
     </dependency>
 </dependencies>
 ```
 
 ### Basic Usage
 
-First create your entity service extending [`org.omnifaces.omnipersistence.service.BaseEntityService`](https://static.javadoc.io/org.omnifaces/omnipersistence/0.8/org/omnifaces/persistence/service/BaseEntityService.html). You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
+First create your entity service extending [`org.omnifaces.omnipersistence.service.BaseEntityService`](https://static.javadoc.io/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/service/BaseEntityService.html). You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
 
 ```Java
 @Stateless
@@ -59,7 +59,7 @@ public class YourEntityService extends BaseEntityService<Long, YourEntity> {
 }
 ```
 
-And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://static.javadoc.io/org.omnifaces/omnipersistence/0.8/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity`, `TimestampedBaseEntity`, `VersionedEntity` or `VersionedBaseEntity`.
+And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://static.javadoc.io/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity`, `TimestampedBaseEntity`, `VersionedEntity` or `VersionedBaseEntity`.
 
 ```Java
 @Entity
@@ -128,7 +128,7 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 
 ### Advanced Usage
 
-[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/0.9/org/omnifaces/optimusfaces/model/PagedDataModel.html).
+[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html).
 
 
 ### Known Issues
@@ -140,15 +140,15 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 - OpenJPA ignores any `AttributeConverter` when setting a criteria parameter. This has as consequence that e.g. a `LocalDate`/`LocalDateTime` criteria parameter won't work until OpenJPA itself natively supports `java.time` API. You should for now declare such columns as `java.util.Date`/`java.util.Calendar`.
 
 The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on following environments:
-- WildFly 12.0.0 with Mojarra 2.3.3 and Hibernate 5.1.10
-- WildFly 12.0.0 with Mojarra 2.3.3 and EclipseLink 2.7.1
-- Payara 5.Beta2 with Mojarra 2.3.3 and Hibernate 5.3.0
-- Payara 5.Beta2 with Mojarra 2.3.3 and EclipseLink 2.7.0
-- TomEE 7.0.4 with MyFaces 2.2.12 and OpenJPA 2.4.2
+- WildFly 19.0.0 with Mojarra 2.3.9 and Hibernate 5.3.15
+- WildFly 19.0.0 with Mojarra 2.3.9 and EclipseLink 2.7.6
+- Payara 5.201 with Mojarra 2.3.14 and Hibernate 5.4.12
+- Payara 5.201 with Mojarra 2.3.14 and EclipseLink 2.7.4
+- TomEE 8.0.1 with MyFaces 2.3.6 and OpenJPA 3.1.0
 
 Each environment will run the IT on following databases:
-- H2 1.4.193 on WildFly and H2 1.4.196 on Payara and TomEE (embedded database)
-- MySQL 5.6.33 (provided by Travis) with JDBC driver 5.1.45
-- PostgreSQL 9.6.6 (provided by Travis) with JDBC driver 42.2.1
+- H2 1.4.197 on WildFly and H2 1.4.200 on Payara and TomEE (embedded database)
+- MySQL 5.7.29 (provided by Travis) with JDBC driver 8.0.19
+- PostgreSQL 9.6.17 (provided by Travis) with JDBC driver 42.2.11
 
-Effectively, there are thus 15 full test runs of each [26 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L412) on [16 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L426) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
