@@ -122,26 +122,38 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	public List<E> load(int offset, int limit, String tableSortField, SortOrder tableSortOrder, Map<String, Object> tableFilters) {
 		FacesContext context = getContext();
 		DataTable table = getTable();
-		List<UIColumn> processableColumns = table.getColumns().stream().filter(this::isProcessableColumn).collect(toList());
-
-		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
-		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
-		ordering = processPageAndOrdering(context, table, limit, tableSortField, tableSortOrder);
-		filters = processFilters(context, table, processableColumns, tableFilters);
-		globalFilter = processGlobalFilter(context, table, tableFilters);
-		selection = processSelectionIfNecessary(context, selection);
-
-		loadPage(table, processableColumns, limit);
+		loadPage(context, table, tableSortField, tableSortOrder, tableFilters);
 		updateQueryStringIfNecessary(context);
 
 		return list;
 	}
 
-	private void loadPage(DataTable table, List<UIColumn> processableColumns, int limit) {
+	public void preloadPage(FacesContext context, DataTable table) {
+		loadPage(context, table, null, null, emptyMap());
+		setWrappedData(list);
+		setRowCount(list.getEstimatedTotalNumberOfResults());
+		setPageSize(table.getRows());
+	}
+
+	private void loadPage(FacesContext context, DataTable table, String tableSortField, SortOrder tableSortOrder, Map<String, Object> tableFilters) {
+		List<UIColumn> processableColumns = table.getColumns().stream().filter(this::isProcessableColumn).collect(toList());
+
+		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
+		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
+		ordering = processPageAndOrdering(context, table, tableSortField, tableSortOrder);
+		filters = processFilters(context, table, processableColumns, tableFilters);
+		globalFilter = processGlobalFilter(context, table, tableFilters);
+		selection = processSelectionIfNecessary(context, selection);
+
+		loadPage(table, processableColumns);
+	}
+
+	private void loadPage(DataTable table, List<UIColumn> processableColumns) {
 		Map<String, Object> requiredCriteria = processRequiredCriteria(processableColumns);
 		Map<String, Object> optionalCriteria = processOptionalCriteria(processableColumns);
 
 		int offset = table.getFirst();
+		int limit = table.getRows();
 		boolean pageOfSameCriteria = requiredCriteria.equals(page.getRequiredCriteria()) && optionalCriteria.equals(page.getOptionalCriteria());
 		boolean nextOrPreviousPageOfSameCriteria = pageOfSameCriteria && !isEmpty(list) && abs(offset - page.getOffset()) == limit && ordering.equals(page.getOrdering());
 		boolean previousPageOfSameCriteria = nextOrPreviousPageOfSameCriteria && offset < page.getOffset();
@@ -193,15 +205,15 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return Boolean.parseBoolean(String.valueOf(table.getAttributes().get("searchable")));
 	}
 
-	protected LinkedHashMap<String, Boolean> processPageAndOrdering(FacesContext context, DataTable table, int limit, String tableSortField, SortOrder tableSortOrder) {
+	protected LinkedHashMap<String, Boolean> processPageAndOrdering(FacesContext context, DataTable table, String tableSortField, SortOrder tableSortOrder) {
 		LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
 
-		if (!context.isPostback()) {
+		if (list == null) {
 			String page = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_PAGE);
 
 			if (!isEmpty(page)) {
 				try {
-					table.setFirst((Integer.valueOf(page) - 1) * limit);
+					table.setFirst((Integer.valueOf(page) - 1) * table.getRows());
 				}
 				catch (NumberFormatException ignore) {
 					//
@@ -231,7 +243,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 			}
 
 			Entry<String, Boolean> defaultOrder = defaultOrdering.entrySet().iterator().next();
-			table.setSortField(coalesce(sortField, defaultOrder.getKey(), tableSortField));
+			table.setSortField(coalesce(sortField, tableSortField, defaultOrder.getKey()));
 			table.setSortOrder(coalesce(sortOrder, sortField != null ? tableSortOrder : defaultOrder.getValue() ? ASCENDING : DESCENDING).name());
 		}
 		else if (!isEmpty(tableSortField)) {
@@ -398,7 +410,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 			selection.stream().sorted().forEach(entity -> params.add(new SimpleParam(queryParameterPrefix + QUERY_PARAMETER_SELECTION, entity.getId())));
 		}
 
-		oncomplete("OptimusFaces.Util.historyReplaceQueryString('" + Servlets.toQueryString(params) + "')");
+		oncomplete("OptimusFaces.Util.updateQueryString('" + Servlets.toQueryString(params) + "')");
 	}
 
 

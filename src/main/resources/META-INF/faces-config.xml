@@ -30,4 +30,9 @@
 	<application>
 		<el-resolver>org.omnifaces.optimusfaces.el.NestedBaseEntityELResolver</el-resolver>
 	</application>
+
+	<component>
+		<component-type>org.primefaces.component.DataTable</component-type>
+		<component-class>org.omnifaces.optimusfaces.component.ExtendedDataTable</component-class>
+	</component>
 </faces-config>

@@ -110,7 +110,7 @@
 		<dependency>
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
-			<version>5.2</version><!-- minimum version for DataTable#isFilterable() and DataTable#getNullSortOrder() -->
+			<version>7.0</version><!-- minimum version for properly resolving table sort fields in DataTableRenderer -->
 			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 

@@ -29,6 +29,7 @@ import static org.junit.Assert.assertTrue;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_ORDER;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_PAGE;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_SEARCH;
+import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_SELECTION;
 import static org.omnifaces.optimusfaces.test.service.StartupService.ROWS_PER_PAGE;
 import static org.omnifaces.optimusfaces.test.service.StartupService.TOTAL_RECORDS;
 import static org.omnifaces.persistence.Database.POSTGRESQL;
@@ -239,7 +240,7 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected int getRowCount() {
-		return Integer.parseInt(browser.findElement(By.id("rowCount")).getText());
+		return Integer.parseInt(rowCount.getText());
 	}
 
 	protected static boolean isWildFly() {
@@ -355,6 +356,12 @@ public abstract class OptimusFacesIT {
 	@FindBy(css="#form\\:table_data tr")
 	private List<WebElement> rows;
 
+	@FindBy(css="#form\\:table_data tr:nth-child(5) td:first-child")
+	private WebElement fifthRow;
+
+	@FindBy(css="#form\\:table_data tr.ui-state-highlight")
+	private WebElement selectedRow;
+
 	@FindBy(css="#form\\:table_paginator_bottom span.ui-paginator-current")
 	private WebElement pageReport;
 
@@ -408,6 +415,12 @@ public abstract class OptimusFacesIT {
 
 	@FindBy(id="form:groups:3")
 	private WebElement criteriaGroupDEVELOPER;
+
+	@FindBy(id="rowCount")
+	private WebElement rowCount;
+
+	@FindBy(id="selection")
+	private WebElement selection;
 
 
 	// Tests ----------------------------------------------------------------------------------------------------------
@@ -467,15 +480,39 @@ public abstract class OptimusFacesIT {
 	}
 
 	@Test
-	public void testLazyPagingSortingAndFiltering() {
+	public void testLazySelection() {
 		open("Lazy");
-		testPagingSortingAndFiltering();
+		testSelection();
 	}
 
 	@Test
-	public void testNonLazyPagingSortingAndFiltering() {
+	public void testNonLazySelection() {
 		open("NonLazy");
-		testPagingSortingAndFiltering();
+		testSelection();
+	}
+
+	@Test
+	public void testLazyPagingSortingFilteringAndSelection() {
+		open("Lazy");
+		testPagingSortingFilteringAndSelection();
+	}
+
+	@Test
+	public void testNonLazyPagingSortingFilteringAndSelection() {
+		open("NonLazy");
+		testPagingSortingFilteringAndSelection();
+	}
+
+	@Test
+	public void testLazyStatelessPagingSortingFilteringAndSelection() {
+		open("LazyStateless");
+		testPagingSortingFilteringAndSelection();
+	}
+
+	@Test
+	public void testNonLazyStatelessPagingSortingFilteringAndSelection() {
+		open("NonLazyStateless");
+		testPagingSortingFilteringAndSelection();
 	}
 
 	@Test
@@ -706,7 +743,17 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
-	protected void testPagingSortingAndFiltering() {
+	protected void testSelection() {
+		guardAjax(fifthRow).click();
+		assertSelectedState(196);
+
+		guardAjax(pageNext).click();
+		guardAjax(fifthRow).click();
+		assertPaginatorState(2);
+		assertSelectedState(186);
+	}
+
+	protected void testPagingSortingFilteringAndSelection() {
 		guardAjax(pageNext).click();
 		assertPaginatorState(2);
 
@@ -719,18 +766,22 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(emailColumn, true);
 
-		for (int nextPage = 2; nextPage <= 10; nextPage++) {
+		for (int nextPage = 2; nextPage <= 5; nextPage++) {
 			guardAjax(pageNext).click();
 			assertPaginatorState(nextPage, 119);
 			assertFilteredState(emailColumnFilter, "1");
 			assertSortedState(emailColumn, true);
+			guardAjax(fifthRow).click();
+			assertSelectedState(96 + nextPage * 9);
 		}
 
-		for (int previousPage = 9; previousPage >= 1; previousPage--) {
+		for (int previousPage = 4; previousPage >= 1; previousPage--) {
 			guardAjax(pagePrevious).click();
 			assertPaginatorState(previousPage, 119);
 			assertFilteredState(emailColumnFilter, "1");
 			assertSortedState(emailColumn, true);
+			guardAjax(fifthRow).click();
+			assertSelectedState(96 + previousPage * 9);
 		}
 
 		guardAjax(emailColumn).click();
@@ -791,6 +842,9 @@ public abstract class OptimusFacesIT {
 		open(type, "o=dateOfBirth");
 		assertPaginatorState(1);
 		assertSortedState(dateOfBirthColumn, true);
+
+		open(type, "s=195");
+		assertSelectedState(195);
 	}
 
 	protected void testCriteria() {
@@ -1279,6 +1333,12 @@ public abstract class OptimusFacesIT {
 
 		List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
 		assertTrue(field + " filtering " + actualValues + " matches " + filterValue, actualValues.stream().allMatch(value -> value.contains(filterValue)));
+	}
+
+	protected void assertSelectedState(int selectedId) {
+		assertTrue(selectedId + " must be selected", selectedRow.findElement(By.cssSelector("td:first-child")).getText().equals(String.valueOf(selectedId)));
+		assertTrue(selectedId + " must be in the selection", selection.getText().equals("[Person[" + selectedId + "]]"));
+		assertEquals("select query string", String.valueOf(selectedId), getQueryParameter(QUERY_PARAMETER_SELECTION));
 	}
 
 	protected void assertGlobalFilterState(String filterValue) {

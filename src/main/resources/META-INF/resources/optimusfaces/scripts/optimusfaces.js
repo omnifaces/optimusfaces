@@ -56,6 +56,16 @@ OptimusFaces.Util = (function(window, document) {
 		}
 	}
 
+	self.updateQueryString = function(queryString) {
+		self.historyReplaceQueryString(queryString);
+		for (var i = 0; i < document.forms.length; i++) {
+			var form = document.forms[i];
+			if (form["javax.faces.ViewState"]) {
+				form.action = form.action.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
+			}
+		}
+	}
+
 	self.updateQueryStringParameter = function(url, name, value) {
 		var parts = url.split(/#/, 2);
 		var uri = parts[0];

@@ -27,8 +27,8 @@
 	</h:head>
 
 	<h:body>
-		<o:form id="form" useRequestURI="true">
-			<op:dataTable id="table" value="#{optimusFacesITLazyBean.lazyPersons}" searchable="true">
+		<o:form id="form">
+			<op:dataTable id="table" value="#{optimusFacesITLazyBean.lazyPersons}" searchable="true" selectable="true">
 				<op:column field="id" />
 				<op:column field="email" />
 				<op:column field="gender" />
@@ -37,5 +37,6 @@
 		</o:form>
 
 		<h:outputText id="rowCount" value="#{optimusFacesITLazyBean.lazyPersons.rowCount}" styleClass="updateOnDataTableFilter" />
+		<h:outputText id="selection" value="#{optimusFacesITLazyBean.lazyPersons.selection}" styleClass="updateOnDataTableSelect" />
 	</h:body>
 </html>

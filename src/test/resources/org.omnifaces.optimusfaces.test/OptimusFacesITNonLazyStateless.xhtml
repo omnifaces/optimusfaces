@@ -22,21 +22,23 @@
 	xmlns:p="http://primefaces.org/ui"
 	xmlns:op="http://omnifaces.org/optimusfaces"
 >
-	<h:head>
-		<title>OptimusFacesIT - non-lazy</title>
-	</h:head>
-
-	<h:body>
-		<o:form id="form">
-			<op:dataTable id="table" value="#{optimusFacesITNonLazyBean.nonLazyPersons}" searchable="true" selectable="true">
-				<op:column field="id" />
-				<op:column field="email" />
-				<op:column field="gender" />
-				<op:column field="dateOfBirth" />
-			</op:dataTable>
-		</o:form>
-
-		<h:outputText id="rowCount" value="#{optimusFacesITNonLazyBean.nonLazyPersons.rowCount}" styleClass="updateOnDataTableFilter" />
-		<h:outputText id="selection" value="#{optimusFacesITNonLazyBean.lazyPersons.selection}" styleClass="updateOnDataTableSelect" />
-	</h:body>
+	<f:view transient="true">
+		<h:head>
+			<title>OptimusFacesIT - non-lazy stateless</title>
+		</h:head>
+	
+		<h:body>
+			<o:form id="form">
+				<op:dataTable id="table" value="#{optimusFacesITNonLazyStatelessBean.nonLazyPersons}" searchable="true" selectable="true">
+					<op:column field="id" />
+					<op:column field="email" />
+					<op:column field="gender" />
+					<op:column field="dateOfBirth" />
+				</op:dataTable>
+			</o:form>
+	
+			<h:outputText id="rowCount" value="#{optimusFacesITNonLazyStatelessBean.nonLazyPersons.rowCount}" styleClass="updateOnDataTableFilter" />
+			<h:outputText id="selection" value="#{optimusFacesITNonLazyStatelessBean.lazyPersons.selection}" styleClass="updateOnDataTableSelect" />
+		</h:body>
+	</f:view>
 </html>
