@@ -16,7 +16,7 @@
 
 	<name>OptimusFaces</name>
 	<description>Utility library for OmniFaces + PrimeFaces combined</description>
-	<url>http://omnifaces.org</url>
+	<url>https://github.com/omnifaces/optimusfaces</url>
 	<organization>
 		<name>OmniFaces</name>
 		<url>https://omnifaces.org</url>
