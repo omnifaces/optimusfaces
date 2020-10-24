@@ -73,7 +73,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 	@Override
 	@SuppressWarnings("unchecked")
 	protected PartialResultList<E> load(Page page, boolean estimateTotalNumberOfResults) {
-		DataTable table = getTable();
+		DataTable table = (DataTable) getDataComponent();
 		List<E> data = new ArrayList<>(allData);
 
 		if (!data.isEmpty()) {

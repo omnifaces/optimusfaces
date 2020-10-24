@@ -64,6 +64,8 @@ import org.omnifaces.utils.Lang;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.api.UIColumn;
+import org.primefaces.component.api.UIData;
+import org.primefaces.component.datascroller.DataScroller;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
@@ -121,9 +123,17 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	@Override
 	public List<E> load(int offset, int limit, String tableSortField, SortOrder tableSortOrder, Map<String, Object> tableFilters) {
 		FacesContext context = getContext();
-		DataTable table = getTable();
-		loadPage(context, table, tableSortField, tableSortOrder, tableFilters);
-		updateQueryStringIfNecessary(context);
+		UIData data = getDataComponent();
+
+		if (data instanceof DataTable) {
+			loadPage(context, (DataTable) data, tableSortField, tableSortOrder, tableFilters);
+		}
+		else if (data instanceof DataScroller) {
+			loadPage(data, offset, limit, emptyMap(), emptyMap());
+		}
+		else {
+			throw new UnsupportedOperationException("UIData component " + data + " is not yet supported.");
+		}
 
 		return list;
 	}
@@ -145,15 +155,16 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		globalFilter = processGlobalFilter(context, table, tableFilters);
 		selection = processSelectionIfNecessary(context, selection);
 
-		loadPage(table, processableColumns);
-	}
-
-	private void loadPage(DataTable table, List<UIColumn> processableColumns) {
+		int offset = table.getFirst();
+		int limit = table.getRows();
 		Map<String, Object> requiredCriteria = processRequiredCriteria(processableColumns);
 		Map<String, Object> optionalCriteria = processOptionalCriteria(processableColumns);
 
-		int offset = table.getFirst();
-		int limit = table.getRows();
+		loadPage(table, offset, limit, requiredCriteria, optionalCriteria);
+		updateQueryStringIfNecessary(context);
+	}
+
+	private void loadPage(UIData data, int offset, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
 		boolean pageOfSameCriteria = requiredCriteria.equals(page.getRequiredCriteria()) && optionalCriteria.equals(page.getOptionalCriteria());
 		boolean nextOrPreviousPageOfSameCriteria = pageOfSameCriteria && !isEmpty(list) && abs(offset - page.getOffset()) == limit && ordering.equals(page.getOrdering());
 		boolean previousPageOfSameCriteria = nextOrPreviousPageOfSameCriteria && offset < page.getOffset();
@@ -166,8 +177,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 		if (count != -1 && count != getRowCount()) {
 			if (list.isEmpty() && count > 0 && offset > count) { // Can happen when user has paginated too far and then changed criteria which returned fewer results.
-				int offsetOfLastPage = offset - ((((offset - count) / table.getRows()) + 1) * table.getRows());
-				table.setFirst(offsetOfLastPage);
+				int offsetOfLastPage = offset - ((((offset - count) / data.getRows()) + 1) * data.getRows());
+				data.setFirst(offsetOfLastPage);
 				page = new Page(offsetOfLastPage, limit, ordering, requiredCriteria, optionalCriteria);
 				list = load(page, false);
 			}
@@ -180,15 +191,15 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return loader.getPage(page, estimateTotalNumberOfResults);
 	}
 
-	protected DataTable getTable() {
+	protected UIData getDataComponent() {
 		UIComponent currentComponent = getCurrentComponent();
 
-		if (currentComponent instanceof DataTable) {
-			return (DataTable) currentComponent;
+		if (currentComponent instanceof UIData) {
+			return (UIData) currentComponent;
 		}
 		else {
-			String tableId = currentComponent.getId().split("_", 2)[0];
-			return (DataTable) currentComponent.findComponent(tableId);
+			String id = currentComponent.getId().split("_", 2)[0];
+			return (UIData) currentComponent.findComponent(id);
 		}
 	}
 
