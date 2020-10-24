@@ -30,7 +30,7 @@
 	<c:set var="$ITERABLE_CLASS" value="#{{}['class'].interfaces[0].interfaces[0].interfaces[0]}" scope="application" /><!-- TODO: this is hacky -->
 
 	<o:tagAttribute name="field" />
-		<o:tagAttribute name="id" default="#{empty $pagedDataModel ? field : $pagedDataModel.computeColumnId(field)}" />
+		<o:tagAttribute name="id" default="#{empty $pagedDataModel ? field.replace('.', '_') : $pagedDataModel.computeColumnId(field)}" />
 		<o:tagAttribute name="head" default="#{field}" />
 		<o:tagAttribute name="value" default="#{item[field]}" />
 		<o:tagAttribute name="tooltip" />
