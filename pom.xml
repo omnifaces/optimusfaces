@@ -72,7 +72,7 @@
 
 		<!-- Test versions. -->
 		<test.wildfly.version>19.0.0.Final</test.wildfly.version>
-		<test.payara.version>5.201</test.payara.version>
+		<test.payara.version>5.2020.5</test.payara.version>
 		<test.tomee.version>8.0.1</test.tomee.version>
 		<test.wildfly-eclipselink.version>2.7.6</test.wildfly-eclipselink.version>
 		<test.payara-hibernate.version>5.4.12.Final</test.payara-hibernate.version>
