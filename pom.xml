@@ -71,15 +71,15 @@
 		<maven.source.excludeResources>true</maven.source.excludeResources>
 
 		<!-- Test versions. -->
-		<test.wildfly.version>19.0.0.Final</test.wildfly.version>
+		<test.wildfly.version>21.0.0.Final</test.wildfly.version>
 		<test.payara.version>5.2020.5</test.payara.version>
-		<test.tomee.version>8.0.1</test.tomee.version>
-		<test.wildfly-eclipselink.version>2.7.6</test.wildfly-eclipselink.version>
-		<test.payara-hibernate.version>5.4.12.Final</test.payara-hibernate.version>
+		<test.tomee.version>8.0.4</test.tomee.version>
+		<test.wildfly-eclipselink.version>2.7.7</test.wildfly-eclipselink.version>
+		<test.payara-hibernate.version>5.4.22.Final</test.payara-hibernate.version>
 		<test.h2.version>1.4.200</test.h2.version>
-		<test.mysql-driver.version>8.0.19</test.mysql-driver.version>
-		<test.postgresql-driver.version>42.2.11</test.postgresql-driver.version>
-		<test.omnifaces.version>3.6</test.omnifaces.version>
+		<test.mysql-driver.version>8.0.22</test.mysql-driver.version>
+		<test.postgresql-driver.version>42.2.18</test.postgresql-driver.version>
+		<test.omnifaces.version>3.8.1</test.omnifaces.version>
 		<test.primefaces.version>8.0</test.primefaces.version>
 	</properties>
 
