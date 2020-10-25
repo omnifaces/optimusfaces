@@ -88,7 +88,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 	private final PartialResultListLoader<E> loader;
 	private final LinkedHashMap<String, Boolean> defaultOrdering;
-	private final Supplier<Map<Getter<?>, Object>> criteria;
+	private final Map<String, Object> predefinedCriteria;
+	private final Supplier<Map<Getter<?>, Object>> dynamicCriteria;
 
 	protected boolean updateQueryString;
 	protected String queryParameterPrefix;
@@ -108,10 +109,11 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 	// Constructors ---------------------------------------------------------------------------------------------------
 
-	LazyPagedDataModel(PartialResultListLoader<E> loader, LinkedHashMap<String, Boolean> defaultOrdering, Supplier<Map<Getter<?>, Object>> criteria) {
+	LazyPagedDataModel(PartialResultListLoader<E> loader, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria, Supplier<Map<Getter<?>, Object>> dynamicCriteria) {
 		this.loader = loader;
 		this.defaultOrdering = defaultOrdering;
-		this.criteria = criteria;
+		this.predefinedCriteria = predefinedCriteria;
+		this.dynamicCriteria = dynamicCriteria;
 		filters = new LinkedHashMap<>();
 		page = Page.ALL;
 		setRowCount(-1);
@@ -338,8 +340,12 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	protected Map<String, Object> processRequiredCriteria(List<UIColumn> processableColumns) {
 		Map<String, Object> requiredCriteria = new HashMap<>();
 
-		if (criteria != null) {
-			ofNullable(criteria.get()).orElse(emptyMap()).forEach((getter, value) -> processCriteriaSupplier(getter.getPropertyName(), value, requiredCriteria));
+		if (predefinedCriteria != null) {
+			requiredCriteria.putAll(predefinedCriteria);
+		}
+
+		if (dynamicCriteria != null) {
+			ofNullable(dynamicCriteria.get()).orElse(emptyMap()).forEach((getter, value) -> processDynamicCriteria(getter.getPropertyName(), value, requiredCriteria));
 		}
 
 		for (UIColumn column : processableColumns) {
@@ -367,10 +373,10 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void processCriteriaSupplier(String field, Object value, Map<String, Object> requiredCriteria) {
+	private static void processDynamicCriteria(String field, Object value, Map<String, Object> requiredCriteria) {
 		if (value instanceof Map && !((Map<?, ?>) value).isEmpty() && ((Map<?, ?>) value).keySet().iterator().next() instanceof Getter) {
 			Map<Getter<?>, Object> nestedCriteria = (Map<Getter<?>, Object>) value;
-			nestedCriteria.forEach((getter, nestedValue) -> processCriteriaSupplier(field + "." + getter.getPropertyName(), nestedValue, requiredCriteria));
+			nestedCriteria.forEach((getter, nestedValue) -> processDynamicCriteria(field + "." + getter.getPropertyName(), nestedValue, requiredCriteria));
 		}
 		else {
 			requiredCriteria.put(field, value);

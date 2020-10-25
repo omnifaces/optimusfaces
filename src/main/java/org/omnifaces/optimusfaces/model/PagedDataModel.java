@@ -985,7 +985,8 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		private PartialResultListLoader<E> loader;
 
 		private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
-		private Supplier<Map<Getter<E>, Object>> criteria;
+		private Map<String, Object> predefinedCriteria;
+		private Supplier<Map<Getter<E>, Object>> dynamicCriteria;
 
 		private Builder(List<E> allData) {
 			this.allData = allData;
@@ -997,7 +998,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
 		/**
 		 * <p>
-		 * Set the criteria supplier.
+		 * Set the predefined criteria. The map key represents the property path.
 		 * <p>
 		 * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order},
 		 * {@link Enumerated}, {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
@@ -1022,35 +1023,93 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like
 		 * to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
 		 * <p>
-		 * The criteria supplier can be set only once in this builder.
+		 * The predefined criteria can be set only once in this builder.
 		 *
-		 * @param criteria The criteria supplier.
+		 * @param predefinedCriteria The predefined criteria.
 		 * @return This builder.
-		 * @throws IllegalStateException When another criteria supplier is already set in this builder.
+		 * @throws IllegalStateException When another predefined criteria is already set in this builder.
 		 * @see Criteria
 		 */
-		public Builder<E> criteria(Supplier<Map<Getter<E>, Object>> criteria) {
-			if (this.criteria != null) {
-				throw new IllegalStateException("Criteria supplier is already set");
+		public Builder<E> criteria(Map<String, Object> predefinedCriteria) {
+			if (this.predefinedCriteria != null) {
+				throw new IllegalStateException("Predefined criteria is already set");
 			}
 
-			this.criteria = criteria;
+			this.predefinedCriteria = predefinedCriteria;
 			return this;
 		}
 
 		/**
 		 * <p>
-		 * Set the ordering.
+		 * Set the dynamic criteria. The map key represents the entity getter.
+		 * <p>
+		 * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order},
+		 * {@link Enumerated}, {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
+		 * <p>
+		 * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
+		 * <ul>
+		 * <li>value = <code>null</code>, this will create IS NULL predicate.
+		 * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
+		 * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
+		 * <li>value = {@link BaseEntity}, this will create an EQUAL predicate on entity ID.
+		 * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+		 * </ul>
+		 * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value.
+		 * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked.
+		 * <p>
+		 * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you
+		 * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like
+		 * to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
+		 * <p>
+		 * The dynamic criteria can be set only once in this builder.
+		 *
+		 * @param dynamicCriteria The dynamic criteria.
+		 * @return This builder.
+		 * @throws IllegalStateException When another dynamic criteria is already set in this builder.
+		 * @see Criteria
+		 */
+		public Builder<E> criteria(Supplier<Map<Getter<E>, Object>> dynamicCriteria) {
+			if (this.dynamicCriteria != null) {
+				throw new IllegalStateException("Dynamic criteria is already set");
+			}
+
+			this.dynamicCriteria = dynamicCriteria;
+			return this;
+		}
+
+		/**
+		 * <p>
+		 * Set the ordering by entity getter.
 		 * <p>
 		 * This can be invoked multiple times and will be remembered in same order.
 		 * The default ordering is <code>BaseEntity::getId, false</code>.
 		 *
-		 * @param sortField The sort field getter.
+		 * @param sortField The sort field.
 		 * @param sortAscending Whether to sort ascending.
 		 * @return This builder.
 		 */
 		public Builder<E> orderBy(Getter<E> sortField, boolean sortAscending) {
-			ordering.put(sortField.getPropertyName(), sortAscending);
+			return orderBy(sortField.getPropertyName(), sortAscending);
+		}
+
+		/**
+		 * <p>
+		 * Set the ordering by property path.
+		 * <p>
+		 * This can be invoked multiple times and will be remembered in same order.
+		 * The default ordering is <code>BaseEntity::getId, false</code>.
+		 *
+		 * @param propertyPath The property path.
+		 * @param sortAscending Whether to sort ascending.
+		 * @return This builder.
+		 */
+		public Builder<E> orderBy(String propertyPath, boolean sortAscending) {
+			ordering.put(propertyPath, sortAscending);
 			return this;
 		}
 
@@ -1063,13 +1122,13 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public PagedDataModel<E> build() {
 			ordering.putIfAbsent(ID, false);
-			Supplier rawCriteria = criteria;
+			Supplier rawDynamicCriteria = dynamicCriteria;
 
 			if (loader != null) {
-				return new LazyPagedDataModel<>(loader, ordering, rawCriteria);
+				return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, rawDynamicCriteria);
 			}
 			else if (allData != null) {
-				return new NonLazyPagedDataModel<>(allData, ordering, rawCriteria);
+				return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, rawDynamicCriteria);
 			}
 			else {
 				throw new IllegalStateException("You must provide non-null loader or allData.");

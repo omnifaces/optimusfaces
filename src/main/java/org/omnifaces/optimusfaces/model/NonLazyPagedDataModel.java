@@ -65,8 +65,8 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 	// Constructors ---------------------------------------------------------------------------------------------------
 
-	NonLazyPagedDataModel(List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Supplier<Map<Getter<?>, Object>> criteria) {
-		super(null, defaultOrdering, criteria);
+	NonLazyPagedDataModel(List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria, Supplier<Map<Getter<?>, Object>> dynamicCriteria) {
+		super(null, defaultOrdering, predefinedCriteria, dynamicCriteria);
 		this.allData = unmodifiableList(allData);
 	}
 
