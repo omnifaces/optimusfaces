@@ -27,5 +27,5 @@ deploy:
    script: mvn deploy -Dmaven.test.skip -s settings.xml
    skip_cleanup: true
    on:
-      branch: develop
+      branch: jakartified
       condition: "$SERVER = wildfly-hibernate"
