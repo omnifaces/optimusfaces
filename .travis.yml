@@ -12,7 +12,7 @@ services:
 # Do integration test on configured servers.
 env:
    - SERVER=wildfly-hibernate
-   - SERVER=wildfly-eclipselink
+#  - SERVER=wildfly-eclipselink
 #  - SERVER=payara-hibernate
 #  - SERVER=payara-eclipselink
 #  - SERVER=tomee-openjpa

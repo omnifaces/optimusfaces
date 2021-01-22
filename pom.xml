@@ -81,16 +81,10 @@
 	</properties>
 
 	<repositories>
-	    <repository>
-	        <id>oss.sonatype.org-snapshot</id>
-	        <url>http://oss.sonatype.org/content/repositories/snapshots</url> <!-- Currently only used for OmniFaces 4.0 -->
-	        <releases><enabled>false</enabled></releases>
-	        <snapshots><enabled>true</enabled></snapshots>
-	    </repository>
 		<repository>
 			<id>redhat-all</id>
 			<snapshots />
-			<url>https://maven.repository.redhat.com/techpreview/all</url> <!-- Currently only used for org.picketbox:picketbox:jar:5.0.3.Final-redhat-00006 which is required by WildFly 22.0.0.Beta1 -->
+			<url>https://maven.repository.redhat.com/techpreview/all</url> <!-- Currently only used for org.picketbox:picketbox:jar:5.0.3.Final-redhat-00006 which is required by WildFly 22.0.0.Final -->
 		</repository>
 	</repositories>
 
