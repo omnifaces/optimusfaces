@@ -14,9 +14,9 @@ package org.omnifaces.optimusfaces.test.view;
 
 import java.io.Serializable;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.optimusfaces.model.PagedDataModel;

@@ -18,9 +18,9 @@ import static org.omnifaces.persistence.Provider.HIBERNATE;
 
 import java.util.LinkedHashMap;
 
-import javax.ejb.Stateless;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
 
 import org.omnifaces.optimusfaces.test.model.Address;
 import org.omnifaces.optimusfaces.test.model.Person;

@@ -12,9 +12,9 @@
  */
 package org.omnifaces.optimusfaces.test.model;
 
-import static javax.persistence.CascadeType.PERSIST;
-import static javax.persistence.EnumType.STRING;
-import static javax.persistence.FetchType.LAZY;
+import static jakarta.persistence.CascadeType.PERSIST;
+import static jakarta.persistence.EnumType.STRING;
+import static jakarta.persistence.FetchType.LAZY;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,12 +22,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Enumerated;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class Person extends LocalGeneratedIdEntity {

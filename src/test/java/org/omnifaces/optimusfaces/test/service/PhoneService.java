@@ -12,7 +12,7 @@
  */
 package org.omnifaces.optimusfaces.test.service;
 
-import javax.ejb.Stateless;
+import jakarta.ejb.Stateless;
 
 import org.omnifaces.optimusfaces.test.model.Phone;
 import org.omnifaces.persistence.model.dto.Page;

@@ -12,8 +12,8 @@
  */
 package org.omnifaces.optimusfaces.test.model;
 
-import javax.persistence.Entity;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Entity;
+import jakarta.validation.constraints.NotNull;
 
 import org.hibernate.annotations.Formula;
 
@@ -73,10 +73,6 @@ public class Address extends LocalGeneratedIdEntity {
 
 	public String getString() {
 		return string;
-	}
-
-	public void setString(String string) {
-		this.string = string;
 	}
 
 }

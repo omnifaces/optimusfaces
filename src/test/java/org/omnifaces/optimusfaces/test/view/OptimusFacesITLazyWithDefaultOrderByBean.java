@@ -17,9 +17,9 @@ import org.omnifaces.optimusfaces.model.PagedDataModel;
 import org.omnifaces.optimusfaces.test.model.Person;
 import org.omnifaces.optimusfaces.test.service.PersonService;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.Serializable;
 
 @Named

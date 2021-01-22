@@ -8,7 +8,7 @@
 
 	<groupId>org.omnifaces</groupId>
 	<artifactId>optimusfaces</artifactId>
-	<version>0.14-SNAPSHOT</version>
+	<version>0.14.J1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>OptimusFaces</name>
@@ -57,9 +57,9 @@
 	<properties>
 
 		<!-- Minimum required Java versions. -->
-		<javase.version>1.8</javase.version>
-		<javaee.version>7</javaee.version>
-		
+		<javase.version>11</javase.version>
+		<jakartaee.version>9</jakartaee.version>
+
 		<!-- Essential Maven defaults. -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -68,25 +68,39 @@
 		<maven.source.excludeResources>true</maven.source.excludeResources>
 
 		<!-- Test versions. -->
-		<test.wildfly.version>21.0.0.Final</test.wildfly.version>
-		<test.payara.version>5.2020.5</test.payara.version>
-		<test.tomee.version>8.0.4</test.tomee.version>
-		<test.wildfly-eclipselink.version>2.7.7</test.wildfly-eclipselink.version>
-		<test.payara-hibernate.version>5.4.22.Final</test.payara-hibernate.version>
+		<test.wildfly.version>22.0.0.Final</test.wildfly.version>
+		<test.payara.version>5.2020.5</test.payara.version> <!-- TODO: JEE9 compatible version -->
+		<test.tomee.version>8.0.4</test.tomee.version> <!-- TODO: JEE9 compatible version -->
+		<test.wildfly-eclipselink.version>3.0.0</test.wildfly-eclipselink.version>
+		<test.payara-hibernate.version>6.0.0.Alpha6</test.payara-hibernate.version>
 		<test.h2.version>1.4.200</test.h2.version>
 		<test.mysql-driver.version>8.0.22</test.mysql-driver.version>
 		<test.postgresql-driver.version>42.2.18</test.postgresql-driver.version>
-		<test.omnifaces.version>3.8.1</test.omnifaces.version>
-		<test.primefaces.version>8.0</test.primefaces.version>
+		<test.omnifaces.version>4.0-M4</test.omnifaces.version> <!-- TODO: use 4.0 when released -->
+		<test.primefaces.version>10.0.0-RC1</test.primefaces.version> <!-- TODO: use 10.0.0 when released -->
 	</properties>
+
+	<repositories>
+	    <repository>
+	        <id>oss.sonatype.org-snapshot</id>
+	        <url>http://oss.sonatype.org/content/repositories/snapshots</url> <!-- Currently only used for OmniFaces 4.0 -->
+	        <releases><enabled>false</enabled></releases>
+	        <snapshots><enabled>true</enabled></snapshots>
+	    </repository>
+		<repository>
+			<id>redhat-all</id>
+			<snapshots />
+			<url>https://maven.repository.redhat.com/techpreview/all</url> <!-- Currently only used for org.picketbox:picketbox:jar:5.0.3.Final-redhat-00006 which is required by WildFly 22.0.0.Beta1 -->
+		</repository>
+	</repositories>
 
 	<dependencies>
 
-		<!-- Java EE 7 web profile dependencies. -->
+		<!-- Jakarta EE 9 web profile dependencies. -->
 		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-web-api</artifactId>
-			<version>${javaee.version}.0</version><!-- minimum version for OmniFaces 2.2 -->
+			<groupId>jakarta.platform</groupId>
+			<artifactId>jakarta.jakartaee-web-api</artifactId>
+			<version>${jakartaee.version}.0.0</version><!-- minimum required version -->
 			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 
@@ -94,21 +108,22 @@
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnifaces</artifactId>
-			<version>2.2</version><!-- minimum version for o:tagAttribute and Servlets#toQueryString() -->
+			<version>4.0-M4</version><!-- minimum required version - TODO: use final version -->
 			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnipersistence</artifactId>
-			<version>0.15</version>
+			<version>0.16.J1-SNAPSHOT</version><!-- minimum required version - TODO: use final version -->
 		</dependency>
 
 		<!-- PrimeFaces dependencies. -->
 		<dependency>
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
-			<version>7.0</version><!-- minimum version for properly resolving table sort fields in DataTableRenderer -->
-			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
+			<classifier>jakarta</classifier>
+			<version>10.0.0-RC1</version><!-- minimum required version - TODO: use final version -->
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Test dependencies.	-->
@@ -137,7 +152,7 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>org.hibernate.orm</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<version>${test.payara-hibernate.version}</version>
 			<scope>test</scope> <!-- Only for the @Formula annotation on Address entity. -->
@@ -291,13 +306,15 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>3.2.0</version>
 				<configuration>
+					<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
 					<javadocVersion>${javase.version}</javadocVersion>
 					<notimestamp>true</notimestamp>
 					<splitindex>true</splitindex>
+					<doclint>all,-missing</doclint>
 					<doctitle>OptimusFaces API documentation</doctitle>
 					<links>
-						<link>https://javaee.github.io/javaee-spec/javadocs/</link>
-						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.12/</link>
+						<link>https://jakarta.ee/specifications/platform/${jakartaee.version}/apidocs/</link>
+						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.15.J1/</link>
 					</links>
 					<additionalJOption>-J-Dhttp.agent=maven-javadoc-plugin-${pom‌​.name}</additionalJOption>
 				</configuration>
@@ -430,7 +447,7 @@
 				<dependency>
 					<groupId>org.wildfly.arquillian</groupId>
 					<artifactId>wildfly-arquillian-container-managed</artifactId>
-					<version>2.2.0.Final</version>
+					<version>3.0.1.Final</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
@@ -445,7 +462,7 @@
 									<artifactItems>
 										<artifactItem>
 											<groupId>org.wildfly</groupId>
-											<artifactId>wildfly-dist</artifactId>
+											<artifactId>wildfly-preview-dist</artifactId>
 											<version>${test.wildfly.version}</version>
 											<type>zip</type>
 										</artifactItem>
@@ -465,7 +482,7 @@
 											<artifactId>mysql-connector-java</artifactId>
 											<version>${test.mysql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/standalone/deployments</outputDirectory>
 											<destFileName>mysql.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
@@ -484,7 +501,7 @@
 											<artifactId>postgresql</artifactId>
 											<version>${test.postgresql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/standalone/deployments</outputDirectory>
 											<destFileName>postgresql.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
@@ -497,7 +514,7 @@
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
 							<systemPropertyVariables>
-								<jboss.home>${project.build.directory}/wildfly-${test.wildfly.version}</jboss.home>
+								<jboss.home>${project.build.directory}/wildfly-preview-${test.wildfly.version}</jboss.home>
 								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 							</systemPropertyVariables>
 						</configuration>
@@ -513,7 +530,7 @@
 				<dependency>
 					<groupId>org.wildfly.arquillian</groupId>
 					<artifactId>wildfly-arquillian-container-managed</artifactId>
-					<version>2.2.0.Final</version>
+					<version>3.0.1.Final</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
@@ -528,7 +545,7 @@
 									<artifactItems>
 										<artifactItem>
 											<groupId>org.wildfly</groupId>
-											<artifactId>wildfly-dist</artifactId>
+											<artifactId>wildfly-preview-dist</artifactId>
 											<version>${test.wildfly.version}</version>
 											<type>zip</type>
 										</artifactItem>
@@ -548,7 +565,7 @@
 											<artifactId>mysql-connector-java</artifactId>
 											<version>${test.mysql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/standalone/deployments</outputDirectory>
 											<destFileName>mysql.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
@@ -567,7 +584,7 @@
 											<artifactId>postgresql</artifactId>
 											<version>${test.postgresql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
+											<outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/standalone/deployments</outputDirectory>
 											<destFileName>postgresql.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
@@ -586,7 +603,7 @@
 											<artifactId>eclipselink</artifactId>
 											<version>${test.wildfly-eclipselink.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
+											<outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
 											<destFileName>eclipselink.jar</destFileName>
 										</artifactItem>
 									</artifactItems>
@@ -606,7 +623,7 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
+									<outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
 									<resources>
 										<resource>
 											<directory>${project.basedir}/src/test/resources/wildfly-eclipselink</directory>
@@ -624,7 +641,7 @@
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
 							<systemPropertyVariables>
-								<jboss.home>${project.build.directory}/wildfly-${test.wildfly.version}</jboss.home>
+								<jboss.home>${project.build.directory}/wildfly-preview-${test.wildfly.version}</jboss.home>
 								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 							</systemPropertyVariables>
 						</configuration>

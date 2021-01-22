@@ -60,7 +60,7 @@ OptimusFaces.Util = (function(window, document) {
 		self.historyReplaceQueryString(queryString);
 		for (var i = 0; i < document.forms.length; i++) {
 			var form = document.forms[i];
-			if (form["javax.faces.ViewState"]) {
+			if (form["jakarta.faces.ViewState"]) {
 				form.action = form.action.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
 			}
 		}

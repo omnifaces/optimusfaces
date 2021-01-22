@@ -12,8 +12,8 @@
  */
 package org.omnifaces.optimusfaces.component;
 
-import javax.faces.context.FacesContext;
-import javax.faces.model.DataModel;
+import jakarta.faces.context.FacesContext;
+import jakarta.faces.model.DataModel;
 
 import org.omnifaces.optimusfaces.model.LazyPagedDataModel;
 import org.primefaces.component.datatable.DataTable;

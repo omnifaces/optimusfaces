@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.optimusfaces.model.PagedDataModel;

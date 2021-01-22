@@ -12,10 +12,10 @@
  */
 package org.omnifaces.optimusfaces.test.view;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.omnifaces.optimusfaces.model.PagedDataModel;
 import org.omnifaces.optimusfaces.test.model.Person;

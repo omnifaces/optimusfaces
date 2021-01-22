@@ -1,6 +1,6 @@
 language: java
 jdk:
-   - openjdk8
+   - openjdk11
 cache:
    directories:
       - "$HOME/.m2/repository"
@@ -13,9 +13,9 @@ services:
 env:
    - SERVER=wildfly-hibernate
    - SERVER=wildfly-eclipselink
-   - SERVER=payara-hibernate
-   - SERVER=payara-eclipselink
-   - SERVER=tomee-openjpa
+#  - SERVER=payara-hibernate
+#  - SERVER=payara-eclipselink
+#  - SERVER=tomee-openjpa
 before_script:
    - mysql -u root -e 'CREATE DATABASE test;'
    - psql -c 'CREATE DATABASE test;' -U postgres

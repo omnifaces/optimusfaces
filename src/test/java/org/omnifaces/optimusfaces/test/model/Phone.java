@@ -12,14 +12,14 @@
  */
 package org.omnifaces.optimusfaces.test.model;
 
-import static javax.persistence.EnumType.STRING;
+import static jakarta.persistence.EnumType.STRING;
 
-import javax.persistence.Entity;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
-import javax.validation.constraints.NotNull;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Transient;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class Phone extends LocalGeneratedIdEntity {
