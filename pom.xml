@@ -8,7 +8,7 @@
 
 	<groupId>org.omnifaces</groupId>
 	<artifactId>optimusfaces</artifactId>
-	<version>0.14.J1-SNAPSHOT</version>
+	<version>0.14.J1</version>
 	<packaging>jar</packaging>
 
 	<name>OptimusFaces</name>
@@ -108,7 +108,7 @@
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnipersistence</artifactId>
-			<version>0.16.J1-SNAPSHOT</version><!-- minimum required version - TODO: use final version -->
+			<version>0.16.J1</version>
 		</dependency>
 
 		<!-- PrimeFaces dependencies. -->
