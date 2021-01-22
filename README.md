@@ -19,11 +19,11 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 
 ```XML
 <dependencies>
-    <!-- Target Java EE server. -->
+    <!-- Target Jakarta EE server. -->
     <dependency>
-        <groupId>javax</groupId>
-        <artifactId>javaee-api</artifactId>
-        <version>8.0</version><!-- Minimum supported version is 7.0 -->
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-web-api</artifactId>
+        <version>9.0.0</version><!-- Minimum supported version is 9.0.0 -->
         <scope>provided</scope>
     </dependency>
 
@@ -31,17 +31,18 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>3.6</version><!-- Minimum supported version is 2.2 -->
+        <version>4.0-M4</version><!-- Minimum supported version is 4.0 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
-        <version>8.0</version><!-- Minimum supported version is 7.0 -->
+        <classifier>jakarta</classifier>
+        <version>10.0.0-RC1</version><!-- Minimum supported version is 10.0.0 -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.12</version>
+        <version>0.14.J1</version>
     </dependency>
 </dependencies>
 ```
