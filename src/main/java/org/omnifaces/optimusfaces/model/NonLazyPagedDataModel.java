@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.text.Collator;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -44,6 +45,7 @@ import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.datatable.DataTable;
+import org.primefaces.model.SortMeta;
 
 /**
  * Use {@link PagedDataModel#nonLazy(List)} to build one.
@@ -81,14 +83,14 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 			if (type != null) {
 				if (!page.getRequiredCriteria().isEmpty() || !page.getOptionalCriteria().isEmpty()) {
-					Map<List<Method>, Object> requiredCriteria = resolveGetters(type, page.getRequiredCriteria());
-					Map<List<Method>, Object> optionalCriteria = resolveGetters(type, page.getOptionalCriteria());
+					Map<List<Method>, Entry<String, Object>> requiredCriteria = resolveGetters(type, page.getRequiredCriteria());
+					Map<List<Method>, Entry<String, Object>> optionalCriteria = resolveGetters(type, page.getOptionalCriteria());
 					BeanPropertyFilter filter = new BeanPropertyFilter(table, requiredCriteria, optionalCriteria);
 					data = data.stream().filter(filter::matches).collect(toList());
 				}
 
 				if (data.size() > 1) {
-					Map<List<Method>, Boolean> ordering = resolveGetters(type, page.getOrdering());
+					Map<List<Method>, Entry<String, Boolean>> ordering = resolveGetters(type, page.getOrdering());
 					data.sort(new BeanPropertyComparator(table, ordering));
 				}
 			}
@@ -105,10 +107,10 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 	private class BeanPropertyFilter {
 
 		private final Locale locale;
-		private final Map<List<Method>, Object> requiredCriteria;
-		private final Map<List<Method>, Object> optionalCriteria;
+		private final Map<List<Method>, Entry<String, Object>> requiredCriteria;
+		private final Map<List<Method>, Entry<String, Object>> optionalCriteria;
 
-		public BeanPropertyFilter(DataTable table, Map<List<Method>, Object> requiredCriteria, Map<List<Method>, Object> optionalCriteria) {
+		public BeanPropertyFilter(DataTable table, Map<List<Method>, Entry<String, Object>> requiredCriteria, Map<List<Method>, Entry<String, Object>> optionalCriteria) {
 	        this.locale = table.resolveDataLocale();
 			this.requiredCriteria = requiredCriteria;
 			this.optionalCriteria = optionalCriteria;
@@ -119,13 +121,13 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 				return true; // Not our problem.
 			}
 
-			for (Entry<List<Method>, Object> criteria : requiredCriteria.entrySet()) {
+			for (Entry<List<Method>, Entry<String, Object>> criteria : requiredCriteria.entrySet()) {
 				if (!matches(entity, criteria)) {
 					return false;
 				}
 			}
 
-			for (Entry<List<Method>, Object> criteria : optionalCriteria.entrySet()) {
+			for (Entry<List<Method>, Entry<String, Object>> criteria : optionalCriteria.entrySet()) {
 				if (matches(entity, criteria)) {
 					return true;
 				}
@@ -134,9 +136,9 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 			return optionalCriteria.isEmpty();
 		}
 
-		private boolean matches(E entity, Entry<List<Method>, Object> criteria) {
+		private boolean matches(E entity, Entry<List<Method>, Entry<String, Object>> criteria) {
 			Object propertyValue = invokeMethods(entity, criteria.getKey(), null, false);
-			Object criteriaValue = criteria.getValue();
+			Object criteriaValue = criteria.getValue().getValue();
 
 			if (propertyValue instanceof Collection && !(criteriaValue instanceof Criteria)) {
 				return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
@@ -158,32 +160,30 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 		private final Locale locale;
 		private final Collator collator;
-		private final boolean caseSensitive;
-		private final boolean nullsLast;
-		private final Map<List<Method>, Boolean> ordering;
+		private final Map<String, SortMeta> sortBy;
+		private final Map<List<Method>, Entry<String, Boolean>> ordering;
 
-		public BeanPropertyComparator(DataTable table, Map<List<Method>, Boolean> ordering) {
+		public BeanPropertyComparator(DataTable table, Map<List<Method>, Entry<String, Boolean>> ordering) {
 			this.locale = table.resolveDataLocale();
 			this.collator = Collator.getInstance(locale);
-	        this.caseSensitive = table.isCaseSensitiveSort();
-	        this.nullsLast = table.getNullSortOrder() == 1;
+	        this.sortBy = table.getActiveSortMeta();
 			this.ordering = ordering;
 		}
 
-		public BeanPropertyComparator(BeanPropertyComparator parent, Map<List<Method>, Boolean> remainingOrdering) {
+		public BeanPropertyComparator(BeanPropertyComparator parent, Map<List<Method>, Entry<String, Boolean>> remainingOrdering) {
 			this.locale = parent.locale;
 			this.collator = parent.collator;
-	        this.caseSensitive = parent.caseSensitive;
-	        this.nullsLast = parent.nullsLast;
+	        this.sortBy = parent.sortBy;
 			this.ordering = remainingOrdering;
 		}
 
 		@Override
 		public int compare(E left, E right) {
-			for (Entry<List<Method>, Boolean> getter : ordering.entrySet()) {
-				Object leftProperty = left != null ? invokeMethods(left, getter.getKey(), this, getter.getValue()) : null;
-				Object rightProperty = right != null ? invokeMethods(right, getter.getKey(), this, getter.getValue()) : null;
-				int result = compareProperties(leftProperty, rightProperty) * (getter.getValue() ? 1 : -1);
+			for (Entry<List<Method>, Entry<String, Boolean>> getter : ordering.entrySet()) {
+				Object leftProperty = left != null ? invokeMethods(left, getter.getKey(), this, getter.getValue().getValue()) : null;
+				Object rightProperty = right != null ? invokeMethods(right, getter.getKey(), this, getter.getValue().getValue()) : null;
+				SortMeta sortMeta = sortBy.get(getter.getValue().getKey());
+				int result = compareProperties(leftProperty, rightProperty, sortMeta) * (getter.getValue().getValue() ? 1 : -1);
 
 				if (result != 0) {
 					return result;
@@ -194,18 +194,18 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 		}
 
 		@SuppressWarnings("unchecked")
-		private int compareProperties(Object left, Object right) {
+		private int compareProperties(Object left, Object right, SortMeta sortMeta) {
 			if (Objects.equals(left, right)) {
 				return 0;
 			}
 			else if (left == null) {
-				return nullsLast ? 1 : -1;
+				return sortMeta != null ? sortMeta.getNullSortOrder() : 1;
 			}
 			else if (right == null) {
-				return nullsLast ? -1 : 1;
+				return sortMeta != null ? sortMeta.getNullSortOrder() : -1;
 			}
 			else if (left instanceof String && right instanceof String) {
-				if (caseSensitive) {
+				if (sortMeta != null && sortMeta.isCaseSensitiveSort()) {
 					return collator.compare(left, right);
 				}
 				else {
@@ -216,7 +216,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 				return ((Comparable<Object>) left).compareTo(right);
 			}
 			else {
-				return compareProperties(left.toString(), right.toString());
+				return compareProperties(left.toString(), right.toString(), sortMeta);
 			}
 		}
 	}
@@ -224,8 +224,8 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
 	// Helpers --------------------------------------------------------------------------------------------------------
 
-	private static <T> Map<List<Method>, T> resolveGetters(Class<?> type, Map<String, T> properties) {
-		Map<List<Method>, T> getters = new LinkedHashMap<>();
+	private static <T> Map<List<Method>, Entry<String, T>> resolveGetters(Class<?> type, Map<String, T> properties) {
+		Map<List<Method>, Entry<String, T>> getters = new LinkedHashMap<>();
 
 		for (Entry<String, T> entry : properties.entrySet()) {
 			Class<?> beanClass = type;
@@ -245,7 +245,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 				}
 			}
 
-			getters.put(methods, entry.getValue());
+			getters.put(methods, entry);
 		}
 
 		return getters;
@@ -272,7 +272,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 				List<Method> remainingMethods = methods.subList(i, methods.size());
 
 				if (!remainingMethods.isEmpty() && comparator != null && ((List<?>) result).size() > 1) {
-					((List) result).sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, ascending)));
+					((List) result).sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, new AbstractMap.SimpleEntry<>(null, ascending))));
 				}
 
 				return stream(result).map(item -> invokeMethods(item, remainingMethods, comparator, ascending)).collect(toList());
