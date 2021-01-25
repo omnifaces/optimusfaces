@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -54,7 +53,9 @@ import org.primefaces.component.column.Column;
 import org.primefaces.component.columntoggler.ColumnToggler;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.event.ToggleEvent;
+import org.primefaces.model.FilterMeta;
 import org.primefaces.model.LazyDataModel;
+import org.primefaces.model.SortMeta;
 import org.primefaces.model.Visibility;
 
 /**
@@ -924,8 +925,8 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
 	// op:dataTable properties ----------------------------------------------------------------------------------------
 
-	Entry<String, Boolean> getOrdering();
-	Map<String, Object> getFilters();
+	SortMeta getOrdering(); // TODO: support new multisort feature
+	Map<String, FilterMeta> getFilters();
 
 	List<E> getFilteredValue();
 	void setFilteredValue(List<E> filteredValue);

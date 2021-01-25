@@ -19,6 +19,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Optional.ofNullable;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.omnifaces.persistence.model.Identifiable.ID;
@@ -30,7 +31,6 @@ import static org.omnifaces.util.FacesLocal.getRequestParameterValues;
 import static org.omnifaces.util.FacesLocal.isAjaxRequest;
 import static org.omnifaces.utils.Lang.coalesce;
 import static org.omnifaces.utils.Lang.isEmpty;
-import static org.omnifaces.utils.reflect.Reflections.invokeGetter;
 import static org.omnifaces.utils.stream.Collectors.toLinkedMap;
 import static org.omnifaces.utils.stream.Collectors.toLinkedSet;
 import static org.omnifaces.utils.stream.Streams.stream;
@@ -46,6 +46,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.faces.component.UIComponent;
@@ -67,7 +68,9 @@ import org.primefaces.component.api.UIColumn;
 import org.primefaces.component.api.UIData;
 import org.primefaces.component.datascroller.DataScroller;
 import org.primefaces.component.datatable.DataTable;
+import org.primefaces.model.FilterMeta;
 import org.primefaces.model.LazyDataModel;
+import org.primefaces.model.SortMeta;
 import org.primefaces.model.SortOrder;
 
 /**
@@ -123,12 +126,12 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	// Actions --------------------------------------------------------------------------------------------------------
 
 	@Override
-	public List<E> load(int offset, int limit, String tableSortField, SortOrder tableSortOrder, Map<String, Object> tableFilters) {
+	public List<E> load(int offset, int limit, Map<String, SortMeta> sortBy, Map<String, FilterMeta> filterBy) {
 		FacesContext context = getContext();
 		UIData data = getDataComponent();
 
 		if (data instanceof DataTable) {
-			loadPage(context, (DataTable) data, tableSortField, tableSortOrder, tableFilters);
+			loadPage(context, (DataTable) data, sortBy, filterBy);
 		}
 		else if (data instanceof DataScroller) {
 			loadPage(data, offset, limit, emptyMap(), emptyMap());
@@ -141,20 +144,20 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	}
 
 	public void preloadPage(FacesContext context, DataTable table) {
-		loadPage(context, table, null, null, emptyMap());
+		loadPage(context, table, emptyMap(), emptyMap());
 		setWrappedData(list);
 		setRowCount(list.getEstimatedTotalNumberOfResults());
 		setPageSize(table.getRows());
 	}
 
-	private void loadPage(FacesContext context, DataTable table, String tableSortField, SortOrder tableSortOrder, Map<String, Object> tableFilters) {
+	private void loadPage(FacesContext context, DataTable table, Map<String, SortMeta> sortBy, Map<String, FilterMeta> filterBy) {
 		List<UIColumn> processableColumns = table.getColumns().stream().filter(this::isProcessableColumn).collect(toList());
 
 		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
 		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
-		ordering = processPageAndOrdering(context, table, tableSortField, tableSortOrder);
-		filters = processFilters(context, table, processableColumns, tableFilters);
-		globalFilter = processGlobalFilter(context, table, tableFilters);
+		ordering = processPageAndOrdering(context, table, sortBy);
+		filters = processFilters(context, table, processableColumns, filterBy);
+		globalFilter = processGlobalFilter(context, table, filterBy);
 		selection = processSelectionIfNecessary(context, selection);
 
 		int offset = table.getFirst();
@@ -218,8 +221,12 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return Boolean.parseBoolean(String.valueOf(table.getAttributes().get("searchable")));
 	}
 
-	protected LinkedHashMap<String, Boolean> processPageAndOrdering(FacesContext context, DataTable table, String tableSortField, SortOrder tableSortOrder) {
+	protected LinkedHashMap<String, Boolean> processPageAndOrdering(FacesContext context, DataTable table, Map<String, SortMeta> sortBy) {
 		LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
+
+		SortMeta tableSortMeta = sortBy.isEmpty() ? new SortMeta() : sortBy.values().iterator().next();
+		String tableSortField = tableSortMeta.getField();
+		SortOrder tableSortOrder = tableSortMeta.getOrder();
 
 		if (list == null) {
 			String page = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_PAGE);
@@ -256,8 +263,10 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 			}
 
 			Entry<String, Boolean> defaultOrder = defaultOrdering.entrySet().iterator().next();
-			table.setSortField(coalesce(sortField, defaultOrder.getKey(), tableSortField));
-			table.setSortOrder(coalesce(sortOrder, sortField != null ? tableSortOrder : defaultOrder.getValue() ? ASCENDING : DESCENDING).name());
+			table.setSortBy(SortMeta.builder()
+				.field(coalesce(sortField, defaultOrder.getKey(), tableSortField))
+				.order(coalesce(sortOrder, sortField != null ? tableSortOrder : defaultOrder.getValue() ? ASCENDING : DESCENDING))
+				.build());
 		}
 		else if (!isEmpty(tableSortField)) {
 			ordering.put(tableSortField, tableSortOrder == ASCENDING);
@@ -267,12 +276,12 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return ordering;
 	}
 
-	protected LinkedHashMap<String, Object> processFilters(FacesContext context, DataTable table, List<UIColumn> processableColumns, Map<String, Object> tableFilters) {
+	protected LinkedHashMap<String, Object> processFilters(FacesContext context, DataTable table, List<UIColumn> processableColumns, Map<String, FilterMeta> filterBy) {
 		LinkedHashMap<String, Object> mergedFilters = new LinkedHashMap<>();
 
 		for (UIColumn column : processableColumns) {
 			String field = column.getField();
-			Object value = getFilterValue(tableFilters, field);
+			Object value = getFilterValue(filterBy, field);
 
 			if (isEmpty(value)) {
 				value = getTrimmedQueryParameters(context, getFilterParameterName(context, table, field));
@@ -295,8 +304,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return selection.isEmpty() ? emptyList() : new ArrayList<>(load(new Page(0, selection.size(), null, singletonMap(ID, selection), null), false));
 	}
 
-	protected String processGlobalFilter(FacesContext context, DataTable table, Map<String, Object> tableFilters) {
-		String globalFilter = getFilterValue(tableFilters, GLOBAL_FILTER);
+	protected String processGlobalFilter(FacesContext context, DataTable table, Map<String, FilterMeta> filterBy) {
+		String globalFilter = getFilterValue(filterBy, GLOBAL_FILTER);
 
 		if (globalFilter != null) {
 			globalFilter = globalFilter.trim();
@@ -309,18 +318,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return isEmpty(globalFilter) ? null : globalFilter;
 	}
 
-	private String getFilterValue(Map<String, Object> tableFilters, String field) {
-		Object filterValue = tableFilters.get(field);
-
-		if (filterValue == null) {
-			return null;
-		}
-		else if (filterValue instanceof String) {
-			return (String) filterValue;
-		}
-		else {
-			return invokeGetter(filterValue, "filterValue"); // org.primefaces.model.FilterMeta, introduced since PrimeFaces 8.0
-		}
+	private String getFilterValue(Map<String, FilterMeta> filterBy, String field) {
+		FilterMeta filterMeta = filterBy.get(field);
+		return (filterMeta == null) ? null : (String) filterMeta.getFilterValue();
 	}
 
 	private String getFilterParameterName(FacesContext context, DataTable table, String field) {
@@ -442,8 +442,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	// Getters+setters for op:dataTable and op:column -----------------------------------------------------------------
 
 	@Override
-	public Object getRowKey(E entity) {
-		return entity.getId();
+	public String getRowKey(E entity) {
+		return String.valueOf(entity.getId() != null ? entity.getId() : entity.hashCode());
 	}
 
 	@Override
@@ -452,13 +452,17 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	}
 
 	@Override
-	public Entry<String, Boolean> getOrdering() {
-		return ordering != null ? ordering.entrySet().iterator().next() : null;
+	public SortMeta getOrdering() {
+		return ordering == null ? null : ordering.entrySet().stream()
+			.map(entry -> SortMeta.builder().field(entry.getKey()).order(entry.getValue() ? SortOrder.ASCENDING : SortOrder.DESCENDING).build())
+			.findFirst().orElse(null); // TODO: optimize/cache this (and utilize the new multisort feature)
 	}
 
 	@Override
-	public Map<String, Object> getFilters() {
-		return filters;
+	public Map<String, FilterMeta> getFilters() {
+		return filters == null ? emptyMap() : filters.entrySet().stream()
+			.map(entry -> FilterMeta.builder().field(entry.getKey()).filterValue(entry.getValue()).build())
+			.collect(Collectors.toMap(FilterMeta::getField, identity())); // TODO: optimize/cache this
 	}
 
 	@Override

@@ -58,8 +58,8 @@
 
 		<!-- Minimum required Java versions. -->
 		<javase.version>1.8</javase.version>
-		<javaee.version>7</javaee.version>
-		
+		<javaee.version>8</javaee.version>
+
 		<!-- Essential Maven defaults. -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -76,25 +76,25 @@
 		<test.h2.version>1.4.200</test.h2.version>
 		<test.mysql-driver.version>8.0.22</test.mysql-driver.version>
 		<test.postgresql-driver.version>42.2.18</test.postgresql-driver.version>
-		<test.omnifaces.version>3.8.1</test.omnifaces.version>
-		<test.primefaces.version>8.0</test.primefaces.version>
+		<test.omnifaces.version>3.10.1</test.omnifaces.version>
+		<test.primefaces.version>10.0.0-RC1</test.primefaces.version>
 	</properties>
 
 	<dependencies>
 
-		<!-- Java EE 7 web profile dependencies. -->
+		<!-- Java EE 8 web profile dependencies. -->
 		<dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-web-api</artifactId>
-			<version>${javaee.version}.0</version><!-- minimum version for OmniFaces 2.2 -->
-			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
+			<version>${javaee.version}.0</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- OmniFaces dependencies. -->
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnifaces</artifactId>
-			<version>2.2</version><!-- minimum version for o:tagAttribute and Servlets#toQueryString() -->
+			<version>3.0</version><!-- minimum version since OptimusFaces 0.15 -->
 			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 		<dependency>
@@ -107,7 +107,7 @@
 		<dependency>
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
-			<version>7.0</version><!-- minimum version for properly resolving table sort fields in DataTableRenderer -->
+			<version>10.0.0-RC1</version><!-- minimum version since OptimusFaces 0.15 -->
 			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 
