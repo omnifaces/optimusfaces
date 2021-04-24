@@ -19,7 +19,7 @@
     </properties>
 
     <resources>
-        <resource-root path="jipijapa-eclipselink-21.0.0.Final.jar"/>
+        <resource-root path="jipijapa-eclipselink-23.0.1.Final.jar"/>
         <resource-root path="eclipselink.jar"><filter><exclude path="javax/**" /></filter></resource-root>
     </resources>
 
