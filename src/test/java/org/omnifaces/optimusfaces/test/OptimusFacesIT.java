@@ -1298,7 +1298,8 @@ public abstract class OptimusFacesIT {
 		String sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
 
 		assertTrue(field + " column must be active", activeColumn.findElement(By.cssSelector(".ui-column-title")).getText().equals(field));
-//		assertEquals(field + " column must be sorted", ascending, sortableColumnClass.contains("ui-icon-triangle-1-n")); // TODO: this looks like to be broken in PF10?
+		assertEquals(field + " column must be sorted ascending", ascending, sortableColumnClass.contains("ui-icon-triangle-1-n"));
+		assertEquals(field + " column must be sorted descending", !ascending, sortableColumnClass.contains("ui-icon-triangle-1-s"));
 		assertEquals("order query string", (isDefaultOrderBy && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
 
 		List<WebElement> cells = getCells(column);
