@@ -211,7 +211,7 @@
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>3.0</version>
+				<version>4.1</version>
 				<configuration>
 					<header>license.txt</header>
 					<excludes>
@@ -233,24 +233,22 @@
 
 			<!-- Configure the JavaScript minifier. -->
 			<plugin>
-				<groupId>com.samaxes.maven</groupId>
-				<artifactId>minify-maven-plugin</artifactId>
-				<version>1.7.6</version>
+				<groupId>com.github.blutorange</groupId>
+				<artifactId>closure-compiler-maven-plugin</artifactId>
+				<version>2.21.0</version>
 				<configuration>
-					<webappSourceDir>${basedir}/src/main/resources</webappSourceDir>
-					<webappTargetDir>${project.build.outputDirectory}</webappTargetDir>
-					<jsSourceDir>META-INF/resources/optimusfaces</jsSourceDir>
-					<nosuffix>true</nosuffix>
-					<jsEngine>CLOSURE</jsEngine>
+					<baseSourceDir>${basedir}/src/main/resources</baseSourceDir>
+					<baseTargetDir>${project.build.outputDirectory}</baseTargetDir>
+					<sourceDir>META-INF/resources/optimusfaces</sourceDir>
+					<targetDir>META-INF/resources/optimusfaces</targetDir>
+					<closureLanguageOut>ECMASCRIPT5</closureLanguageOut>
 				</configuration>
 				<executions>
 					<execution>
 						<id>minify</id>
 						<configuration>
 							<skipMerge>true</skipMerge>
-							<jsSourceIncludes>
-								<jsSourceInclude>**/*.js</jsSourceInclude>
-							</jsSourceIncludes>
+							<includes>**/*.js</includes>
 						</configuration>
 						<goals>
 							<goal>minify</goal>
@@ -304,8 +302,8 @@
 					<splitindex>true</splitindex>
 					<doctitle>OptimusFaces API documentation</doctitle>
 					<links>
-						<link>https://javaee.github.io/javaee-spec/javadocs/</link>
-						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.12/</link>
+						<link>https://jakarta.ee/specifications/platform/${javaee.version}/apidocs/</link>
+						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.19/</link>
 					</links>
 					<additionalJOption>-J-Dhttp.agent=maven-javadoc-plugin-${pom‌​.name}</additionalJOption>
 				</configuration>
@@ -348,7 +346,7 @@
 									<pluginExecutionFilter>
 										<groupId>com.mycila</groupId>
 										<artifactId>license-maven-plugin</artifactId>
-										<versionRange>[3.0,)</versionRange>
+										<versionRange>[4.1,)</versionRange>
 										<goals>
 											<goal>format</goal>
 										</goals>
@@ -361,9 +359,9 @@
 								</pluginExecution>
 								<pluginExecution>
 									<pluginExecutionFilter>
-										<groupId>com.samaxes.maven</groupId>
-										<artifactId>minify-maven-plugin</artifactId>
-										<versionRange>[1.7.6,)</versionRange>
+										<groupId>com.github.blutorange</groupId>
+										<artifactId>closure-compiler-maven-plugin</artifactId>
+										<versionRange>[2.21.0,)</versionRange>
 										<goals>
 											<goal>minify</goal>
 										</goals>
@@ -605,7 +603,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.1.0</version>
+						<version>3.2.0</version>
 						<executions>
 							<execution>
 								<id>register-eclipselink-in-wildfly</id>
