@@ -146,10 +146,10 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 	public void preloadPage(FacesContext context, DataTable table) {
 		SortMeta sortBy = getInitialOrdering(context, table);
-    	loadPage(context, table, singletonMap(sortBy.getField(), sortBy), emptyMap());
-    	setWrappedData(list);
-    	setRowCount(list.getEstimatedTotalNumberOfResults());
-    	setPageSize(table.getRows());
+		loadPage(context, table, singletonMap(sortBy.getField(), sortBy), emptyMap());
+		setWrappedData(list);
+		setRowCount(list.getEstimatedTotalNumberOfResults());
+		setPageSize(table.getRows());
 	}
 
 	private void loadPage(FacesContext context, DataTable table, Map<String, SortMeta> sortBy, Map<String, FilterMeta> filterBy) {
