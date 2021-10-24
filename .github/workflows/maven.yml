@@ -35,7 +35,7 @@ jobs:
     - name : Set up MySQL
       run: |
         sudo /etc/init.d/mysql start
-        mysql -u root -e 'CREATE DATABASE test;'
+        mysql -u root -proot -e 'CREATE DATABASE test;'
     - name : Set up PostgreSQL
       run: |
         sudo systemctl start postgresql.service

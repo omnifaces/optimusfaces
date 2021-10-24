@@ -22,7 +22,7 @@
 		<driver>mysql.jar</driver>
 		<security>
 			<user-name>root</user-name>
-			<password></password>
+			<password>root</password>
 		</security>
 	</datasource>
 </datasources>

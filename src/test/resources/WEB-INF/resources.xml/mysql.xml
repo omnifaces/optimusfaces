@@ -21,7 +21,7 @@
 		JdbcDriver com.mysql.jdbc.Driver
 		JdbcUrl jdbc:mysql://localhost:3306/test
 		UserName root
-		Password 
+		Password root
 		jtaManaged = true
 	</Resource>
 </resources>
