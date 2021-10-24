@@ -36,9 +36,10 @@ jobs:
       run: |
         sudo /etc/init.d/mysql start
         mysql -u root -proot -e 'CREATE DATABASE test;'
-    - name : Set up PostgreSQL
-      run: |
-        sudo systemctl start postgresql.service
-        PGPASSWORD=postgres sudo psql -U postgres -c 'CREATE DATABASE test;'
+# TODO: this keeps failing with 'psql: error: connection to server on socket "/var/run/postgresql/.s.PGSQL.5432" failed: FATAL:  Peer authentication failed for user "postgres"'
+#    - name : Set up PostgreSQL
+#      run: |
+#        sudo systemctl start postgresql.service
+#        PGPASSWORD=postgres sudo psql -U postgres -c 'CREATE DATABASE test;'
     - name: Test with Maven
       run: mvn verify -Dmaven.javadoc.skip=true -P ${{matrix.server}}
