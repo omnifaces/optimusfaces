@@ -24,6 +24,6 @@
 	<jdbc-connection-pool name="OptimusFacesIT" res-type="javax.sql.DataSource" datasource-classname="org.postgresql.ds.PGPoolingDataSource">
 		<property name="url" value="jdbc:postgresql:test" />
 		<property name="user" value="postgres" />
-		<property name="password" value="" />
+		<property name="password" value="postgres" />
 	</jdbc-connection-pool>
 </resources>

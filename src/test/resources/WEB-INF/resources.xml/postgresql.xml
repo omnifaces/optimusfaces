@@ -21,7 +21,7 @@
 		JdbcDriver org.postgresql.Driver
 		JdbcUrl jdbc:postgresql:test
 		UserName postgres
-		Password 
+		Password postgres
 		jtaManaged = true
 	</Resource>
 </resources>

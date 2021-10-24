@@ -22,7 +22,7 @@
 		<driver>postgresql.jar</driver>
 		<security>
 			<user-name>postgres</user-name>
-			<password></password>
+			<password>postgres</password>
 		</security>
 	</datasource>
 </datasources>
