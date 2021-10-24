@@ -39,6 +39,6 @@ jobs:
     - name : Set up PostgreSQL
       run: |
         sudo systemctl start postgresql.service
-        PGPASSWORD=postgres sudo psql -u postgres -c 'CREATE DATABASE test;'
+        PGPASSWORD=postgres sudo psql -U postgres -c 'CREATE DATABASE test;'
     - name: Test with Maven
       run: mvn verify -Dmaven.javadoc.skip=true -P ${{matrix.server}}
