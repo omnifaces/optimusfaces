@@ -1050,15 +1050,10 @@ public abstract class OptimusFacesIT {
 
 		assertNoCartesianProduct();
 
-		boolean skipAssertCriteriaState = (isEclipseLink() || isOpenJPA()) && isLazy();
+		boolean skipAssertCriteriaState = isEclipseLink() && isLazy();
 
 		if (skipAssertCriteriaState) {
-			if (isEclipseLink()) {
-				System.out.println("SKIPPING assertCriteriaState(phones.type) for EclipseLink because it refuses to perform a JOIN when setFirstResult/setMaxResults is used");
-			}
-			else if (isOpenJPA()) {
-				System.out.println("SKIPPING assertCriteriaState(phones.type) for OpenJPA because it somehow fails in Travis"); // TODO: investigate - this really worked localhost.
-			}
+			System.out.println("SKIPPING assertCriteriaState(phones.type) for EclipseLink because it refuses to perform a JOIN when setFirstResult/setMaxResults is used");
 		}
 		else {
 			boolean skipAssertRowCount = isOpenJPA() && isLazy();
