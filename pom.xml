@@ -72,7 +72,7 @@
 		<test.payara.version>5.2022.2</test.payara.version> <!-- https://search.maven.org/artifact/fish.payara.distributions/payara-web -->
 		<test.tomee.version>8.0.11</test.tomee.version> <!-- https://search.maven.org/artifact/org.apache.tomee/arquillian-tomee-remote -->
 		<test.wildfly-eclipselink.version>2.7.10</test.wildfly-eclipselink.version> <!-- https://search.maven.org/artifact/org.eclipse.persistence/eclipselink -->
-		<test.payara-hibernate.version>5.4.33.Final</test.payara-hibernate.version> <!-- https://search.maven.org/artifact/org.hibernate/hibernate-core -->
+		<test.payara-hibernate.version>5.6.9.Final</test.payara-hibernate.version> <!-- https://search.maven.org/artifact/org.hibernate/hibernate-core -->
 		<test.h2.version>1.4.200</test.h2.version>
 		<test.mysql-driver.version>8.0.29</test.mysql-driver.version> <!-- https://search.maven.org/artifact/mysql/mysql-connector-java -->
 		<test.postgresql-driver.version>42.3.5</test.postgresql-driver.version> <!-- https://search.maven.org/artifact/org.postgresql/postgresql -->
