@@ -73,11 +73,11 @@
 		<test.tomee.version>8.0.11</test.tomee.version> <!-- https://search.maven.org/artifact/org.apache.tomee/arquillian-tomee-remote -->
 		<test.wildfly-eclipselink.version>2.7.10</test.wildfly-eclipselink.version> <!-- https://search.maven.org/artifact/org.eclipse.persistence/eclipselink -->
 		<test.payara-hibernate.version>5.6.9.Final</test.payara-hibernate.version> <!-- https://search.maven.org/artifact/org.hibernate/hibernate-core -->
-		<test.h2.version>1.4.200</test.h2.version>
+		<test.h2.version>1.4.200</test.h2.version> <!-- https://search.maven.org/artifact/com.h2database/h2 -->
 		<test.mysql-driver.version>8.0.29</test.mysql-driver.version> <!-- https://search.maven.org/artifact/mysql/mysql-connector-java -->
 		<test.postgresql-driver.version>42.3.5</test.postgresql-driver.version> <!-- https://search.maven.org/artifact/org.postgresql/postgresql -->
-		<test.omnifaces.version>3.13.3</test.omnifaces.version>
-		<test.primefaces.version>10.0.0</test.primefaces.version>
+		<test.omnifaces.version>3.13.3</test.omnifaces.version> <!-- https://search.maven.org/artifact/org.omnifaces/omnifaces -->
+		<test.primefaces.version>10.0.0</test.primefaces.version> <!-- https://search.maven.org/artifact/org.omnifaces/omnifaces -->
 	</properties>
 
 	<repositories>
@@ -140,7 +140,7 @@
 		<dependency>
 			<groupId>org.jboss.arquillian.graphene</groupId>
 			<artifactId>graphene-webdriver</artifactId>
-			<version>2.1.0.Final</version> <!-- Newer versions appear to intermittently fail in RequestGuard -->
+			<version>3.0.0-alpha.3</version>
 			<type>pom</type>
 			<scope>test</scope>
 		</dependency>
@@ -165,14 +165,14 @@
 			<dependency>
 				<groupId>org.jboss.arquillian</groupId>
 				<artifactId>arquillian-bom</artifactId>
-				<version>1.6.0.Final</version>
+				<version>1.7.0.Alpha10</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.jboss.arquillian.extension</groupId>
 				<artifactId>arquillian-drone-bom</artifactId>
-				<version>2.0.1.Final</version> <!-- Newer versions are incompatible with graphene-webdriver:2.1.0.Final -->
+				<version>3.0.0-alpha.4</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
