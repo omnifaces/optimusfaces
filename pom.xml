@@ -68,14 +68,14 @@
 		<maven.source.excludeResources>true</maven.source.excludeResources>
 
 		<!-- Test versions. -->
-		<test.wildfly.version>23.0.1.Final</test.wildfly.version> <!-- https://search.maven.org/artifact/org.wildfly.bom/wildfly -->
-		<test.payara.version>5.2021.2</test.payara.version> <!-- https://search.maven.org/artifact/fish.payara.distributions/payara-web -->
-		<test.tomee.version>8.0.5</test.tomee.version> <!-- https://search.maven.org/artifact/org.apache.tomee/arquillian-tomee-remote -->
-		<test.wildfly-eclipselink.version>2.7.8</test.wildfly-eclipselink.version> <!-- https://search.maven.org/artifact/org.eclipse.persistence/eclipselink -->
-		<test.payara-hibernate.version>5.4.30.Final</test.payara-hibernate.version> <!-- https://search.maven.org/artifact/org.hibernate/hibernate-core -->
+		<test.wildfly.version>26.1.1.Final</test.wildfly.version> <!-- https://search.maven.org/artifact/org.wildfly.bom/wildfly -->
+		<test.payara.version>5.2022.2</test.payara.version> <!-- https://search.maven.org/artifact/fish.payara.distributions/payara-web -->
+		<test.tomee.version>8.0.11</test.tomee.version> <!-- https://search.maven.org/artifact/org.apache.tomee/arquillian-tomee-remote -->
+		<test.wildfly-eclipselink.version>2.7.10</test.wildfly-eclipselink.version> <!-- https://search.maven.org/artifact/org.eclipse.persistence/eclipselink -->
+		<test.payara-hibernate.version>5.4.33.Final</test.payara-hibernate.version> <!-- https://search.maven.org/artifact/org.hibernate/hibernate-core -->
 		<test.h2.version>1.4.200</test.h2.version>
-		<test.mysql-driver.version>8.0.24</test.mysql-driver.version> <!-- https://search.maven.org/artifact/mysql/mysql-connector-java -->
-		<test.postgresql-driver.version>42.2.20</test.postgresql-driver.version> <!-- https://search.maven.org/artifact/org.postgresql/postgresql -->
+		<test.mysql-driver.version>8.0.29</test.mysql-driver.version> <!-- https://search.maven.org/artifact/mysql/mysql-connector-java -->
+		<test.postgresql-driver.version>42.3.5</test.postgresql-driver.version> <!-- https://search.maven.org/artifact/org.postgresql/postgresql -->
 		<test.omnifaces.version>3.11</test.omnifaces.version>
 		<test.primefaces.version>10.0.0</test.primefaces.version>
 	</properties>
