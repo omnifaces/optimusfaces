@@ -144,6 +144,12 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return list;
 	}
 
+	// Introduced in PrimeFaces 11.0.0, but we want to keep OptimusFaces backwards compatible with PrimeFaces 10.0.0,
+	// hence the @Override annotation is dropped for now.
+	public int count(Map<String, FilterMeta> filterBy) {
+		return list == null ? 0 : list.getEstimatedTotalNumberOfResults();
+	}
+
 	public void preloadPage(FacesContext context, DataTable table) {
 		SortMeta sortBy = getInitialOrdering(context, table);
 		loadPage(context, table, singletonMap(sortBy.getField(), sortBy), emptyMap());
