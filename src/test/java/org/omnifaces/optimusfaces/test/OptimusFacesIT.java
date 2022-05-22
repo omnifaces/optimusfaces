@@ -125,13 +125,8 @@ public abstract class OptimusFacesIT {
 	private static void addPersistenceConfig(MavenResolverSystem maven, WebArchive archive) {
 		String persistenceConfigXml = getProperty("profile.id") + ".xml";
 		String persistenceXml = "META-INF/persistence.xml";
-		String ormXml = "META-INF/orm.xml";
 
 		archive.addAsResource(persistenceXml + "/" + persistenceConfigXml, persistenceXml);
-
-		if (OptimusFacesIT.class.getClassLoader().getResource(ormXml + "/" + persistenceConfigXml) != null) {
-			archive.addAsResource(ormXml + "/" + persistenceConfigXml, ormXml);
-		}
 
 		if (isPayara() && isHibernate()) {
 			// Does not work when placed in glassfish/modules? TODO: investigate.
