@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
@@ -45,6 +46,7 @@ public class Person extends LocalGeneratedIdEntity {
 	private @NotNull List<Phone> phones = new ArrayList<>();
 
 	@ElementCollection
+	@Column(name="\"groups\"") // "groups" has become a new reserved word since MySQL 8.0.2, so we need to quote it.
 	private @Enumerated(STRING) Set<Group> groups = new HashSet<>();
 
 	public String getEmail() {
