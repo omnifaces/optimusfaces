@@ -31,20 +31,27 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>3.6</version><!-- Minimum supported version is 2.2 -->
+        <version>3.13.3</version><!-- Minimum supported version is 3.0 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
-        <version>8.0</version><!-- Minimum supported version is 7.0 -->
+        <version>10.0.0</version><!-- Minimum supported version is 10.0.0 -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.12</version>
+        <version>0.15</version>
     </dependency>
 </dependencies>
 ```
+
+**Minumum supported OmniFaces / PrimeFaces versions**
+
+- OptimusFaces 0.1 - 0.14: OmniFaces 2.2 / PrimeFaces 7.0
+- OptimusFaces 0.15: OmniFaces 3.0 / PrimeFaces 10.0.0
+- OptimusFaces 0.14-J1: OmniFaces 4.0 / PrimeFaces 10.0.0:jakarta
+
 
 ### Basic Usage
 
@@ -137,16 +144,16 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 - OpenJPA adds internally a second `JOIN` when sorting a column referenced by a join (`@OneToMany` and `@ElementCollection`). This has as consequence that the sorting is performed on a different join than the one referenced in `GROUP BY` and will thus be off from what's presented. You should for now set such columns as `<op:column ... sortable="false">` or consider using a DTO instead.
 - OpenJPA does not correctly apply setFirstResult/setMaxResults when an `@OneToMany` relationship is involved in the query. It will basically apply it on the results of the `@OneToMany` relationship instead of on the query root, causing the page to contain fewer records than expected. There is no clear solution/workaround for that yet.
 
-The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on following environments:
-- WildFly 19.0.0 with Mojarra 2.3.9 and Hibernate 5.3.15
-- WildFly 19.0.0 with Mojarra 2.3.9 and EclipseLink 2.7.6
-- Payara 5.201 with Mojarra 2.3.14 and Hibernate 5.4.12
-- Payara 5.201 with Mojarra 2.3.14 and EclipseLink 2.7.4
-- TomEE 8.0.1 with MyFaces 2.3.6 and OpenJPA 3.1.0
+The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions/workflows/maven.yml):
+- WildFly 26.1.1 with Mojarra 2.3.17 and Hibernate 5.3.24
+- WildFly 26.1.1 with Mojarra 2.3.17 and EclipseLink 2.7.10
+- Payara 5.2022.2 with Mojarra 2.3.14 and Hibernate 5.4.33
+- Payara 5.2022.2 with Mojarra 2.3.14 and EclipseLink 2.7.9
+- TomEE 8.0.11 with MyFaces 2.3.9 and OpenJPA 3.2.2
 
 Each environment will run the IT on following databases:
-- H2 1.4.197 on WildFly and H2 1.4.200 on Payara and TomEE (embedded database)
-- MySQL 5.7.29 (provided by Travis) with JDBC driver 8.0.19
-- PostgreSQL 9.6.17 (provided by Travis) with JDBC driver 42.2.11
+- H2 1.4.200 (embedded database)
+- MySQL latest 8.x (provided by GitHub Actions) with JDBC driver 8.0.29
+- PostgreSQL latest 12.x (provided by GitHub Actions) with JDBC driver 42.3.5
 
-Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L426) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L429) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
