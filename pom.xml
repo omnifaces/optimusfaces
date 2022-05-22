@@ -76,7 +76,7 @@
 		<test.h2.version>1.4.200</test.h2.version>
 		<test.mysql-driver.version>8.0.29</test.mysql-driver.version> <!-- https://search.maven.org/artifact/mysql/mysql-connector-java -->
 		<test.postgresql-driver.version>42.3.5</test.postgresql-driver.version> <!-- https://search.maven.org/artifact/org.postgresql/postgresql -->
-		<test.omnifaces.version>3.11</test.omnifaces.version>
+		<test.omnifaces.version>3.13.3</test.omnifaces.version>
 		<test.primefaces.version>10.0.0</test.primefaces.version>
 	</properties>
 
