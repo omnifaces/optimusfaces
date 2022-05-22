@@ -21,8 +21,8 @@
 		<connection-url>jdbc:postgresql:test</connection-url>
 		<driver>postgresql.jar</driver>
 		<security>
-			<user-name>postgres</user-name>
-			<password>postgres</password>
+			<user-name>test</user-name>
+			<password>test</password>
 		</security>
 	</datasource>
 </datasources>

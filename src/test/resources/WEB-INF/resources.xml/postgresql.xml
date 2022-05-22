@@ -20,8 +20,8 @@
 	<Resource id="OptimusFacesIT" type="javax.sql.DataSource">
 		JdbcDriver org.postgresql.Driver
 		JdbcUrl jdbc:postgresql:test
-		UserName postgres
-		Password postgres
+		UserName test
+		Password test
 		jtaManaged = true
 	</Resource>
 </resources>
