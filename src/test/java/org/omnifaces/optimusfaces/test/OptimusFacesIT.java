@@ -25,8 +25,8 @@ import static java.util.stream.Collectors.toList;
 import static org.jboss.arquillian.graphene.Graphene.guardAjax;
 import static org.jboss.arquillian.graphene.Graphene.waitGui;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_ORDER;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_PAGE;
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_SEARCH;
@@ -60,12 +60,12 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolverSystem;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.omnifaces.optimusfaces.test.model.Gender;
 import org.omnifaces.persistence.Database;
 import org.omnifaces.persistence.criteria.Between;
@@ -80,6 +80,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.ui.Select;
 
+@ExtendWith(OptimusFacesIT.TestLogger.class)
 public abstract class OptimusFacesIT {
 
 	private static final int TIMEOUT_IN_SECONDS = 5;
@@ -147,34 +148,32 @@ public abstract class OptimusFacesIT {
 		}
 	}
 
-	@Rule
-	public TestRule watcher = new TestWatcher() {
+	public static class TestLogger implements BeforeEachCallback, AfterEachCallback {
 
 		@Override
-		protected void starting(Description description) {
+		public void beforeEach(ExtensionContext context) throws Exception {
 			System.out.println(""
-				+ "\n"
-				+ "\n    ============================================================================================="
-				+ "\n    Starting " + description.getMethodName() + " ..."
-				+ "\n    ============================================================================================="
-				+ "\n"
-			);
+					+ "\n"
+					+ "\n    ============================================================================================="
+					+ "\n    Starting " + context.getTestMethod().get().getName() + " ..."
+					+ "\n    ============================================================================================="
+					+ "\n"
+				);
 		}
 
 		@Override
-		protected void finished(Description description) {
+		public void afterEach(ExtensionContext context) throws Exception {
 			System.out.println(""
-				+ "\n    ============================================================================================="
-				+ "\n    " + description.getMethodName() + " finished!"
-				+ "\n    ============================================================================================="
-				+ "\n"
-				+ "\n"
-			);
+					+ "\n    ============================================================================================="
+					+ "\n    " + context.getTestMethod().get().getName() + " finished!"
+					+ "\n    ============================================================================================="
+					+ "\n"
+					+ "\n"
+				);
 		}
+	}
 
-	};
-
-	@Before
+	@BeforeEach
 	public void init() {
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(OFF); // MyFaces triggers for some reason a lot of awkward JS "illegal selector" and CSS "em has to be a px" warnings.
 		configureTimeouts(browser);
@@ -616,7 +615,7 @@ public abstract class OptimusFacesIT {
 	// Testers --------------------------------------------------------------------------------------------------------
 
 	protected void testDefaultState() {
-		assertEquals("row count", ROWS_PER_PAGE, rows.size());
+		assertEquals(ROWS_PER_PAGE, rows.size(), "row count");
 		assertPaginatorState(1);
 		assertSortedState(idColumn, false);
 	}
@@ -711,7 +710,7 @@ public abstract class OptimusFacesIT {
 		globalFilter.sendKeys("FEMALE");
 		guardAjax(globalFilterButton).click();
 		int totalRecords2 = getRowCount();
-		assertTrue(totalRecords2 + " must be less than " + totalRecords1, totalRecords2 < totalRecords1);
+		assertTrue(totalRecords2 < totalRecords1, totalRecords2 + " must be less than " + totalRecords1);
 		assertGlobalFilterState("FEMALE");
 		assertFilteredState(idColumnFilter, "3");
 
@@ -730,7 +729,7 @@ public abstract class OptimusFacesIT {
 
 		guardAjax(emailColumnFilter).sendKeys("1");
 		int totalRecords4 = getRowCount();
-		assertTrue(totalRecords4 + " must be less than " + totalRecords3, totalRecords4 < totalRecords3);
+		assertTrue(totalRecords4 < totalRecords3, totalRecords4 + " must be less than " + totalRecords3);
 		assertPaginatorState(1);
 		assertFilteredState(emailColumnFilter, "1");
 		assertFilteredState(genderColumnFilter, "FEMALE");
@@ -802,14 +801,14 @@ public abstract class OptimusFacesIT {
 		globalFilter.sendKeys("FEMALE");
 		guardAjax(globalFilterButton).click();
 		int totalRecords1 = getRowCount();
-		assertTrue(totalRecords1 + " must be less than 119", totalRecords1 < 119);
+		assertTrue(totalRecords1 < 119, totalRecords1 + " must be less than 119");
 		assertFilteredState(emailColumnFilter, "1");
 		assertGlobalFilterState("FEMALE");
 		assertSortedState(emailColumn, false);
 
 		guardAjax(idColumn).click();
 		int totalRecords2 = getRowCount();
-		assertTrue(totalRecords1 + " must be equal to " + totalRecords2, totalRecords1 == totalRecords2);
+		assertTrue(totalRecords1 == totalRecords2, totalRecords1 + " must be equal to " + totalRecords2);
 		assertFilteredState(emailColumnFilter, "1");
 		assertGlobalFilterState("FEMALE");
 		assertSortedState(idColumn, true);
@@ -865,14 +864,14 @@ public abstract class OptimusFacesIT {
 		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
 		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
 		int rowCount1 = getRowCount();
-		assertTrue(rowCount1 + " must be less than 101", rowCount1 < 101);
+		assertTrue(rowCount1 < 101, rowCount1 + " must be less than 101");
 
 		guardAjax(criteriaGenderIsFemale).click();
 		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
 		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
 		assertCriteriaState(genderColumn, "FEMALE");
 		int rowCount2 = getRowCount();
-		assertTrue(rowCount2 + " must be less than " + rowCount1, rowCount2 < rowCount1);
+		assertTrue(rowCount2 < rowCount1, rowCount2 + " must be less than " + rowCount1);
 
 		guardAjax(criteriaDateOfBirthBefore1950).click();
 		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
@@ -880,22 +879,22 @@ public abstract class OptimusFacesIT {
 		assertCriteriaState(genderColumn, "FEMALE");
 		assertCriteriaState(dateOfBirthColumn, Order.lessThan(LocalDate.of(1950, 1, 1)), LocalDate::parse);
 		int rowCount3 = getRowCount();
-		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
+		assertTrue(rowCount3 < rowCount2, rowCount3 + " must be less than " + rowCount2);
 
 		guardAjax(criteriaIdBetween50And150).click(); // Uncheck
 		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
 		assertCriteriaState(genderColumn, "FEMALE");
 		int rowCount4 = getRowCount();
-		assertTrue(rowCount4 + " must be more than " + rowCount3, rowCount4 > rowCount3);
+		assertTrue(rowCount4 > rowCount3, rowCount4 + " must be more than " + rowCount3);
 
 		guardAjax(criteriaEmailLikeName1).click(); // Uncheck
 		assertCriteriaState(genderColumn, "FEMALE");
 		int rowCount5 = getRowCount();
-		assertTrue(rowCount5 + " must be more than " + rowCount4, rowCount5 > rowCount4);
+		assertTrue(rowCount5 > rowCount4, rowCount5 + " must be more than " + rowCount4);
 
 		guardAjax(criteriaGenderIsFemale).click(); // Uncheck
 		int rowCount6 = getRowCount();
-		assertTrue(rowCount6 + " must be more than " + rowCount5, rowCount6 > rowCount5);
+		assertTrue(rowCount6 > rowCount5, rowCount6 + " must be more than " + rowCount5);
 
 		guardAjax(criteriaDateOfBirthBefore1950).click(); // Uncheck
 		assertPaginatorState(1, TOTAL_RECORDS);
@@ -911,7 +910,7 @@ public abstract class OptimusFacesIT {
 			matches += getRowCount();
 		}
 
-		assertEquals("total matches", TOTAL_RECORDS, matches);
+		assertEquals(TOTAL_RECORDS, matches, "total matches");
 	}
 
 	protected void testDTO() {
@@ -1014,14 +1013,14 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(phones_numberColumnFilter, "11");
 		assertNoCartesianProduct();
 		int rowCount1 = getRowCount();
-		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
+		assertTrue(rowCount1 < TOTAL_RECORDS, rowCount1 + " must be less than " + TOTAL_RECORDS);
 
 		if (!skipAssertSortedState) {
 			guardAjax(phones_numberColumn).click();
 			assertSortedState(phones_numberColumn, false);
 			assertNoCartesianProduct();
 			int rowCount2 = getRowCount();
-			assertEquals("rowcount is still the same", rowCount1, rowCount2);
+			assertEquals(rowCount1, rowCount2, "rowcount is still the same");
 		}
 
 		guardAjax(emailColumnFilter).sendKeys("1");
@@ -1029,7 +1028,7 @@ public abstract class OptimusFacesIT {
 		assertFilteredState(phones_numberColumnFilter, "11");
 		assertNoCartesianProduct();
 		int rowCount3 = getRowCount();
-		assertTrue(rowCount3 + " must be less than " + rowCount1, rowCount3 < rowCount1);
+		assertTrue(rowCount3 < rowCount1, rowCount3 + " must be less than " + rowCount1);
 
 		clearColumnFilter(phones_numberColumnFilter);
 		assertPaginatorState(1, 119, true);
@@ -1062,7 +1061,7 @@ public abstract class OptimusFacesIT {
 			assertCriteriaState(phones_typeColumn, "MOBILE");
 			int rowCount4 = getRowCount();
 			if (!skipAssertRowCount) {
-				assertTrue(rowCount4 + " must be less than " + TOTAL_RECORDS, rowCount4 < TOTAL_RECORDS);
+				assertTrue(rowCount4 < TOTAL_RECORDS, rowCount4 + " must be less than " + TOTAL_RECORDS);
 			}
 			assertNoCartesianProduct();
 
@@ -1070,7 +1069,7 @@ public abstract class OptimusFacesIT {
 			assertCriteriaState(phones_typeColumn, "MOBILE", "HOME");
 			int rowCount5 = getRowCount();
 			if (!skipAssertRowCount) {
-				assertTrue(rowCount5 + " must be less than " + rowCount4, rowCount5 < rowCount4);
+				assertTrue(rowCount5 < rowCount4, rowCount5 + " must be less than " + rowCount4);
 			}
 			assertNoCartesianProduct();
 
@@ -1078,7 +1077,7 @@ public abstract class OptimusFacesIT {
 			assertCriteriaState(phones_typeColumn, "MOBILE", "HOME", "WORK");
 			int rowCount6 = getRowCount();
 			if (!skipAssertRowCount) {
-				assertTrue(rowCount6 + " must be less than " + rowCount5, rowCount6 < rowCount5);
+				assertTrue(rowCount6 < rowCount5, rowCount6 + " must be less than " + rowCount5);
 			}
 			assertNoCartesianProduct();
 
@@ -1086,7 +1085,7 @@ public abstract class OptimusFacesIT {
 			assertCriteriaState(phones_typeColumn, "HOME", "WORK");
 			int rowCount7 = getRowCount();
 			if (!skipAssertRowCount) {
-				assertTrue(rowCount7 + " must be more than " + rowCount6, rowCount7 > rowCount6);
+				assertTrue(rowCount7 > rowCount6, rowCount7 + " must be more than " + rowCount6);
 			}
 			assertNoCartesianProduct();
 
@@ -1094,7 +1093,7 @@ public abstract class OptimusFacesIT {
 			assertCriteriaState(phones_typeColumn, "WORK");
 			int rowCount8 = getRowCount();
 			if (!skipAssertRowCount) {
-				assertTrue(rowCount8 + " must be more than " + rowCount7, rowCount8 > rowCount7);
+				assertTrue(rowCount8 > rowCount7, rowCount8 + " must be more than " + rowCount7);
 			}
 			assertNoCartesianProduct();
 
@@ -1118,43 +1117,43 @@ public abstract class OptimusFacesIT {
 		guardAjax(criteriaGroupUSER).click();
 		assertCriteriaState(groupsColumn, "USER");
 		int rowCount1 = getRowCount();
-		assertTrue(rowCount1 + " must be less than " + TOTAL_RECORDS, rowCount1 < TOTAL_RECORDS);
+		assertTrue(rowCount1 < TOTAL_RECORDS, rowCount1 + " must be less than " + TOTAL_RECORDS);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupMANAGER).click();
 		assertCriteriaState(groupsColumn, "USER", "MANAGER");
 		int rowCount2 = getRowCount();
-		assertTrue(rowCount2 + " must be less than " + rowCount1, rowCount2 < rowCount1);
+		assertTrue(rowCount2 < rowCount1, rowCount2 + " must be less than " + rowCount1);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupADMINISTRATOR).click();
 		assertCriteriaState(groupsColumn, "USER", "MANAGER", "ADMINISTRATOR");
 		int rowCount3 = getRowCount();
-		assertTrue(rowCount3 + " must be less than " + rowCount2, rowCount3 < rowCount2);
+		assertTrue(rowCount3 < rowCount2, rowCount3 + " must be less than " + rowCount2);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupDEVELOPER).click();
 		assertCriteriaState(groupsColumn, "USER", "MANAGER", "ADMINISTRATOR", "DEVELOPER");
 		int rowCount4 = getRowCount();
-		assertTrue(rowCount4 + " must be less than " + rowCount3, rowCount4 < rowCount3);
+		assertTrue(rowCount4 < rowCount3, rowCount4 + " must be less than " + rowCount3);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupUSER).click(); // Uncheck
 		assertCriteriaState(groupsColumn, "MANAGER", "ADMINISTRATOR", "DEVELOPER");
 		int rowCount5 = getRowCount();
-		assertTrue(rowCount5 + " must be more than " + rowCount4, rowCount5 > rowCount4);
+		assertTrue(rowCount5 > rowCount4, rowCount5 + " must be more than " + rowCount4);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupMANAGER).click(); // Uncheck
 		assertCriteriaState(groupsColumn, "ADMINISTRATOR", "DEVELOPER");
 		int rowCount6 = getRowCount();
-		assertTrue(rowCount6 + " must be more than " + rowCount5, rowCount6 > rowCount5);
+		assertTrue(rowCount6 > rowCount5, rowCount6 + " must be more than " + rowCount5);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupADMINISTRATOR).click(); // Uncheck
 		assertCriteriaState(groupsColumn, "DEVELOPER");
 		int rowCount7 = getRowCount();
-		assertTrue(rowCount7 + " must be more than " + rowCount6, rowCount7 > rowCount6);
+		assertTrue(rowCount7 > rowCount6, rowCount7 + " must be more than " + rowCount6);
 		assertNoCartesianProduct();
 
 		guardAjax(criteriaGroupDEVELOPER).click(); // Uncheck
@@ -1260,14 +1259,14 @@ public abstract class OptimusFacesIT {
 			System.out.println("SKIPPING assertEquals(visibleRecords, getCells(idColumn).size()) for OpenJPA because it doesn't correctly limit @OneToMany and @ElementCollection on root"); // TODO: improve?
 		}
 		else {
-			assertEquals("visible records", visibleRecords, getCells(idColumn).size());
+			assertEquals(visibleRecords, getCells(idColumn).size(), "visible records");
 		}
 
-		assertEquals("total records", expectedTotalRecords, totalRecords);
-		assertEquals("page report", "Showing " + startRecord + " - " + endRecord + " of " + totalRecords + " records", pageReport.getText());
-		assertEquals("page count", min(pageCount, 10), pages.size());
-		assertEquals("page current", String.valueOf(currentPage), pageCurrent.getText());
-		assertEquals("page query string", (currentPage == 1) ? null : String.valueOf(currentPage), getQueryParameter(QUERY_PARAMETER_PAGE));
+		assertEquals(expectedTotalRecords, totalRecords, "total records");
+		assertEquals("Showing " + startRecord + " - " + endRecord + " of " + totalRecords + " records", pageReport.getText(), "page report");
+		assertEquals(min(pageCount, 10), pages.size(), "page count");
+		assertEquals(String.valueOf(currentPage), pageCurrent.getText(), "page current");
+		assertEquals((currentPage == 1) ? null : String.valueOf(currentPage), getQueryParameter(QUERY_PARAMETER_PAGE), "page query string");
 	}
 
 	protected void assertSortedState(WebElement column, boolean ascending) {
@@ -1280,10 +1279,10 @@ public abstract class OptimusFacesIT {
 		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 		String sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
 
-		assertTrue(field + " column must be active", activeColumn.findElement(By.cssSelector(".ui-column-title")).getText().equals(field));
-		assertEquals(field + " column must be sorted ascending", ascending, sortableColumnClass.contains("ui-icon-triangle-1-n"));
-		assertEquals(field + " column must be sorted descending", !ascending, sortableColumnClass.contains("ui-icon-triangle-1-s"));
-		assertEquals("order query string", (isDefaultOrderBy && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER));
+		assertTrue(activeColumn.findElement(By.cssSelector(".ui-column-title")).getText().equals(field), field + " column must be active");
+		assertEquals(ascending, sortableColumnClass.contains("ui-icon-triangle-1-n"), field + " column must be sorted ascending");
+		assertEquals(!ascending, sortableColumnClass.contains("ui-icon-triangle-1-s"), field + " column must be sorted descending");
+		assertEquals((isDefaultOrderBy && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER), "order query string");
 
 		List<WebElement> cells = getCells(column);
 		List<String> actualValues = cells.stream().map(this::sortIterableIfNecessary).collect(toList());
@@ -1301,7 +1300,7 @@ public abstract class OptimusFacesIT {
 			}
 		}
 
-		assertEquals(field + " ordering", expectedValues, actualValues);
+		assertEquals(expectedValues, actualValues, field + " ordering");
 	}
 
 	private String sortIterableIfNecessary(WebElement cell) {
@@ -1325,34 +1324,34 @@ public abstract class OptimusFacesIT {
 
 		WebElement input = "select".equals(filter.getTagName()) ? new Select(filter).getFirstSelectedOption() : filter;
 		String actualFilterValue = input.getAttribute("value");
-		assertEquals("filter value", filterValue, actualFilterValue);
-		assertEquals("filter query string", actualFilterValue, getQueryParameter(field));
+		assertEquals(filterValue, actualFilterValue, "filter value");
+		assertEquals(actualFilterValue, getQueryParameter(field), "filter query string");
 
 		List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
-		assertTrue(field + " filtering " + actualValues + " matches " + filterValue, actualValues.stream().allMatch(value -> value.contains(filterValue)));
+		assertTrue(actualValues.stream().allMatch(value -> value.contains(filterValue)), field + " filtering " + actualValues + " matches " + filterValue);
 	}
 
 	protected void assertSelectedState(int selectedId) {
-		assertTrue(selectedId + " must be selected", selectedRow.findElement(By.cssSelector("td:first-child")).getText().equals(String.valueOf(selectedId)));
-		assertTrue(selectedId + " must be in the selection", selection.getText().equals("[Person[" + selectedId + "]]"));
-		assertEquals("select query string", String.valueOf(selectedId), getQueryParameter(QUERY_PARAMETER_SELECTION));
+		assertTrue(selectedRow.findElement(By.cssSelector("td:first-child")).getText().equals(String.valueOf(selectedId)), selectedId + " must be selected");
+		assertTrue(selection.getText().equals("[Person[" + selectedId + "]]"), selectedId + " must be in the selection");
+		assertEquals(String.valueOf(selectedId), getQueryParameter(QUERY_PARAMETER_SELECTION), "select query string");
 	}
 
 	protected void assertGlobalFilterState(String filterValue) {
 		String actualFilterValue = globalFilter.getAttribute("value");
-		assertEquals("filter value", filterValue, actualFilterValue);
-		assertEquals("filter query string", actualFilterValue, getQueryParameter(QUERY_PARAMETER_SEARCH));
+		assertEquals(filterValue, actualFilterValue, "filter value");
+		assertEquals(actualFilterValue, getQueryParameter(QUERY_PARAMETER_SEARCH), "filter query string");
 
 		for (WebElement row : rows) {
 			String rowAsString = row.getText();
-			assertTrue("row " + rowAsString + " matches global filter " + filterValue, rowAsString.contains(filterValue));
+			assertTrue(rowAsString.contains(filterValue), "row " + rowAsString + " matches global filter " + filterValue);
 		}
 	}
 
 	protected void assertCriteriaState(WebElement column, Criteria<?> criteria, Function<String, ?> parser) {
 		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 		List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
-		assertTrue(field + " criteria " + actualValues + " matches " + criteria, actualValues.stream().allMatch(value -> criteria.applies(parser.apply(value))));
+		assertTrue(actualValues.stream().allMatch(value -> criteria.applies(parser.apply(value))), field + " criteria " + actualValues + " matches " + criteria);
 	}
 
 	protected void assertCriteriaState(WebElement column, String... criteriaValues) {
@@ -1360,7 +1359,7 @@ public abstract class OptimusFacesIT {
 		List<String> expectedValues = asList(criteriaValues);
 		getCells(column).stream().map(WebElement::getText).forEach(text -> {
 			List<String> actualValues = asList(text.split("\n"));
-			assertTrue(field + " criteria " + actualValues + " contains any " + expectedValues, actualValues.stream().anyMatch(value -> expectedValues.contains(value)));
+			assertTrue(actualValues.stream().anyMatch(value -> expectedValues.contains(value)), field + " criteria " + actualValues + " contains any " + expectedValues);
 		});
 	}
 
@@ -1372,7 +1371,7 @@ public abstract class OptimusFacesIT {
 	protected void assertNoCartesianProduct() {
 		List<Integer> actualIds = getCells(idColumn).stream().map(WebElement::getText).map(Integer::valueOf).sorted().collect(toList());
 		List<Integer> expectedIds = actualIds.stream().distinct().collect(toList());
-		assertEquals("No cartesian product", expectedIds, actualIds);
+		assertEquals(expectedIds, actualIds, "No cartesian product");
 	}
 
 }
