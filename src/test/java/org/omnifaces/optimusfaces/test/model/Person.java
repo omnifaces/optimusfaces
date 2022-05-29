@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 OmniFaces
+ * Copyright OmniFaces
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -45,6 +46,7 @@ public class Person extends LocalGeneratedIdEntity {
 	private @NotNull List<Phone> phones = new ArrayList<>();
 
 	@ElementCollection
+	@Column(name="\"groups\"") // "groups" has become a new reserved word since MySQL 8.0.2, so we need to quote it.
 	private @Enumerated(STRING) Set<Group> groups = new HashSet<>();
 
 	public String getEmail() {

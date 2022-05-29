@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2021 OmniFaces
+    Copyright OmniFaces
 
     Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
     the License. You may obtain a copy of the License at
@@ -19,7 +19,7 @@
     </properties>
 
     <resources>
-        <resource-root path="jipijapa-eclipselink-22.0.0.Final.jar"/>
+        <resource-root path="jipijapa-eclipselink-26.1.1.Final.jar"/>
         <resource-root path="eclipselink.jar"><filter><exclude path="jakarta/**" /></filter></resource-root>
     </resources>
 

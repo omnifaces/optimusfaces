@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 OmniFaces
+ * Copyright OmniFaces
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,11 +15,11 @@ package org.omnifaces.optimusfaces.test;
 import static org.omnifaces.persistence.Database.MYSQL;
 
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-@RunWith(Arquillian.class)
+@ExtendWith(ArquillianExtension.class)
 public class OptimusFacesMySQLIT extends OptimusFacesIT {
 
 	@Deployment(testable=false)

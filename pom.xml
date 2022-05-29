@@ -8,7 +8,7 @@
 
 	<groupId>org.omnifaces</groupId>
 	<artifactId>optimusfaces</artifactId>
-	<version>0.15.J1-SNAPSHOT</version>
+	<version>0.16.J1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>OptimusFaces</name>
@@ -102,13 +102,13 @@
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnifaces</artifactId>
-			<version>4.0-M4</version><!-- minimum required version - TODO: use final version -->
+			<version>4.0-M16</version><!-- minimum required version - TODO: use final version -->
 			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnipersistence</artifactId>
-			<version>0.16.J1</version>
+			<version>0.20.J1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- PrimeFaces dependencies. -->
@@ -116,20 +116,20 @@
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
 			<classifier>jakarta</classifier>
-			<version>10.0.0-RC1</version><!-- minimum required version - TODO: use final version -->
-			<scope>provided</scope>
+			<version>10.0.0</version><!-- minimum version since OptimusFaces 0.15 -->
+			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 
 		<!-- Test dependencies.	-->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.1</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.8.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.arquillian.junit</groupId>
-			<artifactId>arquillian-junit-container</artifactId>
+			<groupId>org.jboss.arquillian.junit5</groupId>
+			<artifactId>arquillian-junit5-container</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -141,7 +141,7 @@
 		<dependency>
 			<groupId>org.jboss.arquillian.graphene</groupId>
 			<artifactId>graphene-webdriver</artifactId>
-			<version>2.1.0.Final</version> <!-- Newer versions appear to intermittently fail in RequestGuard -->
+			<version>3.0.0-alpha.3</version>
 			<type>pom</type>
 			<scope>test</scope>
 		</dependency>
@@ -166,14 +166,14 @@
 			<dependency>
 				<groupId>org.jboss.arquillian</groupId>
 				<artifactId>arquillian-bom</artifactId>
-				<version>1.6.0.Final</version>
+				<version>1.7.0.Alpha10</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.jboss.arquillian.extension</groupId>
 				<artifactId>arquillian-drone-bom</artifactId>
-				<version>2.0.1.Final</version> <!-- Newer versions are incompatible with graphene-webdriver:2.1.0.Final -->
+				<version>3.0.0-alpha.4</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -212,7 +212,7 @@
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>3.0</version>
+				<version>4.1</version>
 				<configuration>
 					<header>license.txt</header>
 					<excludes>
@@ -234,24 +234,22 @@
 
 			<!-- Configure the JavaScript minifier. -->
 			<plugin>
-				<groupId>com.samaxes.maven</groupId>
-				<artifactId>minify-maven-plugin</artifactId>
-				<version>1.7.6</version>
+				<groupId>com.github.blutorange</groupId>
+				<artifactId>closure-compiler-maven-plugin</artifactId>
+				<version>2.21.0</version>
 				<configuration>
-					<webappSourceDir>${basedir}/src/main/resources</webappSourceDir>
-					<webappTargetDir>${project.build.outputDirectory}</webappTargetDir>
-					<jsSourceDir>META-INF/resources/optimusfaces</jsSourceDir>
-					<nosuffix>true</nosuffix>
-					<jsEngine>CLOSURE</jsEngine>
+					<baseSourceDir>${basedir}/src/main/resources</baseSourceDir>
+					<baseTargetDir>${project.build.outputDirectory}</baseTargetDir>
+					<sourceDir>META-INF/resources/optimusfaces</sourceDir>
+					<targetDir>META-INF/resources/optimusfaces</targetDir>
+					<closureLanguageOut>ECMASCRIPT5</closureLanguageOut>
 				</configuration>
 				<executions>
 					<execution>
 						<id>minify</id>
 						<configuration>
 							<skipMerge>true</skipMerge>
-							<jsSourceIncludes>
-								<jsSourceInclude>**/*.js</jsSourceInclude>
-							</jsSourceIncludes>
+							<includes>**/*.js</includes>
 						</configuration>
 						<goals>
 							<goal>minify</goal>
@@ -264,7 +262,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>3.2.2</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -298,7 +296,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>3.4.0</version>
 				<configuration>
 					<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
 					<javadocVersion>${javase.version}</javadocVersion>
@@ -308,7 +306,7 @@
 					<doctitle>OptimusFaces API documentation</doctitle>
 					<links>
 						<link>https://jakarta.ee/specifications/platform/${jakartaee.version}/apidocs/</link>
-						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.15.J1/</link>
+						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.16.J1/</link>
 					</links>
 					<additionalJOption>-J-Dhttp.agent=maven-javadoc-plugin-${pom‌​.name}</additionalJOption>
 				</configuration>
@@ -326,7 +324,7 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.8</version>
+				<version>1.6.13</version>
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>
@@ -351,7 +349,7 @@
 									<pluginExecutionFilter>
 										<groupId>com.mycila</groupId>
 										<artifactId>license-maven-plugin</artifactId>
-										<versionRange>[3.0,)</versionRange>
+										<versionRange>[4.1,)</versionRange>
 										<goals>
 											<goal>format</goal>
 										</goals>
@@ -364,9 +362,9 @@
 								</pluginExecution>
 								<pluginExecution>
 									<pluginExecutionFilter>
-										<groupId>com.samaxes.maven</groupId>
-										<artifactId>minify-maven-plugin</artifactId>
-										<versionRange>[1.7.6,)</versionRange>
+										<groupId>com.github.blutorange</groupId>
+										<artifactId>closure-compiler-maven-plugin</artifactId>
+										<versionRange>[2.21.0,)</versionRange>
 										<goals>
 											<goal>minify</goal>
 										</goals>
@@ -386,7 +384,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-dependency-plugin</artifactId>
-					<version>3.1.2</version>
+					<version>3.3.0</version>
 					<executions>
 						<execution>
 							<phase>process-test-classes</phase>
@@ -608,7 +606,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.1.0</version>
+						<version>3.2.0</version>
 						<executions>
 							<execution>
 								<id>register-eclipselink-in-wildfly</id>
@@ -949,7 +947,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.6</version>
+						<version>3.0.1</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>

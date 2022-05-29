@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 OmniFaces
+ * Copyright OmniFaces
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,6 +22,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static javax.faces.component.UIComponent.getCurrentComponent;
 import static org.omnifaces.persistence.model.Identifiable.ID;
 import static org.omnifaces.util.Ajax.oncomplete;
 import static org.omnifaces.util.Components.getCurrentComponent;
@@ -143,8 +144,15 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return list;
 	}
 
+	// Introduced in PrimeFaces 11.0.0, but we want to keep OptimusFaces backwards compatible with PrimeFaces 10.0.0,
+	// hence the @Override annotation is dropped for now.
+	public int count(Map<String, FilterMeta> filterBy) {
+		return list == null ? 0 : list.getEstimatedTotalNumberOfResults();
+	}
+
 	public void preloadPage(FacesContext context, DataTable table) {
-		loadPage(context, table, emptyMap(), emptyMap());
+		SortMeta sortBy = getInitialOrdering(context, table);
+		loadPage(context, table, singletonMap(sortBy.getField(), sortBy), emptyMap());
 		setWrappedData(list);
 		setRowCount(list.getEstimatedTotalNumberOfResults());
 		setPageSize(table.getRows());
@@ -154,7 +162,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		List<UIColumn> processableColumns = table.getColumns().stream().filter(this::isProcessableColumn).collect(toList());
 
 		updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
-		queryParameterPrefix = coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
+		queryParameterPrefix = parseQueryParameterPrefix(table);
 		ordering = processPageAndOrdering(context, table, sortBy);
 		filters = processFilters(context, table, processableColumns, filterBy);
 		globalFilter = processGlobalFilter(context, table, filterBy);
@@ -167,6 +175,10 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 		loadPage(table, offset, limit, requiredCriteria, optionalCriteria);
 		updateQueryStringIfNecessary(context);
+	}
+
+	private static String parseQueryParameterPrefix(DataTable table) {
+		return coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
 	}
 
 	private void loadPage(UIData data, int offset, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
@@ -239,41 +251,39 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 					//
 				}
 			}
-
-			String sort = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_ORDER);
-			String sortField = null;
-			SortOrder sortOrder = null;
-
-			if (!isEmpty(sort)) {
-				String field;
-
-				if (sort.startsWith("-")) {
-					field = sort.substring(1);
-					sortOrder = DESCENDING;
-				}
-				else {
-					field = sort;
-					sortOrder = ASCENDING;
-				}
-
-				if (!isEmpty(sort) && table.getColumns().stream().anyMatch(column -> field.equals(column.getField()))) {
-					sortField = field;
-					ordering.put(sortField, sortOrder == ASCENDING);
-				}
-			}
-
-			Entry<String, Boolean> defaultOrder = defaultOrdering.entrySet().iterator().next();
-			table.setSortBy(SortMeta.builder()
-				.field(coalesce(sortField, defaultOrder.getKey(), tableSortField))
-				.order(coalesce(sortOrder, sortField != null ? tableSortOrder : defaultOrder.getValue() ? ASCENDING : DESCENDING))
-				.build());
 		}
-		else if (!isEmpty(tableSortField)) {
+
+		if (!isEmpty(tableSortField)) {
 			ordering.put(tableSortField, tableSortOrder == ASCENDING);
 		}
 
 		defaultOrdering.forEach((defaultSortField, defaultSortAscending) -> ordering.putIfAbsent(defaultSortField, defaultSortAscending));
 		return ordering;
+	}
+
+	protected SortMeta getInitialOrdering(FacesContext context, DataTable table) {
+		String sort = getTrimmedQueryParameter(context, parseQueryParameterPrefix(table) + QUERY_PARAMETER_ORDER);
+
+		if (!isEmpty(sort)) {
+			String field;
+			SortOrder order;
+
+			if (sort.startsWith("-")) {
+				field = sort.substring(1);
+				order = DESCENDING;
+			}
+			else {
+				field = sort;
+				order = ASCENDING;
+			}
+
+			if (!isEmpty(sort) && table.getColumns().stream().anyMatch(column -> field.equals(column.getField()))) {
+				return SortMeta.builder().field(field).order(order).build();
+			}
+		}
+
+		Entry<String, Boolean> defaultOrder = defaultOrdering.entrySet().iterator().next();
+		return SortMeta.builder().field(defaultOrder.getKey()).order(defaultOrder.getValue() ? ASCENDING : DESCENDING).build();
 	}
 
 	protected LinkedHashMap<String, Object> processFilters(FacesContext context, DataTable table, List<UIColumn> processableColumns, Map<String, FilterMeta> filterBy) {
@@ -453,7 +463,10 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 	@Override
 	public SortMeta getOrdering() {
-		return ordering == null ? null : ordering.entrySet().stream()
+		FacesContext context = FacesContext.getCurrentInstance();
+		DataTable table = (DataTable) getCurrentComponent(context);
+
+		return ordering == null ? getInitialOrdering(context, table) : ordering.entrySet().stream()
 			.map(entry -> SortMeta.builder().field(entry.getKey()).order(entry.getValue() ? SortOrder.ASCENDING : SortOrder.DESCENDING).build())
 			.findFirst().orElse(null); // TODO: optimize/cache this (and utilize the new multisort feature)
 	}
