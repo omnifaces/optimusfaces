@@ -68,16 +68,16 @@
 		<maven.source.excludeResources>true</maven.source.excludeResources>
 
 		<!-- Test versions. -->
-		<test.wildfly.version>22.0.0.Final</test.wildfly.version>
-		<test.payara.version>5.2020.5</test.payara.version> <!-- TODO: JEE9 compatible version -->
-		<test.tomee.version>8.0.4</test.tomee.version> <!-- TODO: JEE9 compatible version -->
-		<test.wildfly-eclipselink.version>3.0.0</test.wildfly-eclipselink.version>
-		<test.payara-hibernate.version>6.0.0.Alpha6</test.payara-hibernate.version>
-		<test.h2.version>1.4.200</test.h2.version>
-		<test.mysql-driver.version>8.0.22</test.mysql-driver.version>
-		<test.postgresql-driver.version>42.2.18</test.postgresql-driver.version>
-		<test.omnifaces.version>4.0-M4</test.omnifaces.version> <!-- TODO: use 4.0 when released -->
-		<test.primefaces.version>10.0.0-RC1</test.primefaces.version> <!-- TODO: use 10.0.0 when released -->
+		<test.wildfly.version>26.1.1.Final</test.wildfly.version> <!-- https://search.maven.org/artifact/org.wildfly.bom/wildfly -->
+		<test.payara.version>6.2022.1.Alpha2</test.payara.version> <!-- https://search.maven.org/artifact/fish.payara.distributions/payara-web -->
+		<test.tomee.version>9.0.0-M7</test.tomee.version> <!-- https://search.maven.org/artifact/org.apache.tomee/apache-tomee TODO: JEE9 compatible version which supports jakarta.ee XML namespace (M7 unfortunately doesn't support it yet, it still throws jakarta.xml.bind.UnmarshalException: unexpected element (uri:"https://jakarta.ee/xml/ns/jakartaee", local:"web-fragment")) https://issues.apache.org/jira/browse/TOMEE-3824 -->
+		<test.wildfly-eclipselink.version>3.0.3-RC2</test.wildfly-eclipselink.version> <!-- https://search.maven.org/artifact/org.eclipse.persistence/eclipselink -->
+		<test.payara-hibernate.version>6.0.2.Final</test.payara-hibernate.version> <!-- https://search.maven.org/artifact/org.hibernate.orm/hibernate-core -->
+		<test.h2.version>1.4.200</test.h2.version> <!-- https://search.maven.org/artifact/com.h2database/h2 -->
+		<test.mysql-driver.version>8.0.29</test.mysql-driver.version> <!-- https://search.maven.org/artifact/mysql/mysql-connector-java -->
+		<test.postgresql-driver.version>42.3.6</test.postgresql-driver.version> <!-- https://search.maven.org/artifact/org.postgresql/postgresql -->
+		<test.omnifaces.version>4.0-M16</test.omnifaces.version> <!-- TODO: use 4.0 when released -->
+		<test.primefaces.version>11.0.0</test.primefaces.version> <!-- https://search.maven.org/artifact/org.omnifaces/omnifaces -->
 	</properties>
 
 	<dependencies>
@@ -639,9 +639,9 @@
 			<id>payara-hibernate</id>
 			<dependencies>
 				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-					<artifactId>arquillian-glassfish-managed-3.1</artifactId>
-					<version>1.0.2</version>
+					<groupId>org.omnifaces.arquillian</groupId>
+					<artifactId>arquillian-glassfish-server-managed</artifactId>
+					<version>1.1</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
@@ -676,7 +676,7 @@
 											<artifactId>h2</artifactId>
 											<version>${test.h2.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -694,7 +694,7 @@
 											<artifactId>mysql-connector-java</artifactId>
 											<version>${test.mysql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -712,7 +712,7 @@
 											<artifactId>postgresql</artifactId>
 											<version>${test.postgresql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara5/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -723,9 +723,9 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
-							<environmentVariables>
-								<GLASSFISH_HOME>${project.build.directory}/payara5</GLASSFISH_HOME>
-							</environmentVariables>
+							<systemPropertyVariables>
+								<glassfish.home>${project.build.directory}/payara6</glassfish.home>
+							</systemPropertyVariables>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -737,9 +737,9 @@
 			<id>payara-eclipselink</id>
 			<dependencies>
 				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-					<artifactId>arquillian-glassfish-managed-3.1</artifactId>
-					<version>1.0.2</version>
+					<groupId>org.omnifaces.arquillian</groupId>
+					<artifactId>arquillian-glassfish-server-managed</artifactId>
+					<version>1.1</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
@@ -821,9 +821,9 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
-							<environmentVariables>
-								<GLASSFISH_HOME>${project.build.directory}/payara5</GLASSFISH_HOME>
-							</environmentVariables>
+							<systemPropertyVariables>
+								<glassfish.home>${project.build.directory}/payara6</glassfish.home>
+							</systemPropertyVariables>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -837,7 +837,7 @@
 				<dependency>
 					<groupId>org.apache.tomee</groupId>
 					<artifactId>arquillian-tomee-remote</artifactId>
-					<version>${test.tomee.version}</version>
+					<version>8.0.11</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
