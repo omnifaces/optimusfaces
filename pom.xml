@@ -80,14 +80,6 @@
 		<test.primefaces.version>10.0.0-RC1</test.primefaces.version> <!-- TODO: use 10.0.0 when released -->
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>redhat-all</id>
-			<snapshots />
-			<url>https://maven.repository.redhat.com/techpreview/all</url> <!-- Currently only used for org.picketbox:picketbox:jar:5.0.3.Final-redhat-00006 which is required by WildFly 22.0.0.Final -->
-		</repository>
-	</repositories>
-
 	<dependencies>
 
 		<!-- Jakarta EE 9 web profile dependencies. -->
