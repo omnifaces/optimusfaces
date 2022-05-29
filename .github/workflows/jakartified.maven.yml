@@ -11,9 +11,13 @@
 # specific language governing permissions and limitations under the License.
 #
 
-name: tests
+name: jakartified
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ jakartified ]
+  pull_request:
+    branches: [ jakartified ]
 
 jobs:
   test:
@@ -35,10 +39,12 @@ jobs:
     - name : Set up MySQL
       run: |
         sudo /etc/init.d/mysql start
-        mysql -u root -e 'CREATE DATABASE test;'
+        mysql -u root -proot -e 'CREATE DATABASE test;'
     - name : Set up PostgreSQL
       run: |
         sudo systemctl start postgresql.service
-        psql -c 'CREATE DATABASE test;' -U postgres
+        sudo -u postgres psql postgres -c "CREATE DATABASE test;"
+        sudo -u postgres psql postgres -c "CREATE USER test WITH ENCRYPTED PASSWORD 'test';"
+        sudo -u postgres psql postgres -c "GRANT ALL PRIVILEGES ON DATABASE test TO test;"
     - name: Test with Maven
       run: mvn verify -Dmaven.javadoc.skip=true -P ${{matrix.server}}
