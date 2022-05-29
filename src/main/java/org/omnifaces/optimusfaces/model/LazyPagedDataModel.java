@@ -12,6 +12,7 @@
  */
 package org.omnifaces.optimusfaces.model;
 
+import static jakarta.faces.component.UIComponent.getCurrentComponent;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Math.abs;
 import static java.util.Collections.emptyList;
@@ -22,7 +23,6 @@ import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static javax.faces.component.UIComponent.getCurrentComponent;
 import static org.omnifaces.persistence.model.Identifiable.ID;
 import static org.omnifaces.util.Ajax.oncomplete;
 import static org.omnifaces.util.Components.getCurrentComponent;
