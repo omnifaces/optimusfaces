@@ -985,6 +985,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		private List<E> allData;
 		private PartialResultListLoader<E> loader;
 
+		private LinkedHashMap<String, Boolean> predefinedOrdering;
 		private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
 		private Map<String, Object> predefinedCriteria;
 		private Supplier<Map<Getter<E>, Object>> dynamicCriteria;
@@ -1028,7 +1029,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 *
 		 * @param predefinedCriteria The predefined criteria.
 		 * @return This builder.
-		 * @throws IllegalStateException When another predefined criteria is already set in this builder.
+		 * @throws IllegalStateException When predefined criteria is previously already set in this builder.
 		 * @see Criteria
 		 */
 		public Builder<E> criteria(Map<String, Object> predefinedCriteria) {
@@ -1071,7 +1072,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 *
 		 * @param dynamicCriteria The dynamic criteria.
 		 * @return This builder.
-		 * @throws IllegalStateException When another dynamic criteria is already set in this builder.
+		 * @throws IllegalStateException When dynamic criteria is previously already set in this builder.
 		 * @see Criteria
 		 */
 		public Builder<E> criteria(Supplier<Map<Getter<E>, Object>> dynamicCriteria) {
@@ -1085,6 +1086,29 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
 		/**
 		 * <p>
+		 * Set the predefined ordering. The map key represents the property path.
+		 * </p>
+		 * @param predefinedOrdering The predefined ordering.
+		 * @return This builder.
+		 * @throws IllegalStateException When predefined ordering is previously already set in this builder or when
+		 * custom ordering is already set on this builder via {@link #orderBy(Getter, boolean)} or
+		 * {@link #orderBy(String, boolean)}.
+		 */
+		public Builder<E> ordering(LinkedHashMap<String, Boolean> predefinedOrdering) {
+			if (this.predefinedOrdering != null) {
+				throw new IllegalStateException("Predefined ordering is already set");
+			}
+
+			if (!this.ordering.isEmpty()) {
+				throw new IllegalStateException("Custom ordering is already set");
+			}
+
+			this.predefinedOrdering = predefinedOrdering;
+			return this;
+		}
+
+		/**
+		 * <p>
 		 * Set the ordering by entity getter.
 		 * <p>
 		 * This can be invoked multiple times and will be remembered in same order.
@@ -1093,6 +1117,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 * @param sortField The sort field.
 		 * @param sortAscending Whether to sort ascending.
 		 * @return This builder.
+		 * @throws IllegalStateException When predefined ordering is already set on this builder via {@link #ordering}.
 		 */
 		public Builder<E> orderBy(Getter<E> sortField, boolean sortAscending) {
 			return orderBy(sortField.getPropertyName(), sortAscending);
@@ -1108,8 +1133,13 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 * @param propertyPath The property path.
 		 * @param sortAscending Whether to sort ascending.
 		 * @return This builder.
+		 * @throws IllegalStateException When predefined ordering is already set on this builder via {@link #ordering}.
 		 */
 		public Builder<E> orderBy(String propertyPath, boolean sortAscending) {
+			if (this.predefinedOrdering != null) {
+				throw new IllegalStateException("Predefined ordering is already set");
+			}
+
 			ordering.put(propertyPath, sortAscending);
 			return this;
 		}
@@ -1122,6 +1152,10 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 		 */
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public PagedDataModel<E> build() {
+			if (predefinedOrdering != null) {
+				ordering = predefinedOrdering;
+			}
+
 			ordering.putIfAbsent(ID, false);
 			Supplier rawDynamicCriteria = dynamicCriteria;
 
