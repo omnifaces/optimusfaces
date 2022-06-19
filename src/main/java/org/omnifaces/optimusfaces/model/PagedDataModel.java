@@ -1086,7 +1086,8 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
 		/**
 		 * <p>
-		 * Set the predefined ordering. The map key represents the property path.
+		 * Set the predefined ordering. The map key represents the property path. The map value represents whether to
+		 * sort ascending.
 		 * </p>
 		 * @param predefinedOrdering The predefined ordering.
 		 * @return This builder.
