@@ -53,13 +53,17 @@
 
 	<p:column
 		field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" sortBy="#{value}"
-		filterable="#{filterable}" filterBy="#{value}" filterValue="#{$pagedDataModel.filters[field].filterValue}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
+		filterable="#{filterable}" filterBy="#{value}" filterValue="#{$pagedDataModel.getFilter(field).filterValue}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
 		styleClass="#{styleClass}#{sortable and $dataTable.sortBy.field eq field ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
 		rendered="#{rendered}" visible="#{visible}" exportable="#{exportable}"
 	>
 		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
 		<c:if test="#{not empty filterOptions}">
-			<f:attribute name="filterOptions" value="#{$pagedDataModel.convertFilterOptionsIfNecessary(filterOptions)}" />
+			<f:facet name="filter">
+                <p:selectOneMenu id="#{id}Filter" onchange="PF('#{$dataTable.widgetVar}').filter()" styleClass="ui-custom-filter">
+                    <f:selectItems value="#{$pagedDataModel.convertFilterOptionsIfNecessary(filterOptions)}" />
+                </p:selectOneMenu>
+            </f:facet>
 			<c:if test="#{empty filterMode}"><f:attribute name="filterMatchMode" value="exact" /></c:if>
 		</c:if>
 

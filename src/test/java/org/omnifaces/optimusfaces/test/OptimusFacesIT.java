@@ -12,9 +12,9 @@
  */
 package org.omnifaces.optimusfaces.test;
 
-import static java.lang.Boolean.parseBoolean;
 import static java.lang.Math.min;
 import static java.lang.System.getProperty;
+import static java.time.Duration.ofSeconds;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.naturalOrder;
@@ -22,8 +22,6 @@ import static java.util.Comparator.reverseOrder;
 import static java.util.logging.Level.OFF;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.jboss.arquillian.graphene.Graphene.guardAjax;
-import static org.jboss.arquillian.graphene.Graphene.waitGui;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,29 +37,29 @@ import static org.openqa.selenium.Keys.SPACE;
 import static org.openqa.selenium.Keys.TAB;
 
 import java.io.File;
+import java.io.Serializable;
 import java.net.URL;
 import java.text.Collator;
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.jboss.arquillian.drone.api.annotation.Default;
-import org.jboss.arquillian.drone.api.annotation.Drone;
-import org.jboss.arquillian.graphene.context.GrapheneContext;
-import org.jboss.arquillian.graphene.proxy.GrapheneProxyInstance;
-import org.jboss.arquillian.graphene.spi.configuration.GrapheneConfiguration;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolverSystem;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,9 +75,16 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
+
+@TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(OptimusFacesIT.TestLogger.class)
 public abstract class OptimusFacesIT {
 
@@ -87,18 +92,26 @@ public abstract class OptimusFacesIT {
 
 	private static Database database;
 
-	@Drone
 	private WebDriver browser;
 
 	@ArquillianResource
 	private URL baseURL;
 
+    @BeforeAll
+    public void setup() {
+        WebDriverManager.chromedriver().setup();
+        var chrome = new ChromeDriver(new ChromeOptions().addArguments("--no-sandbox"/*, "--headless"*/));
+        chrome.setLogLevel(Level.INFO);
+        browser = chrome;
+        PageFactory.initElements(browser, this);
+    }
+
 	protected static <T extends OptimusFacesIT> WebArchive createArchive(Class<T> testClass, Database database) {
 		OptimusFacesIT.database = database;
-		String packageName = testClass.getPackage().getName();
-		MavenResolverSystem maven = Maven.resolver();
+		var packageName = testClass.getPackage().getName();
+		var maven = Maven.resolver();
 
-		WebArchive archive = create(WebArchive.class, testClass.getSimpleName() + ".war")
+		var archive = create(WebArchive.class, testClass.getSimpleName() + ".war")
 			.addPackage(packageName + ".model")
 			.addPackage(packageName + ".model.dto")
 			.addPackage(packageName + ".service")
@@ -116,7 +129,7 @@ public abstract class OptimusFacesIT {
 	}
 
 	private static void addDataSourceConfig(Database database, WebArchive archive) {
-		String dataSourceConfigXml = isWildFly() ? "wildfly-ds.xml" : isPayara() ? "glassfish-resources.xml" : isTomEE() ? "resources.xml" : null;
+		var dataSourceConfigXml = isWildFly() ? "wildfly-ds.xml" : isPayara() ? "glassfish-resources.xml" : isTomEE() ? "resources.xml" : null;
 
 		if (dataSourceConfigXml != null) {
 			archive.addAsWebInfResource("WEB-INF/" + dataSourceConfigXml + "/" + database.name().toLowerCase() + ".xml", dataSourceConfigXml);
@@ -124,8 +137,8 @@ public abstract class OptimusFacesIT {
 	}
 
 	private static void addPersistenceConfig(MavenResolverSystem maven, WebArchive archive) {
-		String persistenceConfigXml = getProperty("profile.id") + ".xml";
-		String persistenceXml = "META-INF/persistence.xml";
+		var persistenceConfigXml = getProperty("profile.id") + ".xml";
+		var persistenceXml = "META-INF/persistence.xml";
 
 		archive.addAsResource(persistenceXml + "/" + persistenceConfigXml, persistenceXml);
 
@@ -137,7 +150,7 @@ public abstract class OptimusFacesIT {
 
 	private static void addResources(File root, String directory, BiConsumer<File, String> archiveConsumer) {
 		for (File file : root.listFiles()) {
-			String path = directory + "/" + file.getName();
+			var path = directory + "/" + file.getName();
 
 			if (file.isFile()) {
 				archiveConsumer.accept(file, path);
@@ -176,35 +189,6 @@ public abstract class OptimusFacesIT {
 	@BeforeEach
 	public void init() {
 		Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(OFF); // MyFaces triggers for some reason a lot of awkward JS "illegal selector" and CSS "em has to be a px" warnings.
-		configureTimeouts(browser);
-	}
-
-	protected static void configureTimeouts(WebDriver browser) {
-		while (browser instanceof GrapheneProxyInstance) {
-			browser = ((GrapheneProxyInstance) browser).unwrap();
-		}
-
-		GrapheneContext.setContextFor(new GrapheneConfiguration() {
-			@Override
-			public long getWaitAjaxInterval() {
-				return TIMEOUT_IN_SECONDS;
-			}
-
-			@Override
-			public long getWaitGuardInterval() {
-				return TIMEOUT_IN_SECONDS;
-			}
-
-			@Override
-			public long getWaitGuiInterval() {
-				return TIMEOUT_IN_SECONDS;
-			}
-
-			@Override
-			public long getWaitModelInterval() {
-				return TIMEOUT_IN_SECONDS;
-			}
-		}, browser, Default.class);
 	}
 
 	protected void open(String type) {
@@ -212,26 +196,45 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void open(String type, String queryString) {
-		String url = baseURL + OptimusFacesIT.class.getSimpleName() + type + ".xhtml";
+		var url = new StringBuilder().append(baseURL).append(OptimusFacesIT.class.getSimpleName()).append(type).append(".xhtml");
 
 		if (queryString != null) {
-			url += "?" + queryString;
+			url.append("?").append(queryString);
 		}
 
 		browser.manage().deleteAllCookies(); // Else IT on pagination/sorting may fail because they're apparently cached somewhere in session. TODO: investigate
-		browser.get(url);
-		waitGui(browser).until(primeFacesWidgetsInitialized());
+		browser.get(url.toString());
+		waitUntil(() -> executeScript("return !!Object.keys(window.PrimeFaces.widgets).length"));
 	}
 
-	protected static Function<WebDriver, Boolean> primeFacesWidgetsInitialized() {
-		return browser -> parseBoolean(String.valueOf(((JavascriptExecutor) browser).executeScript("return !!Object.keys(window.PrimeFaces.widgets).length;")));
-	}
+    protected void guardFacesAjax(Runnable action) {
+        var uuid = UUID.randomUUID().toString();
+        executeScript("window.$ajax=null;window.faces.ajax.addOnEvent(data=>{if(data.status=='complete')window.$ajax='" + uuid + "'})");
+        action.run();
+        waitUntil(() -> executeScript("return window.$ajax=='" + uuid + "'"));
+    }
+
+    protected void guardPrimeFacesAjax(Runnable action) {
+        var uuid = UUID.randomUUID().toString();
+        executeScript("window.$ajax=null;$(document).one('pfAjaxComplete', () => window.$ajax='" + uuid + "')");
+        action.run();
+        waitUntil(() -> executeScript("return window.$ajax=='" + uuid + "'"));
+    }
+
+    private void waitUntil(Supplier<Boolean> predicate) {
+        new WebDriverWait(browser, ofSeconds(TIMEOUT_IN_SECONDS)).until($ -> predicate.get());
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T> T executeScript(String script) {
+        return (T) ((JavascriptExecutor) browser).executeScript(script);
+    }
 
 	protected String getQueryParameter(String name) {
 		if (browser.getCurrentUrl().contains("?")) {
-			String queryString = browser.getCurrentUrl().split("\\?", 2)[1];
-			Map<String, List<String>> params = Servlets.toParameterMap(queryString);
-			List<String> values = params.get(name);
+			var queryString = browser.getCurrentUrl().split("\\?", 2)[1];
+			var params = Servlets.toParameterMap(queryString);
+			var values = params.get(name);
 
 			if (values != null) {
 				return values.get(0);
@@ -334,8 +337,11 @@ public abstract class OptimusFacesIT {
 	@FindBy(id="form:table:email:filter")
 	private WebElement emailColumnFilter;
 
-	@FindBy(id="form:table:gender:filter")
-	private WebElement genderColumnFilter;
+    @FindBy(id="form:table:gender:filter")
+    private WebElement genderColumnFilter;
+
+    @FindBy(id="form:table:genderFilter")
+    private WebElement genderColumnDropdownFilter;
 
 	@FindBy(id="form:table:dateOfBirth:filter")
 	private WebElement dateOfBirthColumnFilter;
@@ -621,114 +627,118 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void testPaging() {
-		guardAjax(pageNext).click();
+		guardPrimeFacesAjax(pageNext::click);
 		assertPaginatorState(2);
 		assertSortedState(idColumn, false);
 
-		guardAjax(pagePrevious).click();
+		guardPrimeFacesAjax(pagePrevious::click);
 		assertPaginatorState(1);
 		assertSortedState(idColumn, false);
 
-		guardAjax(pageLast).click();
+		guardPrimeFacesAjax(pageLast::click);
 		assertPaginatorState(TOTAL_RECORDS / ROWS_PER_PAGE);
 		assertSortedState(idColumn, false);
 
-		guardAjax(pagePrevious).click();
-		assertPaginatorState((TOTAL_RECORDS / ROWS_PER_PAGE) - 1);
+		guardPrimeFacesAjax(pagePrevious::click);
+		assertPaginatorState(TOTAL_RECORDS / ROWS_PER_PAGE - 1);
 		assertSortedState(idColumn, false);
 
-		guardAjax(pageNext).click();
+		guardPrimeFacesAjax(pageNext::click);
 		assertPaginatorState(TOTAL_RECORDS / ROWS_PER_PAGE);
 		assertSortedState(idColumn, false);
 
-		guardAjax(pageFirst).click();
+		guardPrimeFacesAjax(pageFirst::click);
 		assertPaginatorState(1);
 		assertSortedState(idColumn, false);
 	}
 
 	protected void testSorting() {
-		guardAjax(idColumn).click();
+		clickColumn(idColumn);
 		assertPaginatorState(1);
 		assertSortedState(idColumn, true);
 
-		guardAjax(idColumn).click();
+		clickColumn(idColumn);
 		assertPaginatorState(1);
 		assertSortedState(idColumn, false);
 
-		guardAjax(idColumn).click();
+		clickColumn(idColumn);
 		assertPaginatorState(1);
 		assertSortedState(idColumn, true);
 
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1);
 		assertSortedState(emailColumn, true);
 
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1);
 		assertSortedState(emailColumn, false);
 
-		guardAjax(genderColumn).click();
+		clickColumn(genderColumn);
 		assertPaginatorState(1);
 		assertSortedState(genderColumn, true);
 
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1);
 		assertSortedState(emailColumn, true);
 
-		guardAjax(dateOfBirthColumn).click();
+		clickColumn(dateOfBirthColumn);
 		assertPaginatorState(1);
 		assertSortedState(dateOfBirthColumn, true);
 
-		guardAjax(dateOfBirthColumn).click();
+		clickColumn(dateOfBirthColumn);
 		assertPaginatorState(1);
 		assertSortedState(dateOfBirthColumn, false);
+	}
+
+	private void clickColumn(WebElement column) {
+	    guardPrimeFacesAjax(column.findElement(By.cssSelector(".ui-column-title"))::click);
 	}
 
 	protected void testDefaultOrderBy() {
 		assertPaginatorState(1);
 		assertSortedState(emailColumn, false, true);
 
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1);
 		assertSortedState(emailColumn, true);
 
-		guardAjax(idColumn).click();
+		clickColumn(idColumn);
 		assertPaginatorState(1);
 		assertSortedState(idColumn, true);
 
-		guardAjax(genderColumn).click();
+		clickColumn(genderColumn);
 		assertPaginatorState(1);
 		assertSortedState(genderColumn, true);
 	}
 
 	protected void testFiltering() {
-		guardAjax(idColumnFilter).sendKeys("3");
-		int totalRecords1 = getRowCount();
+		guardPrimeFacesAjax(() -> idColumnFilter.sendKeys("3"));
+		var totalRecords1 = getRowCount();
 		assertPaginatorState(1, 38);
 		assertFilteredState(idColumnFilter, "3");
 
 		globalFilter.sendKeys("FEMALE");
-		guardAjax(globalFilterButton).click();
-		int totalRecords2 = getRowCount();
+		guardPrimeFacesAjax(globalFilterButton::click);
+		var totalRecords2 = getRowCount();
 		assertTrue(totalRecords2 < totalRecords1, totalRecords2 + " must be less than " + totalRecords1);
 		assertGlobalFilterState("FEMALE");
 		assertFilteredState(idColumnFilter, "3");
 
 		globalFilter.clear();
-		guardAjax(globalFilterButton).click();
+		guardPrimeFacesAjax(globalFilterButton::click);
 		assertPaginatorState(1, 38);
 		assertFilteredState(idColumnFilter, "3");
 
 		clearColumnFilter(idColumnFilter);
 		assertPaginatorState(1, TOTAL_RECORDS);
 
-		guardAjax(genderColumnFilter).sendKeys("FEMALE");
-		int totalRecords3 = getRowCount();
+		guardPrimeFacesAjax(() -> genderColumnFilter.sendKeys("FEMALE"));
+		var totalRecords3 = getRowCount();
 		assertPaginatorState(1);
 		assertFilteredState(genderColumnFilter, "FEMALE");
 
-		guardAjax(emailColumnFilter).sendKeys("1");
-		int totalRecords4 = getRowCount();
+		guardPrimeFacesAjax(() -> emailColumnFilter.sendKeys("1"));
+		var totalRecords4 = getRowCount();
 		assertTrue(totalRecords4 < totalRecords3, totalRecords4 + " must be less than " + totalRecords3);
 		assertPaginatorState(1);
 		assertFilteredState(emailColumnFilter, "1");
@@ -742,79 +752,79 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
-	private static void clearColumnFilter(WebElement columnFilter) {
+	private void clearColumnFilter(WebElement columnFilter) {
 		columnFilter.clear();
-		guardAjax(columnFilter).sendKeys(SPACE, BACK_SPACE, TAB); // Should trigger blur event.
+		guardPrimeFacesAjax(() -> columnFilter.sendKeys(SPACE, BACK_SPACE, TAB)); // Should trigger blur event.
 	}
 
 	protected void testSelection() {
-		guardAjax(fifthRow).click();
+		guardPrimeFacesAjax(fifthRow::click);
 		assertSelectedState(196);
 
-		for (int nextPage = 2; nextPage <= 5; nextPage++) {
-			guardAjax(pageNext).click();
+		for (var nextPage = 2; nextPage <= 5; nextPage++) {
+			guardPrimeFacesAjax(pageNext::click);
 			assertPaginatorState(nextPage);
-			guardAjax(fifthRow).click();
+			guardPrimeFacesAjax(fifthRow::click);
 			assertSelectedState(206 - nextPage * 10);
 		}
 
-		for (int previousPage = 4; previousPage >= 1; previousPage--) {
-			guardAjax(pagePrevious).click();
+		for (var previousPage = 4; previousPage >= 1; previousPage--) {
+			guardPrimeFacesAjax(pagePrevious::click);
 			assertPaginatorState(previousPage);
-			guardAjax(fifthRow).click();
+			guardPrimeFacesAjax(fifthRow::click);
 			assertSelectedState(206 - previousPage * 10);
 		}
 	}
 
 	protected void testPagingSortingFilteringAndSelection() {
-		guardAjax(pageNext).click();
+		guardPrimeFacesAjax(pageNext::click);
 		assertPaginatorState(2);
 
-		guardAjax(emailColumnFilter).sendKeys("1");
+		guardPrimeFacesAjax(() -> emailColumnFilter.sendKeys("1"));
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");
 
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(emailColumn, true);
 
-		for (int nextPage = 2; nextPage <= 5; nextPage++) {
-			guardAjax(pageNext).click();
+		for (var nextPage = 2; nextPage <= 5; nextPage++) {
+			guardPrimeFacesAjax(pageNext::click);
 			assertPaginatorState(nextPage, 119);
 			assertFilteredState(emailColumnFilter, "1");
 			assertSortedState(emailColumn, true);
 		}
 
-		for (int previousPage = 4; previousPage >= 1; previousPage--) {
-			guardAjax(pagePrevious).click();
+		for (var previousPage = 4; previousPage >= 1; previousPage--) {
+			guardPrimeFacesAjax(pagePrevious::click);
 			assertPaginatorState(previousPage, 119);
 			assertFilteredState(emailColumnFilter, "1");
 			assertSortedState(emailColumn, true);
 		}
 
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(emailColumn, false);
 
 		globalFilter.sendKeys("FEMALE");
-		guardAjax(globalFilterButton).click();
-		int totalRecords1 = getRowCount();
+		guardPrimeFacesAjax(globalFilterButton::click);
+		var totalRecords1 = getRowCount();
 		assertTrue(totalRecords1 < 119, totalRecords1 + " must be less than 119");
 		assertFilteredState(emailColumnFilter, "1");
 		assertGlobalFilterState("FEMALE");
 		assertSortedState(emailColumn, false);
 
-		guardAjax(idColumn).click();
-		int totalRecords2 = getRowCount();
+		clickColumn(idColumn);
+		var totalRecords2 = getRowCount();
 		assertTrue(totalRecords1 == totalRecords2, totalRecords1 + " must be equal to " + totalRecords2);
 		assertFilteredState(emailColumnFilter, "1");
 		assertGlobalFilterState("FEMALE");
 		assertSortedState(idColumn, true);
 
 		globalFilter.clear();
-		guardAjax(globalFilterButton).click();
+		guardPrimeFacesAjax(globalFilterButton::click);
 		assertPaginatorState(1, 119);
 		assertFilteredState(emailColumnFilter, "1");
 		assertSortedState(idColumn, true);
@@ -826,23 +836,23 @@ public abstract class OptimusFacesIT {
 	protected void testQueryStringLoading(String type) {
 		open(type, "p=5");
 		assertPaginatorState(5, TOTAL_RECORDS);
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1, TOTAL_RECORDS);
 		assertSortedState(emailColumn, true);
 
 		open(type, "p=4&email=5");
 		assertPaginatorState(4, 38);
 		assertFilteredState(emailColumnFilter, "5");
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1, 38);
 		assertSortedState(emailColumn, true);
 
 		open(type, "p=3&o=-email&q=MALE");
-		int totalRecords = getRowCount();
+		var totalRecords = getRowCount();
 		assertPaginatorState(3, totalRecords);
 		assertSortedState(emailColumn, false);
 		assertGlobalFilterState("MALE");
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1, totalRecords);
 		assertSortedState(emailColumn, true);
 		assertGlobalFilterState("MALE");
@@ -856,76 +866,93 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void testCriteria() {
-		guardAjax(criteriaIdBetween50And150).click();
+		guardFacesAjax(criteriaIdBetween50And150::click);
 		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
 		assertPaginatorState(1, 101);
 
-		guardAjax(criteriaEmailLikeName1).click();
+		guardFacesAjax(criteriaEmailLikeName1::click);
 		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
 		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
-		int rowCount1 = getRowCount();
+		var rowCount1 = getRowCount();
 		assertTrue(rowCount1 < 101, rowCount1 + " must be less than 101");
 
-		guardAjax(criteriaGenderIsFemale).click();
+		guardFacesAjax(criteriaGenderIsFemale::click);
 		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
 		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
 		assertCriteriaState(genderColumn, "FEMALE");
-		int rowCount2 = getRowCount();
+		var rowCount2 = getRowCount();
 		assertTrue(rowCount2 < rowCount1, rowCount2 + " must be less than " + rowCount1);
 
-		guardAjax(criteriaDateOfBirthBefore1950).click();
+		guardFacesAjax(criteriaDateOfBirthBefore1950::click);
 		assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
 		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
 		assertCriteriaState(genderColumn, "FEMALE");
 		assertCriteriaState(dateOfBirthColumn, Order.lessThan(LocalDate.of(1950, 1, 1)), LocalDate::parse);
-		int rowCount3 = getRowCount();
+		var rowCount3 = getRowCount();
 		assertTrue(rowCount3 < rowCount2, rowCount3 + " must be less than " + rowCount2);
 
-		guardAjax(criteriaIdBetween50And150).click(); // Uncheck
+		guardFacesAjax(criteriaIdBetween50And150::click); // Uncheck
 		assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
 		assertCriteriaState(genderColumn, "FEMALE");
-		int rowCount4 = getRowCount();
+		var rowCount4 = getRowCount();
 		assertTrue(rowCount4 > rowCount3, rowCount4 + " must be more than " + rowCount3);
 
-		guardAjax(criteriaEmailLikeName1).click(); // Uncheck
+		guardFacesAjax(criteriaEmailLikeName1::click); // Uncheck
 		assertCriteriaState(genderColumn, "FEMALE");
-		int rowCount5 = getRowCount();
+		var rowCount5 = getRowCount();
 		assertTrue(rowCount5 > rowCount4, rowCount5 + " must be more than " + rowCount4);
 
-		guardAjax(criteriaGenderIsFemale).click(); // Uncheck
-		int rowCount6 = getRowCount();
+		guardFacesAjax(criteriaGenderIsFemale::click); // Uncheck
+		var rowCount6 = getRowCount();
 		assertTrue(rowCount6 > rowCount5, rowCount6 + " must be more than " + rowCount5);
 
-		guardAjax(criteriaDateOfBirthBefore1950).click(); // Uncheck
+		guardFacesAjax(criteriaDateOfBirthBefore1950::click); // Uncheck
 		assertPaginatorState(1, TOTAL_RECORDS);
 	}
 
 	protected void testFilterOptions() {
-		Select genderColumnFilterOptions = new Select(genderColumnFilter);
-		int matches = 0;
+		var matches = 0;
 
 		for (Gender gender : Gender.values()) {
-			guardAjax(genderColumnFilterOptions).selectByValue(gender.name());
-			assertFilteredState(genderColumnFilter, gender.name());
+		    setPrimeFacesSelectOneMenuValue(genderColumnDropdownFilter, gender.name());
+			assertFilteredState(genderColumnDropdownFilter.findElement(By.id("form:table:genderFilter_input")), gender.name());
 			matches += getRowCount();
 		}
 
 		assertEquals(TOTAL_RECORDS, matches, "total matches");
 	}
 
+    private void setPrimeFacesSelectOneMenuValue(WebElement selectOneMenu, Serializable value) {
+        String clientId = selectOneMenu.getAttribute("id");
+        var input = selectOneMenu.findElement(By.id(clientId + "_input"));
+        var itemValue = value.toString();
+        var itemLabel = (String) executeScript("return $(document.getElementById('" + input.getAttribute("id") + "')).find('option[value=\"" + itemValue + "\"]').text()"); // getText() doesn't work as option is hidden. It's needed because ui-selectonemenu-item doesn't have a data-value.
+        selectOneMenu.findElement(By.cssSelector(".ui-selectonemenu-trigger")).click(); // Open panel.
+        var document = selectOneMenu.findElement(By.xpath("/*"));
+        var panel = document.findElement(By.id(clientId + "_panel"));
+        var selectItem = panel.findElement(By.cssSelector(".ui-selectonemenu-item[data-label='" + itemLabel + "']"));
+
+        if (input.getAttribute("onchange") != null) {
+            guardPrimeFacesAjax(selectItem::click);
+        }
+        else {
+            selectItem.click();
+        }
+    }
+
 	protected void testDTO() {
 		assertNoCartesianProduct();
 
-		guardAjax(addressStringColumn).click();
+		clickColumn(addressStringColumn);
 		assertSortedState(addressStringColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(addressStringColumnFilter).sendKeys("11");
+		guardPrimeFacesAjax(() -> addressStringColumnFilter.sendKeys("11"));
 		assertPaginatorState(1, 11);
 		assertFilteredState(addressStringColumnFilter, "11");
 		assertNoCartesianProduct();
 
-		guardAjax(totalPhonesColumn).click();
+		clickColumn(totalPhonesColumn);
 		assertPaginatorState(1, 11);
 		assertSortedState(totalPhonesColumn, true);
 		assertNoCartesianProduct();
@@ -935,7 +962,7 @@ public abstract class OptimusFacesIT {
 		assertSortedState(totalPhonesColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(totalPhonesColumnFilter).sendKeys("3");
+		guardPrimeFacesAjax(() -> totalPhonesColumnFilter.sendKeys("3"));
 		assertFilteredState(totalPhonesColumnFilter, "3");
 		assertNoCartesianProduct();
 	}
@@ -944,16 +971,16 @@ public abstract class OptimusFacesIT {
 		assertNoCartesianProduct();
 		testGlobalFilter(false);
 
-		guardAjax(address_houseNumberColumn).click();
+		clickColumn(address_houseNumberColumn);
 		assertSortedState(address_houseNumberColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(address_houseNumberColumnFilter).sendKeys("11");
+		guardPrimeFacesAjax(() -> address_houseNumberColumnFilter.sendKeys("11"));
 		assertPaginatorState(1, 11);
 		assertFilteredState(address_houseNumberColumnFilter, "11");
 		assertNoCartesianProduct();
 
-		guardAjax(address_stringColumn).click();
+		clickColumn(address_stringColumn);
 		assertPaginatorState(1, 11);
 
 		if (isHibernate() && database == POSTGRESQL) {
@@ -968,7 +995,7 @@ public abstract class OptimusFacesIT {
 		clearColumnFilter(address_houseNumberColumnFilter);
 		assertPaginatorState(1, TOTAL_RECORDS);
 
-		if (!(isHibernate() && database == POSTGRESQL)) {
+		if (!isHibernate() || database != POSTGRESQL) {
 			assertSortedState(address_stringColumn, true);
 		}
 
@@ -978,7 +1005,7 @@ public abstract class OptimusFacesIT {
 			System.out.println("SKIPPING assertFilteredState(address.string) for OpenJPA and EclipseLink because it doesn't support derived properties like Hibernate @Formula; the intended test is however already covered by testDTO().");
 		}
 		else {
-			guardAjax(address_stringColumnFilter).sendKeys("11");
+			guardPrimeFacesAjax(() -> address_stringColumnFilter.sendKeys("11"));
 			assertPaginatorState(1, 11);
 			assertFilteredState(address_stringColumnFilter, "11");
 			assertNoCartesianProduct();
@@ -993,7 +1020,7 @@ public abstract class OptimusFacesIT {
 		assertPaginatorState(1, TOTAL_RECORDS, true);
 		testGlobalFilter(true);
 
-		boolean skipAssertSortedState = (isEclipseLink() || isOpenJPA()) && isLazy();
+		var skipAssertSortedState = (isEclipseLink() || isOpenJPA()) && isLazy();
 
 		if (skipAssertSortedState) {
 			if (isEclipseLink()) {
@@ -1004,30 +1031,30 @@ public abstract class OptimusFacesIT {
 			}
 		}
 		else {
-			guardAjax(phones_numberColumn).click();
+			clickColumn(phones_numberColumn);
 			assertSortedState(phones_numberColumn, true);
 			assertNoCartesianProduct();
 		}
 
-		guardAjax(phones_numberColumnFilter).sendKeys("11");
+		guardPrimeFacesAjax(() -> phones_numberColumnFilter.sendKeys("11"));
 		assertFilteredState(phones_numberColumnFilter, "11");
 		assertNoCartesianProduct();
-		int rowCount1 = getRowCount();
+		var rowCount1 = getRowCount();
 		assertTrue(rowCount1 < TOTAL_RECORDS, rowCount1 + " must be less than " + TOTAL_RECORDS);
 
 		if (!skipAssertSortedState) {
-			guardAjax(phones_numberColumn).click();
+			clickColumn(phones_numberColumn);
 			assertSortedState(phones_numberColumn, false);
 			assertNoCartesianProduct();
-			int rowCount2 = getRowCount();
+			var rowCount2 = getRowCount();
 			assertEquals(rowCount1, rowCount2, "rowcount is still the same");
 		}
 
-		guardAjax(emailColumnFilter).sendKeys("1");
+		guardPrimeFacesAjax(() -> emailColumnFilter.sendKeys("1"));
 		assertFilteredState(emailColumnFilter, "1");
 		assertFilteredState(phones_numberColumnFilter, "11");
 		assertNoCartesianProduct();
-		int rowCount3 = getRowCount();
+		var rowCount3 = getRowCount();
 		assertTrue(rowCount3 < rowCount1, rowCount3 + " must be less than " + rowCount1);
 
 		clearColumnFilter(phones_numberColumnFilter);
@@ -1039,65 +1066,65 @@ public abstract class OptimusFacesIT {
 		assertNoCartesianProduct();
 
 		if (!skipAssertSortedState) {
-			guardAjax(phones_numberColumn).click();
+			clickColumn(phones_numberColumn);
 			assertSortedState(phones_numberColumn, true);
 		}
 
 		assertNoCartesianProduct();
 
-		boolean skipAssertCriteriaState = isEclipseLink() && isLazy();
+		var skipAssertCriteriaState = isEclipseLink() && isLazy();
 
 		if (skipAssertCriteriaState) {
 			System.out.println("SKIPPING assertCriteriaState(phones.type) for EclipseLink because it refuses to perform a JOIN when setFirstResult/setMaxResults is used");
 		}
 		else {
-			boolean skipAssertRowCount = isOpenJPA() && isLazy();
+			var skipAssertRowCount = isOpenJPA() && isLazy();
 
 			if (skipAssertRowCount) {
 				System.out.println("SKIPPING skipAssertRowCount(phones.type) for OpenJPA because BaseEntityService somehow performs a double join for the table"); // TODO: fix it
 			}
 
-			guardAjax(criteriaPhoneTypeMOBILE).click();
+			guardFacesAjax(criteriaPhoneTypeMOBILE::click);
 			assertCriteriaState(phones_typeColumn, "MOBILE");
-			int rowCount4 = getRowCount();
+			var rowCount4 = getRowCount();
 			if (!skipAssertRowCount) {
 				assertTrue(rowCount4 < TOTAL_RECORDS, rowCount4 + " must be less than " + TOTAL_RECORDS);
 			}
 			assertNoCartesianProduct();
 
-			guardAjax(criteriaPhoneTypeHOME).click();
+			guardFacesAjax(criteriaPhoneTypeHOME::click);
 			assertCriteriaState(phones_typeColumn, "MOBILE", "HOME");
-			int rowCount5 = getRowCount();
+			var rowCount5 = getRowCount();
 			if (!skipAssertRowCount) {
 				assertTrue(rowCount5 < rowCount4, rowCount5 + " must be less than " + rowCount4);
 			}
 			assertNoCartesianProduct();
 
-			guardAjax(criteriaPhoneTypeWORK).click();
+			guardFacesAjax(criteriaPhoneTypeWORK::click);
 			assertCriteriaState(phones_typeColumn, "MOBILE", "HOME", "WORK");
-			int rowCount6 = getRowCount();
+			var rowCount6 = getRowCount();
 			if (!skipAssertRowCount) {
 				assertTrue(rowCount6 < rowCount5, rowCount6 + " must be less than " + rowCount5);
 			}
 			assertNoCartesianProduct();
 
-			guardAjax(criteriaPhoneTypeMOBILE).click(); // Uncheck
+			guardFacesAjax(criteriaPhoneTypeMOBILE::click); // Uncheck
 			assertCriteriaState(phones_typeColumn, "HOME", "WORK");
-			int rowCount7 = getRowCount();
+			var rowCount7 = getRowCount();
 			if (!skipAssertRowCount) {
 				assertTrue(rowCount7 > rowCount6, rowCount7 + " must be more than " + rowCount6);
 			}
 			assertNoCartesianProduct();
 
-			guardAjax(criteriaPhoneTypeHOME).click(); // Uncheck
+			guardFacesAjax(criteriaPhoneTypeHOME::click); // Uncheck
 			assertCriteriaState(phones_typeColumn, "WORK");
-			int rowCount8 = getRowCount();
+			var rowCount8 = getRowCount();
 			if (!skipAssertRowCount) {
 				assertTrue(rowCount8 > rowCount7, rowCount8 + " must be more than " + rowCount7);
 			}
 			assertNoCartesianProduct();
 
-			guardAjax(criteriaPhoneTypeWORK).click(); // Uncheck
+			guardFacesAjax(criteriaPhoneTypeWORK::click); // Uncheck
 			assertPaginatorState(1, TOTAL_RECORDS, true);
 			assertNoCartesianProduct();
 		}
@@ -1114,49 +1141,49 @@ public abstract class OptimusFacesIT {
 			testGlobalFilter(true);
 		}
 
-		guardAjax(criteriaGroupUSER).click();
+		guardFacesAjax(criteriaGroupUSER::click);
 		assertCriteriaState(groupsColumn, "USER");
-		int rowCount1 = getRowCount();
+		var rowCount1 = getRowCount();
 		assertTrue(rowCount1 < TOTAL_RECORDS, rowCount1 + " must be less than " + TOTAL_RECORDS);
 		assertNoCartesianProduct();
 
-		guardAjax(criteriaGroupMANAGER).click();
+		guardFacesAjax(criteriaGroupMANAGER::click);
 		assertCriteriaState(groupsColumn, "USER", "MANAGER");
-		int rowCount2 = getRowCount();
+		var rowCount2 = getRowCount();
 		assertTrue(rowCount2 < rowCount1, rowCount2 + " must be less than " + rowCount1);
 		assertNoCartesianProduct();
 
-		guardAjax(criteriaGroupADMINISTRATOR).click();
+		guardFacesAjax(criteriaGroupADMINISTRATOR::click);
 		assertCriteriaState(groupsColumn, "USER", "MANAGER", "ADMINISTRATOR");
-		int rowCount3 = getRowCount();
+		var rowCount3 = getRowCount();
 		assertTrue(rowCount3 < rowCount2, rowCount3 + " must be less than " + rowCount2);
 		assertNoCartesianProduct();
 
-		guardAjax(criteriaGroupDEVELOPER).click();
+		guardFacesAjax(criteriaGroupDEVELOPER::click);
 		assertCriteriaState(groupsColumn, "USER", "MANAGER", "ADMINISTRATOR", "DEVELOPER");
-		int rowCount4 = getRowCount();
+		var rowCount4 = getRowCount();
 		assertTrue(rowCount4 < rowCount3, rowCount4 + " must be less than " + rowCount3);
 		assertNoCartesianProduct();
 
-		guardAjax(criteriaGroupUSER).click(); // Uncheck
+		guardFacesAjax(criteriaGroupUSER::click); // Uncheck
 		assertCriteriaState(groupsColumn, "MANAGER", "ADMINISTRATOR", "DEVELOPER");
-		int rowCount5 = getRowCount();
+		var rowCount5 = getRowCount();
 		assertTrue(rowCount5 > rowCount4, rowCount5 + " must be more than " + rowCount4);
 		assertNoCartesianProduct();
 
-		guardAjax(criteriaGroupMANAGER).click(); // Uncheck
+		guardFacesAjax(criteriaGroupMANAGER::click); // Uncheck
 		assertCriteriaState(groupsColumn, "ADMINISTRATOR", "DEVELOPER");
-		int rowCount6 = getRowCount();
+		var rowCount6 = getRowCount();
 		assertTrue(rowCount6 > rowCount5, rowCount6 + " must be more than " + rowCount5);
 		assertNoCartesianProduct();
 
-		guardAjax(criteriaGroupADMINISTRATOR).click(); // Uncheck
+		guardFacesAjax(criteriaGroupADMINISTRATOR::click); // Uncheck
 		assertCriteriaState(groupsColumn, "DEVELOPER");
-		int rowCount7 = getRowCount();
+		var rowCount7 = getRowCount();
 		assertTrue(rowCount7 > rowCount6, rowCount7 + " must be more than " + rowCount6);
 		assertNoCartesianProduct();
 
-		guardAjax(criteriaGroupDEVELOPER).click(); // Uncheck
+		guardFacesAjax(criteriaGroupDEVELOPER::click); // Uncheck
 		assertPaginatorState(1, TOTAL_RECORDS, true);
 		assertNoCartesianProduct();
 	}
@@ -1164,19 +1191,19 @@ public abstract class OptimusFacesIT {
 	protected void testManyToOne() {
 		assertNoCartesianProduct();
 		assertPaginatorState(1);
-		int totalRecords = getRowCount();
+		var totalRecords = getRowCount();
 
-		guardAjax(idColumnFilter).sendKeys("2");
+		guardPrimeFacesAjax(() -> idColumnFilter.sendKeys("2"));
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
 		globalFilter.sendKeys("19");
-		guardAjax(globalFilterButton).click();
+		guardPrimeFacesAjax(globalFilterButton::click);
 		assertGlobalFilterState("19");
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertSortedState(emailColumn, true);
 		assertGlobalFilterState("19");
 		assertFilteredState(idColumnFilter, "2");
@@ -1187,14 +1214,14 @@ public abstract class OptimusFacesIT {
 		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
-		guardAjax(emailColumnFilter).sendKeys("2");
+		guardPrimeFacesAjax(() -> emailColumnFilter.sendKeys("2"));
 		assertGlobalFilterState("19");
 		assertFilteredState(emailColumnFilter, "2");
 		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
 
 		globalFilter.clear();
-		guardAjax(globalFilterButton).click();
+		guardPrimeFacesAjax(globalFilterButton::click);
 		assertFilteredState(emailColumnFilter, "2");
 		assertSortedState(emailColumn, true);
 		assertNoCartesianProduct();
@@ -1206,19 +1233,19 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void testGlobalFilter(boolean oneToManyOrElementCollection) {
-		guardAjax(idColumnFilter).sendKeys("2");
+		guardPrimeFacesAjax(() -> idColumnFilter.sendKeys("2"));
 		assertFilteredState(idColumnFilter, "2");
 		assertPaginatorState(1, 39, oneToManyOrElementCollection);
 		assertNoCartesianProduct();
 
 		globalFilter.sendKeys("name1");
-		guardAjax(globalFilterButton).click();
+		guardPrimeFacesAjax(globalFilterButton::click);
 		assertPaginatorState(1, 23);
 		assertGlobalFilterState("name1");
 		assertFilteredState(idColumnFilter, "2");
 		assertNoCartesianProduct();
 
-		guardAjax(emailColumn).click();
+		clickColumn(emailColumn);
 		assertPaginatorState(1, 23);
 		assertSortedState(emailColumn, true);
 		assertGlobalFilterState("name1");
@@ -1232,7 +1259,7 @@ public abstract class OptimusFacesIT {
 		assertNoCartesianProduct();
 
 		globalFilter.clear();
-		guardAjax(globalFilterButton).click();
+		guardPrimeFacesAjax(globalFilterButton::click);
 		assertPaginatorState(1, TOTAL_RECORDS, oneToManyOrElementCollection);
 		assertNoCartesianProduct();
 	}
@@ -1249,11 +1276,11 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void assertPaginatorState(int currentPage, int expectedTotalRecords, boolean oneToManyOrElementCollection) {
-		int totalRecords = getRowCount();
-		int startRecord = ((currentPage - 1) * ROWS_PER_PAGE) + 1;
-		int endRecord = min(startRecord + ROWS_PER_PAGE - 1, totalRecords);
-		int pageCount = (totalRecords / ROWS_PER_PAGE) + ((totalRecords % ROWS_PER_PAGE > 0) ? 1 : 0);
-		int visibleRecords = endRecord - startRecord + 1;
+		var totalRecords = getRowCount();
+		var startRecord = (currentPage - 1) * ROWS_PER_PAGE + 1;
+		var endRecord = min(startRecord + ROWS_PER_PAGE - 1, totalRecords);
+		var pageCount = totalRecords / ROWS_PER_PAGE + (totalRecords % ROWS_PER_PAGE > 0 ? 1 : 0);
+		var visibleRecords = endRecord - startRecord + 1;
 
 		if (oneToManyOrElementCollection && isOpenJPA()) {
 			System.out.println("SKIPPING assertEquals(visibleRecords, getCells(idColumn).size()) for OpenJPA because it doesn't correctly limit @OneToMany and @ElementCollection on root"); // TODO: improve?
@@ -1266,25 +1293,25 @@ public abstract class OptimusFacesIT {
 		assertEquals("Showing " + startRecord + " - " + endRecord + " of " + totalRecords + " records", pageReport.getText(), "page report");
 		assertEquals(min(pageCount, 10), pages.size(), "page count");
 		assertEquals(String.valueOf(currentPage), pageCurrent.getText(), "page current");
-		assertEquals((currentPage == 1) ? null : String.valueOf(currentPage), getQueryParameter(QUERY_PARAMETER_PAGE), "page query string");
+		assertEquals(currentPage == 1 ? null : String.valueOf(currentPage), getQueryParameter(QUERY_PARAMETER_PAGE), "page query string");
 	}
 
 	protected void assertSortedState(WebElement column, boolean ascending) {
-		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+		var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 
 		assertSortedState(column, ascending, "id".equals(field));
 	}
 
 	protected void assertSortedState(WebElement column, boolean ascending, boolean isDefaultOrderBy) {
-		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
-		String sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
+		var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+		var sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
 
 		assertTrue(activeColumn.findElement(By.cssSelector(".ui-column-title")).getText().equals(field), field + " column must be active");
 		assertEquals(ascending, sortableColumnClass.contains("ui-icon-triangle-1-n"), field + " column must be sorted ascending");
 		assertEquals(!ascending, sortableColumnClass.contains("ui-icon-triangle-1-s"), field + " column must be sorted descending");
-		assertEquals((isDefaultOrderBy && !ascending) ? null : ((ascending ? "" : "-") + field), getQueryParameter(QUERY_PARAMETER_ORDER), "order query string");
+		assertEquals(isDefaultOrderBy && !ascending ? null : (ascending ? "" : "-") + field, getQueryParameter(QUERY_PARAMETER_ORDER), "order query string");
 
-		List<WebElement> cells = getCells(column);
+		var cells = getCells(column);
 		List<String> actualValues = cells.stream().map(this::sortIterableIfNecessary).collect(toList());
 		List<String> expectedValues;
 
@@ -1295,7 +1322,7 @@ public abstract class OptimusFacesIT {
 			expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
 
 			if (!expectedValues.equals(actualValues)) {
-				Collator collator = Collator.getInstance(Locale.ENGLISH);
+				var collator = Collator.getInstance(Locale.ENGLISH);
 				expectedValues.sort(ascending ? collator : collator.reversed()); // TODO: find a better way. Problem is, lazy model sorts by DB collation and non-lazy model sorts by Java collation, however they don't necessarily agree on each other (e.g. @ before 0).
 			}
 		}
@@ -1304,11 +1331,10 @@ public abstract class OptimusFacesIT {
 	}
 
 	private String sortIterableIfNecessary(WebElement cell) {
-		String text = cell.getText();
+		var text = cell.getText();
 
 		if (text.contains("\n")) {
-			Comparator<String> comparator = isSortedAscending(activeColumn) ? naturalOrder() : reverseOrder();
-			text = stream(text.split("\n")).sorted(comparator).collect(joining("\n"));
+			text = stream(text.split("\n")).sorted(isSortedAscending(activeColumn) ? naturalOrder() : reverseOrder()).collect(joining("\n"));
 		}
 
 		return text;
@@ -1319,11 +1345,15 @@ public abstract class OptimusFacesIT {
 	}
 
 	protected void assertFilteredState(WebElement filter, String filterValue) {
-		WebElement column = filter.findElement(By.xpath(".."));
-		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+		var column = filter.findElement(By.xpath(".."));
 
-		WebElement input = "select".equals(filter.getTagName()) ? new Select(filter).getFirstSelectedOption() : filter;
-		String actualFilterValue = input.getAttribute("value");
+		while (!"th".equals(column.getTagName())) {
+		    column = column.findElement(By.xpath(".."));
+		}
+
+		var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+        var input = "select".equals(filter.getTagName()) ? new Select(filter).getFirstSelectedOption() : filter;
+        String actualFilterValue = input.getAttribute("value");
 		assertEquals(filterValue, actualFilterValue, "filter value");
 		assertEquals(actualFilterValue, getQueryParameter(field), "filter query string");
 
@@ -1333,29 +1363,29 @@ public abstract class OptimusFacesIT {
 
 	protected void assertSelectedState(int selectedId) {
 		assertTrue(selectedRow.findElement(By.cssSelector("td:first-child")).getText().equals(String.valueOf(selectedId)), selectedId + " must be selected");
-		assertTrue(selection.getText().equals("[Person[" + selectedId + "]]"), selectedId + " must be in the selection");
+		assertTrue(("[Person[" + selectedId + "]]").equals(selection.getText()), selectedId + " must be in the selection");
 		assertEquals(String.valueOf(selectedId), getQueryParameter(QUERY_PARAMETER_SELECTION), "select query string");
 	}
 
 	protected void assertGlobalFilterState(String filterValue) {
-		String actualFilterValue = globalFilter.getAttribute("value");
+		var actualFilterValue = globalFilter.getAttribute("value");
 		assertEquals(filterValue, actualFilterValue, "filter value");
 		assertEquals(actualFilterValue, getQueryParameter(QUERY_PARAMETER_SEARCH), "filter query string");
 
 		for (WebElement row : rows) {
-			String rowAsString = row.getText();
+			var rowAsString = row.getText();
 			assertTrue(rowAsString.contains(filterValue), "row " + rowAsString + " matches global filter " + filterValue);
 		}
 	}
 
 	protected void assertCriteriaState(WebElement column, Criteria<?> criteria, Function<String, ?> parser) {
-		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+		var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 		List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
 		assertTrue(actualValues.stream().allMatch(value -> criteria.applies(parser.apply(value))), field + " criteria " + actualValues + " matches " + criteria);
 	}
 
 	protected void assertCriteriaState(WebElement column, String... criteriaValues) {
-		String field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+		var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
 		List<String> expectedValues = asList(criteriaValues);
 		getCells(column).stream().map(WebElement::getText).forEach(text -> {
 			List<String> actualValues = asList(text.split("\n"));
@@ -1364,7 +1394,7 @@ public abstract class OptimusFacesIT {
 	}
 
 	private List<WebElement> getCells(WebElement column) {
-		int columnIndex = column.findElement(By.xpath("..")).findElements(By.tagName("th")).stream().map(WebElement::getText).collect(toList()).indexOf(column.getText()); // Awkward.
+		var columnIndex = column.findElement(By.xpath("..")).findElements(By.tagName("th")).stream().map(WebElement::getText).collect(toList()).indexOf(column.getText()); // Awkward.
 		return browser.findElements(By.cssSelector("#form\\:table_data td:nth-child(" + (columnIndex + 1) + ")"));
 	}
 

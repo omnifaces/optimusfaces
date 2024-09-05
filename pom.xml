@@ -8,7 +8,7 @@
 
 	<groupId>org.omnifaces</groupId>
 	<artifactId>optimusfaces</artifactId>
-	<version>0.16.J1</version>
+	<version>0.17.J1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>OptimusFaces</name>
@@ -57,27 +57,26 @@
 	<properties>
 
 		<!-- Minimum required Java versions. -->
-		<javase.version>11</javase.version>
-		<jakartaee.version>9</jakartaee.version>
+		<javase.version>17</javase.version>
+		<jakartaee.version>10</jakartaee.version>
 
 		<!-- Essential Maven defaults. -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<maven.compiler.source>${javase.version}</maven.compiler.source>
-		<maven.compiler.target>${javase.version}</maven.compiler.target>
+		<maven.compiler.release>${javase.version}</maven.compiler.release>
 		<maven.source.excludeResources>true</maven.source.excludeResources>
 
 		<!-- Test versions. -->
-		<test.wildfly.version>26.1.1.Final</test.wildfly.version> <!-- https://search.maven.org/artifact/org.wildfly.bom/wildfly -->
-		<test.payara.version>6.2022.1.Alpha2</test.payara.version> <!-- https://search.maven.org/artifact/fish.payara.distributions/payara-web -->
-		<test.tomee.version>9.0.0-M7</test.tomee.version> <!-- https://search.maven.org/artifact/org.apache.tomee/apache-tomee TODO: JEE9 compatible version which supports jakarta.ee XML namespace (M7 unfortunately doesn't support it yet, it still throws jakarta.xml.bind.UnmarshalException: unexpected element (uri:"https://jakarta.ee/xml/ns/jakartaee", local:"web-fragment")) https://issues.apache.org/jira/browse/TOMEE-3824 -->
-		<test.wildfly-eclipselink.version>3.0.3-RC2</test.wildfly-eclipselink.version> <!-- https://search.maven.org/artifact/org.eclipse.persistence/eclipselink -->
-		<test.payara-hibernate.version>6.0.2.Final</test.payara-hibernate.version> <!-- https://search.maven.org/artifact/org.hibernate.orm/hibernate-core -->
-		<test.h2.version>1.4.200</test.h2.version> <!-- https://search.maven.org/artifact/com.h2database/h2 -->
-		<test.mysql-driver.version>8.0.29</test.mysql-driver.version> <!-- https://search.maven.org/artifact/mysql/mysql-connector-java -->
-		<test.postgresql-driver.version>42.3.6</test.postgresql-driver.version> <!-- https://search.maven.org/artifact/org.postgresql/postgresql -->
-		<test.omnifaces.version>4.0-M16</test.omnifaces.version> <!-- TODO: use 4.0 when released -->
-		<test.primefaces.version>11.0.0</test.primefaces.version> <!-- https://search.maven.org/artifact/org.omnifaces/omnifaces -->
+		<test.wildfly.version>33.0.1.Final</test.wildfly.version> <!-- https://search.maven.org/artifact/org.wildfly.bom/wildfly -->
+		<test.payara.version>6.2024.8</test.payara.version> <!-- https://search.maven.org/artifact/fish.payara.distributions/payara-web -->
+		<test.tomee.version>9.1.3</test.tomee.version> <!-- https://search.maven.org/artifact/org.apache.tomee/apache-tomee TODO: JEE9 compatible version which supports jakarta.ee XML namespace (M7 unfortunately doesn't support it yet, it still throws jakarta.xml.bind.UnmarshalException: unexpected element (uri:"https://jakarta.ee/xml/ns/jakartaee", local:"web-fragment")) https://issues.apache.org/jira/browse/TOMEE-3824 -->
+		<test.wildfly-eclipselink.version>5.0.0-B02</test.wildfly-eclipselink.version> <!-- https://search.maven.org/artifact/org.eclipse.persistence/eclipselink -->
+		<test.payara-hibernate.version>7.0.0.Beta1</test.payara-hibernate.version> <!-- https://search.maven.org/artifact/org.hibernate.orm/hibernate-core -->
+		<test.h2.version>2.3.232</test.h2.version> <!-- https://search.maven.org/artifact/com.h2database/h2 -->
+		<test.mysql-driver.version>8.0.33</test.mysql-driver.version> <!-- https://search.maven.org/artifact/mysql/mysql-connector-java -->
+		<test.postgresql-driver.version>42.7.4</test.postgresql-driver.version> <!-- https://search.maven.org/artifact/org.postgresql/postgresql -->
+		<test.omnifaces.version>4.5.1</test.omnifaces.version> <!-- https://search.maven.org/artifact/org.omnifaces/omnifaces -->
+		<test.primefaces.version>14.0.4</test.primefaces.version> <!-- https://search.maven.org/artifact/org.primefaces/primefaces -->
 	</properties>
 
 	<dependencies>
@@ -94,13 +93,13 @@
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnifaces</artifactId>
-			<version>4.0-M16</version><!-- minimum required version - TODO: use final version -->
+			<version>4.0</version><!-- minimum required version -->
 			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 		<dependency>
 			<groupId>org.omnifaces</groupId>
 			<artifactId>omnipersistence</artifactId>
-			<version>0.20.J1</version>
+			<version>0.21.J1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- PrimeFaces dependencies. -->
@@ -108,35 +107,41 @@
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
 			<classifier>jakarta</classifier>
-			<version>10.0.0</version><!-- minimum version since OptimusFaces 0.15 -->
+			<version>13.0.0</version><!-- minimum version since OptimusFaces 0.17 -->
 			<scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
 		</dependency>
 
 		<!-- Test dependencies.	-->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<version>5.8.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.arquillian.junit5</groupId>
-			<artifactId>arquillian-junit5-container</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.shrinkwrap.resolver</groupId>
-			<artifactId>shrinkwrap-resolver-depchain</artifactId>
-			<type>pom</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.arquillian.graphene</groupId>
-			<artifactId>graphene-webdriver</artifactId>
-			<version>3.0.0-alpha.3</version>
-			<type>pom</type>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.11.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.junit5</groupId>
+            <artifactId>arquillian-junit5-container</artifactId>
+            <version>1.9.1.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-impl-maven-archive</artifactId>
+            <version>3.3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.24.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>5.9.2</version>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>org.hibernate.orm</groupId>
 			<artifactId>hibernate-core</artifactId>
@@ -150,41 +155,6 @@
 			</exclusions>
 		</dependency>
 	</dependencies>
-
-	<dependencyManagement>
-		<dependencies>
-
-			<!-- Test dependencies.	-->
-			<dependency>
-				<groupId>org.jboss.arquillian</groupId>
-				<artifactId>arquillian-bom</artifactId>
-				<version>1.7.0.Alpha10</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.arquillian.extension</groupId>
-				<artifactId>arquillian-drone-bom</artifactId>
-				<version>3.0.0-alpha.4</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.shrinkwrap.resolver</groupId>
-				<artifactId>shrinkwrap-resolver-bom</artifactId>
-				<version>3.1.4</version>
-				<type>pom</type>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.jboss.arquillian.selenium</groupId>
-				<artifactId>selenium-bom</artifactId>
-				<version>3.13.0</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
  	<build>
 		<resources>
@@ -431,7 +401,7 @@
 				<dependency>
 					<groupId>org.wildfly.arquillian</groupId>
 					<artifactId>wildfly-arquillian-container-managed</artifactId>
-					<version>3.0.1.Final</version>
+					<version>5.0.1.Final</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
