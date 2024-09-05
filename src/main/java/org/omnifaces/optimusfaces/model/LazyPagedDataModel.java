@@ -289,7 +289,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
 		for (UIColumn column : processableColumns) {
 			var field = column.getField();
-			Object value = getFilterValue(filterBy, field);
+			var value = getFilterValue(filterBy, field);
 
 			if (isEmpty(value)) {
 				value = getTrimmedQueryParameters(context, getFilterParameterName(context, table, field));
@@ -313,7 +313,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 	}
 
 	protected String processGlobalFilter(FacesContext context, DataTable table, Map<String, FilterMeta> filterBy) {
-		var globalFilter = getFilterValue(filterBy, GLOBAL_FILTER);
+		var globalFilter = (String) getFilterValue(filterBy, GLOBAL_FILTER);
 
 		if (globalFilter != null) {
 			globalFilter = globalFilter.trim();
@@ -326,9 +326,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 		return isEmpty(globalFilter) ? null : globalFilter;
 	}
 
-	private static String getFilterValue(Map<String, FilterMeta> filterBy, String field) {
+	private static Object getFilterValue(Map<String, FilterMeta> filterBy, String field) {
 		var filterMeta = filterBy.get(field);
-		return filterMeta == null ? null : (String) filterMeta.getFilterValue();
+		return filterMeta == null ? null : filterMeta.getFilterValue();
 	}
 
 	private String getFilterParameterName(FacesContext context, DataTable table, String field) {
