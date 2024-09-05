@@ -46,11 +46,12 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
 </dependencies>
 ```
 
-**Minumum supported OmniFaces / PrimeFaces versions**
+**Minumum supported Java / OmniFaces / PrimeFaces versions**
 
-- OptimusFaces 0.1 - 0.14: OmniFaces 2.2 / PrimeFaces 7.0
-- OptimusFaces 0.15+: OmniFaces 3.0 / PrimeFaces 10.0.0
-- OptimusFaces 0.14-J1+: OmniFaces 4.0 / PrimeFaces 10.0.0:jakarta
+- OptimusFaces 0.1 - 0.14: Java 11 / OmniFaces 2.2 / PrimeFaces 7.0
+- OptimusFaces 0.15+: Java 11 / OmniFaces 3.0 / PrimeFaces 10.0.0
+- OptimusFaces 0.14-J1+: Java 11 / OmniFaces 4.0 / PrimeFaces 10.0.0:jakarta
+- OptimusFaces 0.17-J1+: Java 17 / OmniFaces 4.0 / PrimeFaces 13.0.0:jakarta
 
 
 ### Basic Usage
