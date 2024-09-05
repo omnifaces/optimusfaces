@@ -100,7 +100,7 @@ public abstract class OptimusFacesIT {
     @BeforeAll
     public void setup() {
         WebDriverManager.chromedriver().setup();
-        var chrome = new ChromeDriver(new ChromeOptions().addArguments("--no-sandbox"/*, "--headless"*/));
+        var chrome = new ChromeDriver(new ChromeOptions().addArguments("--no-sandbox", "--headless"));
         chrome.setLogLevel(Level.INFO);
         browser = chrome;
         PageFactory.initElements(browser, this);
