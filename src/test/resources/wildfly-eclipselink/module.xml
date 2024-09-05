@@ -19,12 +19,11 @@
     </properties>
 
     <resources>
-        <resource-root path="jipijapa-eclipselink-26.1.1.Final.jar"/>
+        <resource-root path="jipijapa-eclipselink-33.0.1.Final.jar"/>
         <resource-root path="eclipselink.jar"><filter><exclude path="jakarta/**" /></filter></resource-root>
     </resources>
 
     <dependencies>
-        <module name="jakarta.api"/>
         <module name="jakarta.annotation.api"/>
         <module name="jakarta.enterprise.api"/>
         <module name="jakarta.persistence.api"/>
@@ -32,7 +31,6 @@
         <module name="jakarta.validation.api"/>
         <module name="jakarta.xml.bind.api"/>
         <module name="org.antlr"/>
-        <module name="org.dom4j"/>
         <module name="org.jboss.as.jpa.spi"/>
         <module name="org.jboss.logging"/>
         <module name="org.jboss.vfs"/>
