@@ -69,14 +69,14 @@
 		<!-- Test versions. -->
 		<test.wildfly.version>33.0.1.Final</test.wildfly.version> <!-- https://mvnrepository.com/artifact/org.wildfly.bom/wildfly -->
         <test.glassfish.version>7.0.17</test.glassfish.version> <!-- https://mvnrepository.com/artifact/org.glassfish.main.distributions/glassfish -->
-		<test.tomee.version>9.1.3</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee TODO: JEE9 compatible version which supports jakarta.ee XML namespace (M7 unfortunately doesn't support it yet, it still throws jakarta.xml.bind.UnmarshalException: unexpected element (uri:"https://jakarta.ee/xml/ns/jakartaee", local:"web-fragment")) https://issues.apache.org/jira/browse/TOMEE-3824 -->
-		<test.wildfly-eclipselink.version>5.0.0-B02</test.wildfly-eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink -->
-		<test.glassfish-hibernate.version>6.1.7.Final</test.glassfish-hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<test.h2.version>1.4.200</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 TODO: bump to 2.x once EclipseLink is compatible with it -->
+		<test.tomee.version>9.1.3</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee -->
+		<test.wildfly-eclipselink.version>5.0.0-B03</test.wildfly-eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink -->
+		<test.glassfish-hibernate.version>6.1.7.Final</test.glassfish-hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core TODO: Hibernate 6.2.0 and newer somehow threw java.lang.ClassCircularityError: org/hibernate/jpa/internal/enhance/EnhancingClassTransformerImpl$Entry -->
+		<test.h2.version>1.4.200</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 TODO: bump to 2.x once EclipseLink is compatible with it https://github.com/eclipse-ee4j/eclipselink/issues/1393 -->
 		<test.mysql-driver.version>8.0.33</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
 		<test.postgresql-driver.version>42.7.4</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
 		<test.omnifaces.version>4.5.1</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
-		<test.primefaces.version>14.0.4</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
+		<test.primefaces.version>14.0.5</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
 	</properties>
 
 	<dependencies>
@@ -121,7 +121,7 @@
         <dependency>
             <groupId>org.jboss.arquillian.junit5</groupId>
             <artifactId>arquillian-junit5-container</artifactId>
-            <version>1.8.0.Final</version>
+            <version>1.8.0.Final</version> <!-- NOTE: 1.9.x is incompatible with arquillian-glassfish-server-managed 1.6 -->
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -636,10 +636,10 @@
 			<id>glassfish-hibernate</id>
 			<dependencies>
 				<dependency>
-					<groupId>org.jboss.arquillian.container</groupId>
-                    <artifactId>arquillian-glassfish-managed-3.1</artifactId>
-                    <version>1.0.2</version>
-					<scope>test</scope>
+                    <groupId>org.omnifaces.arquillian</groupId>
+                    <artifactId>arquillian-glassfish-server-managed</artifactId>
+                    <version>1.6</version>
+                    <scope>test</scope>
 				</dependency>
 			</dependencies>
 			<build>
@@ -720,9 +720,9 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
-                            <environmentVariables>
-                                <GLASSFISH_HOME>${project.build.directory}/glassfish7</GLASSFISH_HOME>
-                            </environmentVariables>
+                            <systemPropertyVariables>
+                                <glassfish.home>${project.build.directory}/glassfish7</glassfish.home>
+                            </systemPropertyVariables>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -734,10 +734,10 @@
 			<id>glassfish-eclipselink</id>
 			<dependencies>
 				<dependency>
-                    <groupId>org.jboss.arquillian.container</groupId>
-                    <artifactId>arquillian-glassfish-managed-3.1</artifactId>
-                    <version>1.0.2</version>
-					<scope>test</scope>
+                    <groupId>org.omnifaces.arquillian</groupId>
+                    <artifactId>arquillian-glassfish-server-managed</artifactId>
+                    <version>1.6</version>
+                    <scope>test</scope>
 				</dependency>
 			</dependencies>
 			<build>
@@ -818,9 +818,9 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
-                            <environmentVariables>
-                                <GLASSFISH_HOME>${project.build.directory}/glassfish7</GLASSFISH_HOME>
-                            </environmentVariables>
+                            <systemPropertyVariables>
+                                <glassfish.home>${project.build.directory}/glassfish7</glassfish.home>
+                            </systemPropertyVariables>
 						</configuration>
 					</plugin>
 				</plugins>
