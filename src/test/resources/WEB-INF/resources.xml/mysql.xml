@@ -14,14 +14,14 @@
 
 -->
 <!-- 
-	MySQL data source configuration for TomEE.
+    MySQL data source configuration for TomEE.
  -->
 <resources>
-	<Resource id="OptimusFacesIT" type="javax.sql.DataSource">
-		JdbcDriver com.mysql.jdbc.Driver
-		JdbcUrl jdbc:mysql://localhost:3306/test
-		UserName root
-		Password root
-		jtaManaged = true
-	</Resource>
+    <Resource id="OptimusFacesIT" type="javax.sql.DataSource">
+        JdbcDriver com.mysql.jdbc.Driver
+        JdbcUrl jdbc:mysql://localhost:3306/test
+        UserName root
+        Password root
+        jtaManaged = true
+    </Resource>
 </resources>

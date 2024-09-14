@@ -27,20 +27,20 @@ import org.omnifaces.optimusfaces.test.service.PersonService;
 @ViewScoped
 public class OptimusFacesITLazyWithOneToOneBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<Person> lazyPersonsWithAddress;
+    private PagedDataModel<Person> lazyPersonsWithAddress;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		lazyPersonsWithAddress = PagedDataModel.lazy(personService::getPageWithAddress).build();
-	}
+    @PostConstruct
+    public void init() {
+        lazyPersonsWithAddress = PagedDataModel.lazy(personService::getPageWithAddress).build();
+    }
 
-	public PagedDataModel<Person> getLazyPersonsWithAddress() {
-		return lazyPersonsWithAddress;
-	}
+    public PagedDataModel<Person> getLazyPersonsWithAddress() {
+        return lazyPersonsWithAddress;
+    }
 
 }

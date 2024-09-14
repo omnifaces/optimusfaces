@@ -24,47 +24,47 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 public class Phone extends LocalGeneratedIdEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	public enum Type {
-		MOBILE,
-		HOME,
-		WORK;
-	}
+    public enum Type {
+        MOBILE,
+        HOME,
+        WORK;
+    }
 
-	private @NotNull @Enumerated(STRING) Type type;
-	private @NotNull String number;
+    private @NotNull @Enumerated(STRING) Type type;
+    private @NotNull String number;
 
-	@ManyToOne(optional=false, fetch=FetchType.LAZY)
-	private @NotNull Person owner;
+    @ManyToOne(optional=false, fetch=FetchType.LAZY)
+    private @NotNull Person owner;
 
-	public Type getType() {
-		return type;
-	}
+    public Type getType() {
+        return type;
+    }
 
-	public void setType(Type type) {
-		this.type = type;
-	}
+    public void setType(Type type) {
+        this.type = type;
+    }
 
-	public String getNumber() {
-		return number;
-	}
+    public String getNumber() {
+        return number;
+    }
 
-	public void setNumber(String number) {
-		this.number = number;
-	}
+    public void setNumber(String number) {
+        this.number = number;
+    }
 
-	public Person getOwner() {
-		return owner;
-	}
+    public Person getOwner() {
+        return owner;
+    }
 
-	public void setOwner(Person owner) {
-		this.owner = owner;
-	}
+    public void setOwner(Person owner) {
+        this.owner = owner;
+    }
 
-	@Transient
-	public String getEmail() {
-		return getOwner().getEmail();
-	}
+    @Transient
+    public String getEmail() {
+        return getOwner().getEmail();
+    }
 
 }

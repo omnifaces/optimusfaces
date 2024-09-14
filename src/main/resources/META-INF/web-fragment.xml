@@ -19,6 +19,6 @@
     xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-fragment_5_0.xsd"
     version="5.0"
 >
-	<display-name>optimusfaces</display-name>
-	<name>optimusfaces</name>
+    <display-name>optimusfaces</display-name>
+    <name>optimusfaces</name>
 </web-fragment>

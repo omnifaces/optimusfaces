@@ -14,15 +14,15 @@
 
 -->
 <!-- 
-	MySQL data source configuration for WildFly.
+    MySQL data source configuration for WildFly.
  -->
 <datasources>
-	<datasource jta="true" jndi-name="java:/OptimusFacesIT" pool-name="OptimusFacesIT" enabled="true" use-java-context="true">
-		<connection-url>jdbc:mysql://localhost:3306/test</connection-url>
-		<driver>mysql.jar</driver>
-		<security>
-			<user-name>root</user-name>
-			<password>root</password>
-		</security>
-	</datasource>
+    <datasource jta="true" jndi-name="java:/OptimusFacesIT" pool-name="OptimusFacesIT" enabled="true" use-java-context="true">
+        <connection-url>jdbc:mysql://localhost:3306/test</connection-url>
+        <driver>mysql.jar</driver>
+        <security>
+            <user-name>root</user-name>
+            <password>root</password>
+        </security>
+    </datasource>
 </datasources>

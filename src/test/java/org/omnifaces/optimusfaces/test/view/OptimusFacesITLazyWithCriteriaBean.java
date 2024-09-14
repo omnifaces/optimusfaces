@@ -41,46 +41,46 @@ import org.omnifaces.utils.reflect.Getter;
 @ViewScoped
 public class OptimusFacesITLazyWithCriteriaBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private static final Map<String, Entry<Getter<Person>, Object>> AVAILABLE_CRITERIA = new LinkedHashMap<>();
+    private static final Map<String, Entry<Getter<Person>, Object>> AVAILABLE_CRITERIA = new LinkedHashMap<>();
 
-	static {
-		AVAILABLE_CRITERIA.put("Id BETWEEN 50 AND 150", new SimpleEntry<>(Person::getId, Between.range(50L, 150L)));
-		AVAILABLE_CRITERIA.put("Email LIKE name1%", new SimpleEntry<>(Person::getEmail, Like.startsWith("name1")));
-		AVAILABLE_CRITERIA.put("Gender = FEMALE", new SimpleEntry<>(Person::getGender, Gender.FEMALE));
-		AVAILABLE_CRITERIA.put("DateOfBirth < 1950", new SimpleEntry<>(Person::getDateOfBirth, Order.lessThan(LocalDate.of(1950, 1, 1))));
-	}
+    static {
+        AVAILABLE_CRITERIA.put("Id BETWEEN 50 AND 150", new SimpleEntry<>(Person::getId, Between.range(50L, 150L)));
+        AVAILABLE_CRITERIA.put("Email LIKE name1%", new SimpleEntry<>(Person::getEmail, Like.startsWith("name1")));
+        AVAILABLE_CRITERIA.put("Gender = FEMALE", new SimpleEntry<>(Person::getGender, Gender.FEMALE));
+        AVAILABLE_CRITERIA.put("DateOfBirth < 1950", new SimpleEntry<>(Person::getDateOfBirth, Order.lessThan(LocalDate.of(1950, 1, 1))));
+    }
 
-	private PagedDataModel<Person> lazyPersonsWithCriteria;
-	private List<Entry<Getter<Person>, Object>> selectedCriteria;
+    private PagedDataModel<Person> lazyPersonsWithCriteria;
+    private List<Entry<Getter<Person>, Object>> selectedCriteria;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		lazyPersonsWithCriteria = PagedDataModel.lazy(personService).criteria(this::mapSelectedCriteria).build();
-	}
+    @PostConstruct
+    public void init() {
+        lazyPersonsWithCriteria = PagedDataModel.lazy(personService).criteria(this::mapSelectedCriteria).build();
+    }
 
-	private Map<Getter<Person>, Object> mapSelectedCriteria() {
-		return stream(selectedCriteria).collect(toMap(Entry::getKey, Entry::getValue));
-	}
+    private Map<Getter<Person>, Object> mapSelectedCriteria() {
+        return stream(selectedCriteria).collect(toMap(Entry::getKey, Entry::getValue));
+    }
 
-	public PagedDataModel<Person> getLazyPersonsWithCriteria() {
-		return lazyPersonsWithCriteria;
-	}
+    public PagedDataModel<Person> getLazyPersonsWithCriteria() {
+        return lazyPersonsWithCriteria;
+    }
 
-	public Map<String, Entry<Getter<Person>, Object>> getAvailableCriteria() {
-		return AVAILABLE_CRITERIA;
-	}
+    public Map<String, Entry<Getter<Person>, Object>> getAvailableCriteria() {
+        return AVAILABLE_CRITERIA;
+    }
 
-	public List<Entry<Getter<Person>, Object>> getSelectedCriteria() {
-		return selectedCriteria;
-	}
+    public List<Entry<Getter<Person>, Object>> getSelectedCriteria() {
+        return selectedCriteria;
+    }
 
-	public void setSelectedCriteria(List<Entry<Getter<Person>, Object>> selectedCriteria) {
-		this.selectedCriteria = selectedCriteria;
-	}
+    public void setSelectedCriteria(List<Entry<Getter<Person>, Object>> selectedCriteria) {
+        this.selectedCriteria = selectedCriteria;
+    }
 
 }

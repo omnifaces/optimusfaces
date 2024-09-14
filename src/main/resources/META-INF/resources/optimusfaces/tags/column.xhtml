@@ -13,71 +13,71 @@
 
 -->
 <ui:composition
-	xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:f="http://xmlns.jcp.org/jsf/core"
-	xmlns:h="http://xmlns.jcp.org/jsf/html"
-	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-	xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
-	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
-	xmlns:o="http://omnifaces.org/ui"
-	xmlns:of="http://omnifaces.org/functions"
-	xmlns:p="http://primefaces.org/ui"
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
+    xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+    xmlns:o="http://omnifaces.org/ui"
+    xmlns:of="http://omnifaces.org/functions"
+    xmlns:p="http://primefaces.org/ui"
 >
-	<!-- NOTE: Internal variables start with an unconventional $ in order to prevent interfering with user defined variables in same scope. -->
-	<c:set var="$dataTable" value="#{component.findComponent(id).namingContainer}" />
-	<c:set var="$pagedDataModel" value="#{$dataTable.value}" />
-	<c:set var="$exporting" value="#{not empty param.$export}" scope="request" />
-	<c:set var="$ITERABLE_CLASS" value="#{{}['class'].interfaces[0].interfaces[0].interfaces[0]}" scope="application" /><!-- TODO: this is hacky -->
+    <!-- NOTE: Internal variables start with an unconventional $ in order to prevent interfering with user defined variables in same scope. -->
+    <c:set var="$dataTable" value="#{component.findComponent(id).namingContainer}" />
+    <c:set var="$pagedDataModel" value="#{$dataTable.value}" />
+    <c:set var="$exporting" value="#{not empty param.$export}" scope="request" />
+    <c:set var="$ITERABLE_CLASS" value="#{{}['class'].interfaces[0].interfaces[0].interfaces[0]}" scope="application" /><!-- TODO: this is hacky -->
 
-	<o:tagAttribute name="field" />
-		<o:tagAttribute name="id" default="#{empty $pagedDataModel ? field.replace('.', '_') : $pagedDataModel.computeColumnId(field)}" />
-		<o:tagAttribute name="head" default="#{field}" />
-		<o:tagAttribute name="value" default="#{item[field]}" />
-		<o:tagAttribute name="tooltip" />
-		<o:tagAttribute name="styleClass" />
-		<o:tagAttribute name="rendered" default="#{true}" />
-		<o:tagAttribute name="visible" default="#{true}" />
-		<o:tagAttribute name="width" />
-		<o:tagAttribute name="iterable" default="#{$ITERABLE_CLASS.isInstance(value)}" />
+    <o:tagAttribute name="field" />
+        <o:tagAttribute name="id" default="#{empty $pagedDataModel ? field.replace('.', '_') : $pagedDataModel.computeColumnId(field)}" />
+        <o:tagAttribute name="head" default="#{field}" />
+        <o:tagAttribute name="value" default="#{item[field]}" />
+        <o:tagAttribute name="tooltip" />
+        <o:tagAttribute name="styleClass" />
+        <o:tagAttribute name="rendered" default="#{true}" />
+        <o:tagAttribute name="visible" default="#{true}" />
+        <o:tagAttribute name="width" />
+        <o:tagAttribute name="iterable" default="#{$ITERABLE_CLASS.isInstance(value)}" />
 
-	<o:tagAttribute name="sortable" default="#{$dataTable.attributes.sortable}" />
-		<o:tagAttribute name="sortDescending" default="#{false}" />
+    <o:tagAttribute name="sortable" default="#{$dataTable.attributes.sortable}" />
+        <o:tagAttribute name="sortDescending" default="#{false}" />
 
-	<o:tagAttribute name="filterable" default="#{$dataTable.attributes.filterable}" />
-		<o:tagAttribute name="filterMode" />
-		<o:tagAttribute name="filterOptions" />
+    <o:tagAttribute name="filterable" default="#{$dataTable.attributes.filterable}" />
+        <o:tagAttribute name="filterMode" />
+        <o:tagAttribute name="filterOptions" />
 
-	<o:tagAttribute name="exportable" default="#{true}" />
-		<o:tagAttribute name="exportValue" default="#{value}" />
+    <o:tagAttribute name="exportable" default="#{true}" />
+        <o:tagAttribute name="exportValue" default="#{value}" />
 
 
-	<p:column
-		field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" sortBy="#{value}"
-		filterable="#{filterable}" filterBy="#{value}" filterValue="#{$pagedDataModel.getFilter(field).filterValue}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
-		styleClass="#{styleClass}#{sortable and $dataTable.sortBy.field eq field ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
-		rendered="#{rendered}" visible="#{visible}" exportable="#{exportable}"
-	>
-		<c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
-		<c:if test="#{not empty filterOptions}">
-			<f:facet name="filter">
+    <p:column
+        field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" sortBy="#{value}"
+        filterable="#{filterable}" filterBy="#{value}" filterValue="#{$pagedDataModel.getFilter(field).filterValue}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
+        styleClass="#{styleClass}#{sortable and $dataTable.sortBy.field eq field ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
+        rendered="#{rendered}" visible="#{visible}" exportable="#{exportable}"
+    >
+        <c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
+        <c:if test="#{not empty filterOptions}">
+            <f:facet name="filter">
                 <p:selectOneMenu id="#{id}Filter" onchange="PF('#{$dataTable.widgetVar}').filter()" styleClass="ui-custom-filter">
                     <f:selectItems value="#{$pagedDataModel.convertFilterOptionsIfNecessary(filterOptions)}" />
                 </p:selectOneMenu>
             </f:facet>
-			<c:if test="#{empty filterMode}"><f:attribute name="filterMatchMode" value="exact" /></c:if>
-		</c:if>
+            <c:if test="#{empty filterMode}"><f:attribute name="filterMatchMode" value="exact" /></c:if>
+        </c:if>
 
-		<h:outputText rendered="#{$exporting}" value="#{exportValue}" />
+        <h:outputText rendered="#{$exporting}" value="#{exportValue}" />
 
-		<ui:fragment rendered="#{not $exporting}">
-			<span title="#{tooltip}">
-				<ui:insert name="cell">
-					<ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment>
-					<ui:repeat rendered="#{iterable}" value="#{iterable ? of:iterableToList(value) : []}" var="$value" 
-						varStatus="loop"><span>#{$value.toString()}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
-					<ui:remove><!-- NOTE: explicit toString() call on value makes sure that it's also called on enums instead of name() (because that's not overridable). --></ui:remove>
-				</ui:insert>
-			</span>
-		</ui:fragment>
-	</p:column>
+        <ui:fragment rendered="#{not $exporting}">
+            <span title="#{tooltip}">
+                <ui:insert name="cell">
+                    <ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment>
+                    <ui:repeat rendered="#{iterable}" value="#{iterable ? of:iterableToList(value) : []}" var="$value" 
+                        varStatus="loop"><span>#{$value.toString()}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
+                    <ui:remove><!-- NOTE: explicit toString() call on value makes sure that it's also called on enums instead of name() (because that's not overridable). --></ui:remove>
+                </ui:insert>
+            </span>
+        </ui:fragment>
+    </p:column>
 </ui:composition>

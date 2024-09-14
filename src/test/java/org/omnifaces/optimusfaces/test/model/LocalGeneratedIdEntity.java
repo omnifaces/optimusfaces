@@ -38,18 +38,18 @@ import org.omnifaces.persistence.model.GeneratedIdEntity;
 @MappedSuperclass
 public class LocalGeneratedIdEntity extends BaseEntity<Long> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Id @GeneratedValue(strategy = IDENTITY)
-	private Long id;
+    @Id @GeneratedValue(strategy = IDENTITY)
+    private Long id;
 
-	@Override
-	public Long getId() {
-		return id;
-	}
+    @Override
+    public Long getId() {
+        return id;
+    }
 
-	@Override
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

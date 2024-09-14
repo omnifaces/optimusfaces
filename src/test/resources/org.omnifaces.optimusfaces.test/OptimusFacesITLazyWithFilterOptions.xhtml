@@ -14,30 +14,30 @@
 -->
 <!DOCTYPE html>
 <html lang="en"
-	xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:f="http://xmlns.jcp.org/jsf/core"
-	xmlns:h="http://xmlns.jcp.org/jsf/html"
-	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-	xmlns:o="http://omnifaces.org/ui"
-	xmlns:p="http://primefaces.org/ui"
-	xmlns:op="http://omnifaces.org/optimusfaces"
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:o="http://omnifaces.org/ui"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:op="http://omnifaces.org/optimusfaces"
 >
-	<h:head>
-		<title>OptimusFacesIT - lazy with filter options</title>
-	</h:head>
+    <h:head>
+        <title>OptimusFacesIT - lazy with filter options</title>
+    </h:head>
 
-	<h:body>
-		<o:importConstants type="org.omnifaces.optimusfaces.test.model.Gender" />
-	
-		<o:form id="form">
-			<op:dataTable id="table" value="#{optimusFacesITLazyBean.lazyPersons}">
-				<op:column field="id" />
-				<op:column field="email" />
-				<op:column field="gender" filterOptions="#{Gender}" />
-				<op:column field="dateOfBirth" />
-			</op:dataTable>
-		</o:form>
+    <h:body>
+        <o:importConstants type="org.omnifaces.optimusfaces.test.model.Gender" />
+    
+        <o:form id="form">
+            <op:dataTable id="table" value="#{optimusFacesITLazyBean.lazyPersons}">
+                <op:column field="id" />
+                <op:column field="email" />
+                <op:column field="gender" filterOptions="#{Gender}" />
+                <op:column field="dateOfBirth" />
+            </op:dataTable>
+        </o:form>
 
-		<h:outputText id="rowCount" value="#{optimusFacesITLazyBean.lazyPersons.rowCount}" styleClass="updateOnDataTableFilter" />
-	</h:body>
+        <h:outputText id="rowCount" value="#{optimusFacesITLazyBean.lazyPersons.rowCount}" styleClass="updateOnDataTableFilter" />
+    </h:body>
 </html>

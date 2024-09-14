@@ -25,17 +25,17 @@ import org.primefaces.component.datatable.DataTable;
  */
 public class ExtendedDataTable extends DataTable {
 
-	@Override
-	protected void preDecode(FacesContext context) {
+    @Override
+    protected void preDecode(FacesContext context) {
         if (context.isPostback() && isLazy()) {
-        	DataModel<?> model = getDataModel();
+            DataModel<?> model = getDataModel();
 
-        	if (model instanceof LazyPagedDataModel && model.getWrappedData() == null) {
-       			((LazyPagedDataModel<?>) model).preloadPage(context, this);
-        	}
+            if (model instanceof LazyPagedDataModel && model.getWrappedData() == null) {
+                   ((LazyPagedDataModel<?>) model).preloadPage(context, this);
+            }
         }
 
-		super.preDecode(context);
-	}
+        super.preDecode(context);
+    }
 
 }

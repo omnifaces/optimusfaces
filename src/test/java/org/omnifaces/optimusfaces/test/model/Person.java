@@ -33,68 +33,68 @@ import jakarta.validation.constraints.NotNull;
 @Entity
 public class Person extends LocalGeneratedIdEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private @NotNull String email;
-	private @NotNull @Enumerated Gender gender;
-	private @NotNull LocalDate dateOfBirth;
+    private @NotNull String email;
+    private @NotNull @Enumerated Gender gender;
+    private @NotNull LocalDate dateOfBirth;
 
-	@OneToOne(cascade=PERSIST, fetch=LAZY)
-	private @NotNull Address address;
+    @OneToOne(cascade=PERSIST, fetch=LAZY)
+    private @NotNull Address address;
 
-	@OneToMany(cascade=PERSIST)
-	private @NotNull List<Phone> phones = new ArrayList<>();
+    @OneToMany(cascade=PERSIST)
+    private @NotNull List<Phone> phones = new ArrayList<>();
 
-	@ElementCollection
-	@Column(name="\"groups\"") // "groups" has become a new reserved word since MySQL 8.0.2, so we need to quote it.
-	private @Enumerated(STRING) Set<Group> groups = new HashSet<>();
+    @ElementCollection
+    @Column(name="\"groups\"") // "groups" has become a new reserved word since MySQL 8.0.2, so we need to quote it.
+    private @Enumerated(STRING) Set<Group> groups = new HashSet<>();
 
-	public String getEmail() {
-		return email;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public Gender getGender() {
-		return gender;
-	}
+    public Gender getGender() {
+        return gender;
+    }
 
-	public void setGender(Gender gender) {
-		this.gender = gender;
-	}
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
 
-	public LocalDate getDateOfBirth() {
-		return dateOfBirth;
-	}
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
 
-	public void setDateOfBirth(LocalDate dateOfBirth) {
-		this.dateOfBirth = dateOfBirth;
-	}
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
 
-	public Address getAddress() {
-		return address;
-	}
+    public Address getAddress() {
+        return address;
+    }
 
-	public void setAddress(Address address) {
-		this.address = address;
-	}
+    public void setAddress(Address address) {
+        this.address = address;
+    }
 
-	public List<Phone> getPhones() {
-		return phones;
-	}
+    public List<Phone> getPhones() {
+        return phones;
+    }
 
-	public void setPhones(List<Phone> phones) {
-		this.phones = phones;
-	}
+    public void setPhones(List<Phone> phones) {
+        this.phones = phones;
+    }
 
-	public Set<Group> getGroups() {
-		return groups;
-	}
+    public Set<Group> getGroups() {
+        return groups;
+    }
 
-	public void setGroups(Set<Group> groups) {
-		this.groups = groups;
-	}
+    public void setGroups(Set<Group> groups) {
+        this.groups = groups;
+    }
 
 }

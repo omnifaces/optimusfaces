@@ -814,328 +814,328 @@ import org.primefaces.model.Visibility;
  */
 public interface PagedDataModel<E extends Identifiable<?>> extends Serializable {
 
-	// Constants ------------------------------------------------------------------------------------------------------
+    // Constants ------------------------------------------------------------------------------------------------------
 
-	/** The query parameter name representing the value of the global search query. */
-	String QUERY_PARAMETER_SEARCH = "q";
+    /** The query parameter name representing the value of the global search query. */
+    String QUERY_PARAMETER_SEARCH = "q";
 
-	/** The query parameter name representing the current page number. */
-	String QUERY_PARAMETER_PAGE = "p";
+    /** The query parameter name representing the current page number. */
+    String QUERY_PARAMETER_PAGE = "p";
 
-	/** The query parameter name representing the current sort order. */
-	String QUERY_PARAMETER_ORDER = "o";
+    /** The query parameter name representing the current sort order. */
+    String QUERY_PARAMETER_ORDER = "o";
 
-	/** The query parameter name representing the current selection. */
-	String QUERY_PARAMETER_SELECTION = "s";
+    /** The query parameter name representing the current selection. */
+    String QUERY_PARAMETER_SELECTION = "s";
 
-	// Note that those names are intentionally kept single-char in order to not potentially clash with field names.
-
-
-	// Default methods ------------------------------------------------------------------------------------------------
-
-	/**
-	 * Invoked when default <code>id</code> attribute of <code>&lt;op:column&gt;</code> is to be set. This is by default based on the
-	 * <code>field</code> and the ID attribute does not support periods.
-	 * @param field The column field.
-	 * @return The column ID based on given field.
-	 */
-	default String computeColumnId(String field) {
-		return field.replace('.', '_');
-	}
-
-	/**
-	 * Invoked when <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code> is provided.
-	 * Problem is, the underlying <code>&lt;p:column&gt;</code> only supports <code>SelectItem[]</code> or
-	 * <code>List&lt;SelectItem&gt;</code>.
-	 * @param filterOptions The filter options.
-	 * @return The filter options converted to <code>SelectItem[]</code>.
-	 */
-	default SelectItem[] convertFilterOptionsIfNecessary(Object filterOptions) {
-		Stream<SelectItem> stream;
-
-		if (filterOptions instanceof SelectItem[]) {
-			stream = stream(filterOptions);
-		}
-		if (filterOptions instanceof Object[]) {
-			stream = stream(filterOptions).map(SelectItem::new);
-		}
-		else if (filterOptions instanceof Collection<?>) {
-			stream = stream(filterOptions).map(item -> item instanceof SelectItem ? (SelectItem) item : new SelectItem(item));
-		}
-		else if (filterOptions instanceof Map<?, ?>) {
-			stream = stream((Map<?, ?>) filterOptions).map(entry -> new SelectItem(entry.getKey(), String.valueOf(entry.getValue())));
-		}
-		else {
-			throw new IllegalArgumentException("filterOptions must be an instance of SelectItem[], Object[], Collection or Map");
-		}
-
-		return Stream.concat(Stream.of(new SelectItem("")), stream).toArray(SelectItem[]::new);
-	}
-
-	/**
-	 * Invoked when "Columns" is adjusted.
-	 * @param event Toggle event.
-	 */
-	default void toggleColumn(ToggleEvent event) {
-		var tableId = ((ColumnToggler) event.getComponent()).getDatasource();
-		var table = (DataTable) getCurrentComponent().findComponent(tableId);
-		((Column) table.getColumns().get((Integer) event.getData())).setVisible(event.getVisibility() == Visibility.VISIBLE);
-	}
-
-	/**
-	 * Invoked when "Export Visible Columns" is chosen.
-	 * @param tableId Table ID.
-	 */
-	default void prepareExportVisible(String tableId) {
-		var table = (DataTable) getCurrentComponent().findComponent(tableId);
-		table.getColumns().forEach(column -> setExportable((Column) column, column.isVisible()));
-	}
-
-	/**
-	 * Invoked when "Export All Columns" is chosen.
-	 * @param tableId Table ID.
-	 */
-	default void prepareExportAll(String tableId) {
-		var table = (DataTable) getCurrentComponent().findComponent(tableId);
-		table.getColumns().forEach(column -> setExportable((Column) column, true));
-	}
-
-	/**
-	 * Remembers original value of "exportable" attribute in case it's been explicitly set.
-	 * @param column The column.
-	 * @param exportable Whether it should be set exportable if not already explicitly disabled.
-	 */
-	static void setExportable(Column column, boolean exportable) {
-		var wasExportable = column.getAttributes().putIfAbsent("wasExportable", column.isExportable()) == Boolean.TRUE || column.isExportable();
-
-		if (wasExportable) {
-			column.setExportable(exportable);
-		}
-	}
+    // Note that those names are intentionally kept single-char in order to not potentially clash with field names.
 
 
-	// PagedDataModel state -------------------------------------------------------------------------------------------
+    // Default methods ------------------------------------------------------------------------------------------------
 
-	/**
-	 * Returns the current Page.
-	 * @return The current Page.
-	 */
-	Page getPage();
+    /**
+     * Invoked when default <code>id</code> attribute of <code>&lt;op:column&gt;</code> is to be set. This is by default based on the
+     * <code>field</code> and the ID attribute does not support periods.
+     * @param field The column field.
+     * @return The column ID based on given field.
+     */
+    default String computeColumnId(String field) {
+        return field.replace('.', '_');
+    }
+
+    /**
+     * Invoked when <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code> is provided.
+     * Problem is, the underlying <code>&lt;p:column&gt;</code> only supports <code>SelectItem[]</code> or
+     * <code>List&lt;SelectItem&gt;</code>.
+     * @param filterOptions The filter options.
+     * @return The filter options converted to <code>SelectItem[]</code>.
+     */
+    default SelectItem[] convertFilterOptionsIfNecessary(Object filterOptions) {
+        Stream<SelectItem> stream;
+
+        if (filterOptions instanceof SelectItem[]) {
+            stream = stream(filterOptions);
+        }
+        if (filterOptions instanceof Object[]) {
+            stream = stream(filterOptions).map(SelectItem::new);
+        }
+        else if (filterOptions instanceof Collection<?>) {
+            stream = stream(filterOptions).map(item -> item instanceof SelectItem ? (SelectItem) item : new SelectItem(item));
+        }
+        else if (filterOptions instanceof Map<?, ?>) {
+            stream = stream((Map<?, ?>) filterOptions).map(entry -> new SelectItem(entry.getKey(), String.valueOf(entry.getValue())));
+        }
+        else {
+            throw new IllegalArgumentException("filterOptions must be an instance of SelectItem[], Object[], Collection or Map");
+        }
+
+        return Stream.concat(Stream.of(new SelectItem("")), stream).toArray(SelectItem[]::new);
+    }
+
+    /**
+     * Invoked when "Columns" is adjusted.
+     * @param event Toggle event.
+     */
+    default void toggleColumn(ToggleEvent event) {
+        var tableId = ((ColumnToggler) event.getComponent()).getDatasource();
+        var table = (DataTable) getCurrentComponent().findComponent(tableId);
+        ((Column) table.getColumns().get((Integer) event.getData())).setVisible(event.getVisibility() == Visibility.VISIBLE);
+    }
+
+    /**
+     * Invoked when "Export Visible Columns" is chosen.
+     * @param tableId Table ID.
+     */
+    default void prepareExportVisible(String tableId) {
+        var table = (DataTable) getCurrentComponent().findComponent(tableId);
+        table.getColumns().forEach(column -> setExportable((Column) column, column.isVisible()));
+    }
+
+    /**
+     * Invoked when "Export All Columns" is chosen.
+     * @param tableId Table ID.
+     */
+    default void prepareExportAll(String tableId) {
+        var table = (DataTable) getCurrentComponent().findComponent(tableId);
+        table.getColumns().forEach(column -> setExportable((Column) column, true));
+    }
+
+    /**
+     * Remembers original value of "exportable" attribute in case it's been explicitly set.
+     * @param column The column.
+     * @param exportable Whether it should be set exportable if not already explicitly disabled.
+     */
+    static void setExportable(Column column, boolean exportable) {
+        var wasExportable = column.getAttributes().putIfAbsent("wasExportable", column.isExportable()) == Boolean.TRUE || column.isExportable();
+
+        if (wasExportable) {
+            column.setExportable(exportable);
+        }
+    }
 
 
-	// op:dataTable properties ----------------------------------------------------------------------------------------
+    // PagedDataModel state -------------------------------------------------------------------------------------------
 
-	SortMeta getOrdering(); // TODO: support new multisort feature
+    /**
+     * Returns the current Page.
+     * @return The current Page.
+     */
+    Page getPage();
+
+
+    // op:dataTable properties ----------------------------------------------------------------------------------------
+
+    SortMeta getOrdering(); // TODO: support new multisort feature
     Map<String, FilterMeta> getFilters();
     FilterMeta getFilter(String field);
 
-	List<E> getFilteredValue();
-	void setFilteredValue(List<E> filteredValue);
+    List<E> getFilteredValue();
+    void setFilteredValue(List<E> filteredValue);
 
-	List<E> getSelection();
-	void setSelection(List<E> selection);
+    List<E> getSelection();
+    void setSelection(List<E> selection);
 
 
-	// Builder --------------------------------------------------------------------------------------------------------
+    // Builder --------------------------------------------------------------------------------------------------------
 
-	@FunctionalInterface
-	public interface PartialResultListLoader<E extends Identifiable<?>> {
-		PartialResultList<E> getPage(Page page, boolean estimateTotalNumberOfResults);
-	}
+    @FunctionalInterface
+    public interface PartialResultListLoader<E extends Identifiable<?>> {
+        PartialResultList<E> getPage(Page page, boolean estimateTotalNumberOfResults);
+    }
 
-	/**
-	 * Use this if you want to build a lazy paged data model using a {@link BaseEntityService}.
-	 * @param <I> The generic ID type.
-	 * @param <E> The generic base entity type.
-	 * @param entityService The entity service.
-	 * @return A new paged data model builder.
-	 */
-	static <I extends Comparable<I> & Serializable, E extends BaseEntity<I>> Builder<E> lazy(BaseEntityService<I, E> entityService) {
-		return new Builder<>(entityService::getPage);
-	}
+    /**
+     * Use this if you want to build a lazy paged data model using a {@link BaseEntityService}.
+     * @param <I> The generic ID type.
+     * @param <E> The generic base entity type.
+     * @param entityService The entity service.
+     * @return A new paged data model builder.
+     */
+    static <I extends Comparable<I> & Serializable, E extends BaseEntity<I>> Builder<E> lazy(BaseEntityService<I, E> entityService) {
+        return new Builder<>(entityService::getPage);
+    }
 
-	/**
-	 * Use this if you want to build a lazy paged data model using a custom
-	 * {@link BaseEntityService#getPage(Page, boolean)} implementation.
-	 * @param <E> The generic base entity type.
-	 * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
-	 * @return A new paged data model builder.
-	 */
-	static <E extends Identifiable<?>> Builder<E> lazy(PartialResultListLoader<E> loader) {
-		return new Builder<>(loader);
-	}
+    /**
+     * Use this if you want to build a lazy paged data model using a custom
+     * {@link BaseEntityService#getPage(Page, boolean)} implementation.
+     * @param <E> The generic base entity type.
+     * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
+     * @return A new paged data model builder.
+     */
+    static <E extends Identifiable<?>> Builder<E> lazy(PartialResultListLoader<E> loader) {
+        return new Builder<>(loader);
+    }
 
-	/**
-	 * Use this if you want to build a non-lazy paged data model based on given list.
-	 * @param <E> The generic base entity type.
-	 * @param allData List of all data.
-	 * @return A new paged data model builder.
-	 */
-	static <E extends Identifiable<?>> Builder<E> nonLazy(List<E> allData) {
-		return new Builder<>(allData);
-	}
+    /**
+     * Use this if you want to build a non-lazy paged data model based on given list.
+     * @param <E> The generic base entity type.
+     * @param allData List of all data.
+     * @return A new paged data model builder.
+     */
+    static <E extends Identifiable<?>> Builder<E> nonLazy(List<E> allData) {
+        return new Builder<>(allData);
+    }
 
-	/**
-	 * The paged data model builder.
-	 *
-	 * @param <E> The generic base entity type.
-	 * @author Bauke Scholtz
-	 */
-	public static class Builder<E extends Identifiable<?>> {
+    /**
+     * The paged data model builder.
+     *
+     * @param <E> The generic base entity type.
+     * @author Bauke Scholtz
+     */
+    public static class Builder<E extends Identifiable<?>> {
 
-		private List<E> allData;
-		private PartialResultListLoader<E> loader;
+        private List<E> allData;
+        private PartialResultListLoader<E> loader;
 
-		private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
-		private Map<String, Object> predefinedCriteria;
-		private Supplier<Map<Getter<E>, Object>> dynamicCriteria;
+        private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
+        private Map<String, Object> predefinedCriteria;
+        private Supplier<Map<Getter<E>, Object>> dynamicCriteria;
 
-		private Builder(List<E> allData) {
-			this.allData = allData;
-		}
+        private Builder(List<E> allData) {
+            this.allData = allData;
+        }
 
-		private Builder(PartialResultListLoader<E> loader) {
-			this.loader = loader;
-		}
+        private Builder(PartialResultListLoader<E> loader) {
+            this.loader = loader;
+        }
 
-		/**
-		 * <p>
-		 * Set the predefined criteria. The map key represents the property path.
-		 * <p>
-		 * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order},
-		 * {@link Enumerated}, {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
-		 * <p>
-		 * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
-		 * <ul>
-		 * <li>value = <code>null</code>, this will create IS NULL predicate.
-		 * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
-		 * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
-		 * <li>value = {@link BaseEntity}, this will create an EQUAL predicate on entity ID.
-		 * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * </ul>
-		 * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value.
-		 * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked.
-		 * <p>
-		 * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you
-		 * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like
-		 * to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
-		 * <p>
-		 * The predefined criteria can be set only once in this builder.
-		 *
-		 * @param predefinedCriteria The predefined criteria.
-		 * @return This builder.
-		 * @throws IllegalStateException When another predefined criteria is already set in this builder.
-		 * @see Criteria
-		 */
-		public Builder<E> criteria(Map<String, Object> predefinedCriteria) {
-			if (this.predefinedCriteria != null) {
-				throw new IllegalStateException("Predefined criteria is already set");
-			}
+        /**
+         * <p>
+         * Set the predefined criteria. The map key represents the property path.
+         * <p>
+         * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order},
+         * {@link Enumerated}, {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
+         * <p>
+         * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
+         * <ul>
+         * <li>value = <code>null</code>, this will create IS NULL predicate.
+         * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
+         * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
+         * <li>value = {@link BaseEntity}, this will create an EQUAL predicate on entity ID.
+         * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * </ul>
+         * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value.
+         * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked.
+         * <p>
+         * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you
+         * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like
+         * to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
+         * <p>
+         * The predefined criteria can be set only once in this builder.
+         *
+         * @param predefinedCriteria The predefined criteria.
+         * @return This builder.
+         * @throws IllegalStateException When another predefined criteria is already set in this builder.
+         * @see Criteria
+         */
+        public Builder<E> criteria(Map<String, Object> predefinedCriteria) {
+            if (this.predefinedCriteria != null) {
+                throw new IllegalStateException("Predefined criteria is already set");
+            }
 
-			this.predefinedCriteria = predefinedCriteria;
-			return this;
-		}
+            this.predefinedCriteria = predefinedCriteria;
+            return this;
+        }
 
-		/**
-		 * <p>
-		 * Set the dynamic criteria. The map key represents the entity getter.
-		 * <p>
-		 * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order},
-		 * {@link Enumerated}, {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
-		 * <p>
-		 * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
-		 * <ul>
-		 * <li>value = <code>null</code>, this will create IS NULL predicate.
-		 * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
-		 * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
-		 * <li>value = {@link BaseEntity}, this will create an EQUAL predicate on entity ID.
-		 * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-		 * </ul>
-		 * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value.
-		 * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked.
-		 * <p>
-		 * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you
-		 * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like
-		 * to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
-		 * <p>
-		 * The dynamic criteria can be set only once in this builder.
-		 *
-		 * @param dynamicCriteria The dynamic criteria.
-		 * @return This builder.
-		 * @throws IllegalStateException When another dynamic criteria is already set in this builder.
-		 * @see Criteria
-		 */
-		public Builder<E> criteria(Supplier<Map<Getter<E>, Object>> dynamicCriteria) {
-			if (this.dynamicCriteria != null) {
-				throw new IllegalStateException("Dynamic criteria is already set");
-			}
+        /**
+         * <p>
+         * Set the dynamic criteria. The map key represents the entity getter.
+         * <p>
+         * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order},
+         * {@link Enumerated}, {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
+         * <p>
+         * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
+         * <ul>
+         * <li>value = <code>null</code>, this will create IS NULL predicate.
+         * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
+         * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
+         * <li>value = {@link BaseEntity}, this will create an EQUAL predicate on entity ID.
+         * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
+         * </ul>
+         * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value.
+         * Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked.
+         * <p>
+         * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you
+         * intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like
+         * to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
+         * <p>
+         * The dynamic criteria can be set only once in this builder.
+         *
+         * @param dynamicCriteria The dynamic criteria.
+         * @return This builder.
+         * @throws IllegalStateException When another dynamic criteria is already set in this builder.
+         * @see Criteria
+         */
+        public Builder<E> criteria(Supplier<Map<Getter<E>, Object>> dynamicCriteria) {
+            if (this.dynamicCriteria != null) {
+                throw new IllegalStateException("Dynamic criteria is already set");
+            }
 
-			this.dynamicCriteria = dynamicCriteria;
-			return this;
-		}
+            this.dynamicCriteria = dynamicCriteria;
+            return this;
+        }
 
-		/**
-		 * <p>
-		 * Set the ordering by entity getter.
-		 * <p>
-		 * This can be invoked multiple times and will be remembered in same order.
-		 * The default ordering is <code>BaseEntity::getId, false</code>.
-		 *
-		 * @param sortField The sort field.
-		 * @param sortAscending Whether to sort ascending.
-		 * @return This builder.
-		 */
-		public Builder<E> orderBy(Getter<E> sortField, boolean sortAscending) {
-			return orderBy(sortField.getPropertyName(), sortAscending);
-		}
+        /**
+         * <p>
+         * Set the ordering by entity getter.
+         * <p>
+         * This can be invoked multiple times and will be remembered in same order.
+         * The default ordering is <code>BaseEntity::getId, false</code>.
+         *
+         * @param sortField The sort field.
+         * @param sortAscending Whether to sort ascending.
+         * @return This builder.
+         */
+        public Builder<E> orderBy(Getter<E> sortField, boolean sortAscending) {
+            return orderBy(sortField.getPropertyName(), sortAscending);
+        }
 
-		/**
-		 * <p>
-		 * Set the ordering by property path.
-		 * <p>
-		 * This can be invoked multiple times and will be remembered in same order.
-		 * The default ordering is <code>BaseEntity::getId, false</code>.
-		 *
-		 * @param propertyPath The property path.
-		 * @param sortAscending Whether to sort ascending.
-		 * @return This builder.
-		 */
-		public Builder<E> orderBy(String propertyPath, boolean sortAscending) {
-			ordering.put(propertyPath, sortAscending);
-			return this;
-		}
+        /**
+         * <p>
+         * Set the ordering by property path.
+         * <p>
+         * This can be invoked multiple times and will be remembered in same order.
+         * The default ordering is <code>BaseEntity::getId, false</code>.
+         *
+         * @param propertyPath The property path.
+         * @param sortAscending Whether to sort ascending.
+         * @return This builder.
+         */
+        public Builder<E> orderBy(String propertyPath, boolean sortAscending) {
+            ordering.put(propertyPath, sortAscending);
+            return this;
+        }
 
-		/**
-		 * <p>
-		 * Build the paged data model.
-		 *
-		 * @return The built paged data model.
-		 */
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public PagedDataModel<E> build() {
-			ordering.putIfAbsent(ID, false);
-			Supplier rawDynamicCriteria = dynamicCriteria;
+        /**
+         * <p>
+         * Build the paged data model.
+         *
+         * @return The built paged data model.
+         */
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        public PagedDataModel<E> build() {
+            ordering.putIfAbsent(ID, false);
+            Supplier rawDynamicCriteria = dynamicCriteria;
 
-			if (loader != null) {
-				return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, rawDynamicCriteria);
-			}
-			else if (allData != null) {
-				return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, rawDynamicCriteria);
-			}
-			else {
-				throw new IllegalStateException("You must provide non-null loader or allData.");
-			}
-		}
-	}
+            if (loader != null) {
+                return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, rawDynamicCriteria);
+            }
+            else if (allData != null) {
+                return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, rawDynamicCriteria);
+            }
+            else {
+                throw new IllegalStateException("You must provide non-null loader or allData.");
+            }
+        }
+    }
 
 }

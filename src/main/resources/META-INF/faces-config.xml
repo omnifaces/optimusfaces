@@ -19,20 +19,20 @@
     xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-facesconfig_3_0.xsd"
     version="3.0"
 >
-	<name>optimusfaces</name>
+    <name>optimusfaces</name>
 
-	<ordering>
-		<after>
-			<others />
-		</after>
-	</ordering>
+    <ordering>
+        <after>
+            <others />
+        </after>
+    </ordering>
 
-	<application>
-		<el-resolver>org.omnifaces.optimusfaces.el.NestedBaseEntityELResolver</el-resolver>
-	</application>
+    <application>
+        <el-resolver>org.omnifaces.optimusfaces.el.NestedBaseEntityELResolver</el-resolver>
+    </application>
 
-	<component>
-		<component-type>org.primefaces.component.DataTable</component-type>
-		<component-class>org.omnifaces.optimusfaces.component.ExtendedDataTable</component-class>
-	</component>
+    <component>
+        <component-type>org.primefaces.component.DataTable</component-type>
+        <component-class>org.omnifaces.optimusfaces.component.ExtendedDataTable</component-class>
+    </component>
 </faces-config>

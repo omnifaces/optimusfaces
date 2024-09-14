@@ -14,14 +14,14 @@
 
 -->
 <!-- 
-	H2 data source configuration for TomEE.
+    H2 data source configuration for TomEE.
  -->
 <resources>
-	<Resource id="OptimusFacesIT" type="javax.sql.DataSource">
-		JdbcDriver org.h2.Driver
-		JdbcUrl jdbc:h2:mem:test
-		UserName sa
-		Password sa
-		jtaManaged = true
-	</Resource>
+    <Resource id="OptimusFacesIT" type="javax.sql.DataSource">
+        JdbcDriver org.h2.Driver
+        JdbcUrl jdbc:h2:mem:test
+        UserName sa
+        Password sa
+        jtaManaged = true
+    </Resource>
 </resources>

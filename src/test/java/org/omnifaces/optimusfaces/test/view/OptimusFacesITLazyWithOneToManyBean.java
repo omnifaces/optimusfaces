@@ -35,43 +35,43 @@ import org.omnifaces.utils.reflect.Getter;
 @ViewScoped
 public class OptimusFacesITLazyWithOneToManyBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<Person> lazyPersonsWithPhones;
-	private Set<Phone.Type> selectedPhoneTypes;
+    private PagedDataModel<Person> lazyPersonsWithPhones;
+    private Set<Phone.Type> selectedPhoneTypes;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		lazyPersonsWithPhones = PagedDataModel.lazy(personService::getPageWithPhones).criteria(this::mapSelectedCriteria).build();
-	}
+    @PostConstruct
+    public void init() {
+        lazyPersonsWithPhones = PagedDataModel.lazy(personService::getPageWithPhones).criteria(this::mapSelectedCriteria).build();
+    }
 
-	private Map<Getter<Person>, Object> mapSelectedCriteria() {
-		if (isEmpty(selectedPhoneTypes)) {
-			return emptyMap();
-		}
+    private Map<Getter<Person>, Object> mapSelectedCriteria() {
+        if (isEmpty(selectedPhoneTypes)) {
+            return emptyMap();
+        }
 
-		Map<Getter<Phone>, Object> phoneCriteria = new HashMap<>();
-		phoneCriteria.put(Phone::getType, selectedPhoneTypes);
+        Map<Getter<Phone>, Object> phoneCriteria = new HashMap<>();
+        phoneCriteria.put(Phone::getType, selectedPhoneTypes);
 
-		Map<Getter<Person>, Object> personCriteria = new HashMap<>();
-		personCriteria.put(Person::getPhones, phoneCriteria);
+        Map<Getter<Person>, Object> personCriteria = new HashMap<>();
+        personCriteria.put(Person::getPhones, phoneCriteria);
 
-		return personCriteria;
-	}
+        return personCriteria;
+    }
 
-	public PagedDataModel<Person> getLazyPersonsWithPhones() {
-		return lazyPersonsWithPhones;
-	}
+    public PagedDataModel<Person> getLazyPersonsWithPhones() {
+        return lazyPersonsWithPhones;
+    }
 
-	public Set<Phone.Type> getSelectedPhoneTypes() {
-		return selectedPhoneTypes;
-	}
+    public Set<Phone.Type> getSelectedPhoneTypes() {
+        return selectedPhoneTypes;
+    }
 
-	public void setSelectedPhoneTypes(Set<Phone.Type> selectedPhoneTypes) {
-		this.selectedPhoneTypes = selectedPhoneTypes;
-	}
+    public void setSelectedPhoneTypes(Set<Phone.Type> selectedPhoneTypes) {
+        this.selectedPhoneTypes = selectedPhoneTypes;
+    }
 
 }

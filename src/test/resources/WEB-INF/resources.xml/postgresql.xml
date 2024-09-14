@@ -14,14 +14,14 @@
 
 -->
 <!-- 
-	PostgreSQL data source configurations for TomEE.
+    PostgreSQL data source configurations for TomEE.
  -->
 <resources>
-	<Resource id="OptimusFacesIT" type="javax.sql.DataSource">
-		JdbcDriver org.postgresql.Driver
-		JdbcUrl jdbc:postgresql:test
-		UserName test
-		Password test
-		jtaManaged = true
-	</Resource>
+    <Resource id="OptimusFacesIT" type="javax.sql.DataSource">
+        JdbcDriver org.postgresql.Driver
+        JdbcUrl jdbc:postgresql:test
+        UserName test
+        Password test
+        jtaManaged = true
+    </Resource>
 </resources>

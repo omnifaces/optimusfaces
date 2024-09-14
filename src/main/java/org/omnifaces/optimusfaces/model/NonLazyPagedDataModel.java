@@ -55,238 +55,238 @@ import org.primefaces.model.SortMeta;
  */
 public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends LazyPagedDataModel<E> {
 
-	// Constants ------------------------------------------------------------------------------------------------------
+    // Constants ------------------------------------------------------------------------------------------------------
 
-	private static final long serialVersionUID = 1L;
-
-
-	// Internal properties --------------------------------------------------------------------------------------------
-
-	private List<E> allData;
+    private static final long serialVersionUID = 1L;
 
 
-	// Constructors ---------------------------------------------------------------------------------------------------
+    // Internal properties --------------------------------------------------------------------------------------------
 
-	NonLazyPagedDataModel(List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria, Supplier<Map<Getter<?>, Object>> dynamicCriteria) {
-		super(null, defaultOrdering, predefinedCriteria, dynamicCriteria);
-		this.allData = unmodifiableList(allData);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	protected PartialResultList<E> load(Page page, boolean estimateTotalNumberOfResults) {
-		DataTable table = (DataTable) getDataComponent();
-		List<E> data = new ArrayList<>(allData);
-
-		if (!data.isEmpty()) {
-			Class<E> type = (Class<E>) data.stream().filter(Objects::nonNull).map(Object::getClass).findFirst().orElse(null);
-
-			if (type != null) {
-				if (!page.getRequiredCriteria().isEmpty() || !page.getOptionalCriteria().isEmpty()) {
-					Map<List<Method>, Entry<String, Object>> requiredCriteria = resolveGetters(type, page.getRequiredCriteria());
-					Map<List<Method>, Entry<String, Object>> optionalCriteria = resolveGetters(type, page.getOptionalCriteria());
-					BeanPropertyFilter filter = new BeanPropertyFilter(table, requiredCriteria, optionalCriteria);
-					data = data.stream().filter(filter::matches).collect(toList());
-				}
-
-				if (data.size() > 1) {
-					Map<List<Method>, Entry<String, Boolean>> ordering = resolveGetters(type, page.getOrdering());
-					data.sort(new BeanPropertyComparator(table, ordering));
-				}
-			}
-		}
-
-		int offset = min(data.size(), page.getOffset());
-		int limit = min(data.size() - offset, page.getLimit());
-		return new PartialResultList<>(new ArrayList<>(data.subList(offset, offset + limit)), offset, data.size());
-	}
-
-	/**
-	 * Optimized version of PrimeFaces FilterFeature which does not use EL to resolve properties.
-	 */
-	private class BeanPropertyFilter {
-
-		private final Locale locale;
-		private final Map<List<Method>, Entry<String, Object>> requiredCriteria;
-		private final Map<List<Method>, Entry<String, Object>> optionalCriteria;
-
-		public BeanPropertyFilter(DataTable table, Map<List<Method>, Entry<String, Object>> requiredCriteria, Map<List<Method>, Entry<String, Object>> optionalCriteria) {
-	        this.locale = table.resolveDataLocale();
-			this.requiredCriteria = requiredCriteria;
-			this.optionalCriteria = optionalCriteria;
-		}
-
-		public boolean matches(E entity) {
-			if (entity == null) {
-				return true; // Not our problem.
-			}
-
-			for (Entry<List<Method>, Entry<String, Object>> criteria : requiredCriteria.entrySet()) {
-				if (!matches(entity, criteria)) {
-					return false;
-				}
-			}
-
-			for (Entry<List<Method>, Entry<String, Object>> criteria : optionalCriteria.entrySet()) {
-				if (matches(entity, criteria)) {
-					return true;
-				}
-			}
-
-			return optionalCriteria.isEmpty();
-		}
-
-		private boolean matches(E entity, Entry<List<Method>, Entry<String, Object>> criteria) {
-			Object propertyValue = invokeMethods(entity, criteria.getKey(), null, false);
-			Object criteriaValue = criteria.getValue().getValue();
-
-			if (propertyValue instanceof Collection && !(criteriaValue instanceof Criteria)) {
-				return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
-			}
-			else {
-				return stream(criteriaValue).anyMatch(value -> {
-					return (value instanceof Criteria && ((Criteria<?>) value).applies(propertyValue))
-							|| (Objects.equals(propertyValue, value))
-							|| (Objects.equals(lower(propertyValue, locale), lower(value, locale)));
-				});
-			}
-		}
-	}
-
-	/**
-	 * Optimized version of PrimeFaces SortFeature which does not use EL to resolve properties.
-	 */
-	private class BeanPropertyComparator implements Comparator<E> {
-
-		private final Locale locale;
-		private final Collator collator;
-		private final Map<String, SortMeta> sortBy;
-		private final Map<List<Method>, Entry<String, Boolean>> ordering;
-
-		public BeanPropertyComparator(DataTable table, Map<List<Method>, Entry<String, Boolean>> ordering) {
-			this.locale = table.resolveDataLocale();
-			this.collator = Collator.getInstance(locale);
-	        this.sortBy = table.getActiveSortMeta();
-			this.ordering = ordering;
-		}
-
-		public BeanPropertyComparator(BeanPropertyComparator parent, Map<List<Method>, Entry<String, Boolean>> remainingOrdering) {
-			this.locale = parent.locale;
-			this.collator = parent.collator;
-	        this.sortBy = parent.sortBy;
-			this.ordering = remainingOrdering;
-		}
-
-		@Override
-		public int compare(E left, E right) {
-			for (Entry<List<Method>, Entry<String, Boolean>> getter : ordering.entrySet()) {
-				Object leftProperty = left != null ? invokeMethods(left, getter.getKey(), this, getter.getValue().getValue()) : null;
-				Object rightProperty = right != null ? invokeMethods(right, getter.getKey(), this, getter.getValue().getValue()) : null;
-				SortMeta sortMeta = sortBy.get(getter.getValue().getKey());
-				int result = compareProperties(leftProperty, rightProperty, sortMeta) * (getter.getValue().getValue() ? 1 : -1);
-
-				if (result != 0) {
-					return result;
-				}
-			}
-
-			return 0;
-		}
-
-		@SuppressWarnings("unchecked")
-		private int compareProperties(Object left, Object right, SortMeta sortMeta) {
-			if (Objects.equals(left, right)) {
-				return 0;
-			}
-			else if (left == null) {
-				return sortMeta != null ? sortMeta.getNullSortOrder() : 1;
-			}
-			else if (right == null) {
-				return sortMeta != null ? sortMeta.getNullSortOrder() : -1;
-			}
-			else if (left instanceof String && right instanceof String) {
-				if (sortMeta != null && sortMeta.isCaseSensitiveSort()) {
-					return collator.compare(left, right);
-				}
-				else {
-					return collator.compare(lower(left, locale), lower(right, locale));
-				}
-			}
-			else if (left instanceof Comparable && right instanceof Comparable) {
-				return ((Comparable<Object>) left).compareTo(right);
-			}
-			else {
-				return compareProperties(left.toString(), right.toString(), sortMeta);
-			}
-		}
-	}
+    private List<E> allData;
 
 
-	// Helpers --------------------------------------------------------------------------------------------------------
+    // Constructors ---------------------------------------------------------------------------------------------------
 
-	private static <T> Map<List<Method>, Entry<String, T>> resolveGetters(Class<?> type, Map<String, T> properties) {
-		Map<List<Method>, Entry<String, T>> getters = new LinkedHashMap<>();
+    NonLazyPagedDataModel(List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria, Supplier<Map<Getter<?>, Object>> dynamicCriteria) {
+        super(null, defaultOrdering, predefinedCriteria, dynamicCriteria);
+        this.allData = unmodifiableList(allData);
+    }
 
-		for (Entry<String, T> entry : properties.entrySet()) {
-			Class<?> beanClass = type;
-			List<Method> methods = new ArrayList<>(2);
+    @Override
+    @SuppressWarnings("unchecked")
+    protected PartialResultList<E> load(Page page, boolean estimateTotalNumberOfResults) {
+        DataTable table = (DataTable) getDataComponent();
+        List<E> data = new ArrayList<>(allData);
 
-			for (String propertyName : entry.getKey().split("\\.")) {
-				Method getter = resolveGetter(beanClass, propertyName);
-				methods.add(getter);
-				beanClass = getter.getReturnType();
+        if (!data.isEmpty()) {
+            Class<E> type = (Class<E>) data.stream().filter(Objects::nonNull).map(Object::getClass).findFirst().orElse(null);
 
-				if (Collection.class.isAssignableFrom(beanClass)) {
-					Type genericReturnType = getter.getGenericReturnType();
+            if (type != null) {
+                if (!page.getRequiredCriteria().isEmpty() || !page.getOptionalCriteria().isEmpty()) {
+                    Map<List<Method>, Entry<String, Object>> requiredCriteria = resolveGetters(type, page.getRequiredCriteria());
+                    Map<List<Method>, Entry<String, Object>> optionalCriteria = resolveGetters(type, page.getOptionalCriteria());
+                    BeanPropertyFilter filter = new BeanPropertyFilter(table, requiredCriteria, optionalCriteria);
+                    data = data.stream().filter(filter::matches).collect(toList());
+                }
 
-					if (genericReturnType instanceof ParameterizedType) {
-						beanClass = (Class<?>) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
-					}
-				}
-			}
+                if (data.size() > 1) {
+                    Map<List<Method>, Entry<String, Boolean>> ordering = resolveGetters(type, page.getOrdering());
+                    data.sort(new BeanPropertyComparator(table, ordering));
+                }
+            }
+        }
 
-			getters.put(methods, entry);
-		}
+        int offset = min(data.size(), page.getOffset());
+        int limit = min(data.size() - offset, page.getLimit());
+        return new PartialResultList<>(new ArrayList<>(data.subList(offset, offset + limit)), offset, data.size());
+    }
 
-		return getters;
-	}
+    /**
+     * Optimized version of PrimeFaces FilterFeature which does not use EL to resolve properties.
+     */
+    private class BeanPropertyFilter {
 
-	private static Method resolveGetter(Class<?> beanClass, String propertyName) {
-		try {
-			return stream(Introspector.getBeanInfo(beanClass).getPropertyDescriptors())
-				.filter(property -> property.getName().equals(propertyName))
-				.map(PropertyDescriptor::getReadMethod)
-				.findFirst().orElse(null);
-		}
-		catch (IntrospectionException e) {
-			throw new UnsupportedOperationException(e);
-		}
-	}
+        private final Locale locale;
+        private final Map<List<Method>, Entry<String, Object>> requiredCriteria;
+        private final Map<List<Method>, Entry<String, Object>> optionalCriteria;
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Object invokeMethods(Object instance, List<Method> methods, BeanPropertyComparator comparator, boolean ascending) {
-		Object result = instance;
+        public BeanPropertyFilter(DataTable table, Map<List<Method>, Entry<String, Object>> requiredCriteria, Map<List<Method>, Entry<String, Object>> optionalCriteria) {
+            this.locale = table.resolveDataLocale();
+            this.requiredCriteria = requiredCriteria;
+            this.optionalCriteria = optionalCriteria;
+        }
 
-		for (int i = 0; i < methods.size(); i++) {
-			if (result instanceof List) {
-				List<Method> remainingMethods = methods.subList(i, methods.size());
+        public boolean matches(E entity) {
+            if (entity == null) {
+                return true; // Not our problem.
+            }
 
-				if (!remainingMethods.isEmpty() && comparator != null && ((List<?>) result).size() > 1) {
-					((List) result).sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, new AbstractMap.SimpleEntry<>(null, ascending))));
-				}
+            for (Entry<List<Method>, Entry<String, Object>> criteria : requiredCriteria.entrySet()) {
+                if (!matches(entity, criteria)) {
+                    return false;
+                }
+            }
 
-				return stream(result).map(item -> invokeMethods(item, remainingMethods, comparator, ascending)).collect(toList());
-			}
-			else {
-				result = invokeMethod(result, methods.get(i));
-			}
-		}
+            for (Entry<List<Method>, Entry<String, Object>> criteria : optionalCriteria.entrySet()) {
+                if (matches(entity, criteria)) {
+                    return true;
+                }
+            }
 
-		return result;
-	}
+            return optionalCriteria.isEmpty();
+        }
 
-	private static String lower(Object value, Locale locale) {
-		return value == null ? null : value.toString().toLowerCase(locale);
-	}
+        private boolean matches(E entity, Entry<List<Method>, Entry<String, Object>> criteria) {
+            Object propertyValue = invokeMethods(entity, criteria.getKey(), null, false);
+            Object criteriaValue = criteria.getValue().getValue();
+
+            if (propertyValue instanceof Collection && !(criteriaValue instanceof Criteria)) {
+                return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
+            }
+            else {
+                return stream(criteriaValue).anyMatch(value -> {
+                    return (value instanceof Criteria && ((Criteria<?>) value).applies(propertyValue))
+                            || (Objects.equals(propertyValue, value))
+                            || (Objects.equals(lower(propertyValue, locale), lower(value, locale)));
+                });
+            }
+        }
+    }
+
+    /**
+     * Optimized version of PrimeFaces SortFeature which does not use EL to resolve properties.
+     */
+    private class BeanPropertyComparator implements Comparator<E> {
+
+        private final Locale locale;
+        private final Collator collator;
+        private final Map<String, SortMeta> sortBy;
+        private final Map<List<Method>, Entry<String, Boolean>> ordering;
+
+        public BeanPropertyComparator(DataTable table, Map<List<Method>, Entry<String, Boolean>> ordering) {
+            this.locale = table.resolveDataLocale();
+            this.collator = Collator.getInstance(locale);
+            this.sortBy = table.getActiveSortMeta();
+            this.ordering = ordering;
+        }
+
+        public BeanPropertyComparator(BeanPropertyComparator parent, Map<List<Method>, Entry<String, Boolean>> remainingOrdering) {
+            this.locale = parent.locale;
+            this.collator = parent.collator;
+            this.sortBy = parent.sortBy;
+            this.ordering = remainingOrdering;
+        }
+
+        @Override
+        public int compare(E left, E right) {
+            for (Entry<List<Method>, Entry<String, Boolean>> getter : ordering.entrySet()) {
+                Object leftProperty = left != null ? invokeMethods(left, getter.getKey(), this, getter.getValue().getValue()) : null;
+                Object rightProperty = right != null ? invokeMethods(right, getter.getKey(), this, getter.getValue().getValue()) : null;
+                SortMeta sortMeta = sortBy.get(getter.getValue().getKey());
+                int result = compareProperties(leftProperty, rightProperty, sortMeta) * (getter.getValue().getValue() ? 1 : -1);
+
+                if (result != 0) {
+                    return result;
+                }
+            }
+
+            return 0;
+        }
+
+        @SuppressWarnings("unchecked")
+        private int compareProperties(Object left, Object right, SortMeta sortMeta) {
+            if (Objects.equals(left, right)) {
+                return 0;
+            }
+            else if (left == null) {
+                return sortMeta != null ? sortMeta.getNullSortOrder() : 1;
+            }
+            else if (right == null) {
+                return sortMeta != null ? sortMeta.getNullSortOrder() : -1;
+            }
+            else if (left instanceof String && right instanceof String) {
+                if (sortMeta != null && sortMeta.isCaseSensitiveSort()) {
+                    return collator.compare(left, right);
+                }
+                else {
+                    return collator.compare(lower(left, locale), lower(right, locale));
+                }
+            }
+            else if (left instanceof Comparable && right instanceof Comparable) {
+                return ((Comparable<Object>) left).compareTo(right);
+            }
+            else {
+                return compareProperties(left.toString(), right.toString(), sortMeta);
+            }
+        }
+    }
+
+
+    // Helpers --------------------------------------------------------------------------------------------------------
+
+    private static <T> Map<List<Method>, Entry<String, T>> resolveGetters(Class<?> type, Map<String, T> properties) {
+        Map<List<Method>, Entry<String, T>> getters = new LinkedHashMap<>();
+
+        for (Entry<String, T> entry : properties.entrySet()) {
+            Class<?> beanClass = type;
+            List<Method> methods = new ArrayList<>(2);
+
+            for (String propertyName : entry.getKey().split("\\.")) {
+                Method getter = resolveGetter(beanClass, propertyName);
+                methods.add(getter);
+                beanClass = getter.getReturnType();
+
+                if (Collection.class.isAssignableFrom(beanClass)) {
+                    Type genericReturnType = getter.getGenericReturnType();
+
+                    if (genericReturnType instanceof ParameterizedType) {
+                        beanClass = (Class<?>) ((ParameterizedType) genericReturnType).getActualTypeArguments()[0];
+                    }
+                }
+            }
+
+            getters.put(methods, entry);
+        }
+
+        return getters;
+    }
+
+    private static Method resolveGetter(Class<?> beanClass, String propertyName) {
+        try {
+            return stream(Introspector.getBeanInfo(beanClass).getPropertyDescriptors())
+                .filter(property -> property.getName().equals(propertyName))
+                .map(PropertyDescriptor::getReadMethod)
+                .findFirst().orElse(null);
+        }
+        catch (IntrospectionException e) {
+            throw new UnsupportedOperationException(e);
+        }
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Object invokeMethods(Object instance, List<Method> methods, BeanPropertyComparator comparator, boolean ascending) {
+        Object result = instance;
+
+        for (int i = 0; i < methods.size(); i++) {
+            if (result instanceof List) {
+                List<Method> remainingMethods = methods.subList(i, methods.size());
+
+                if (!remainingMethods.isEmpty() && comparator != null && ((List<?>) result).size() > 1) {
+                    ((List) result).sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, new AbstractMap.SimpleEntry<>(null, ascending))));
+                }
+
+                return stream(result).map(item -> invokeMethods(item, remainingMethods, comparator, ascending)).collect(toList());
+            }
+            else {
+                result = invokeMethod(result, methods.get(i));
+            }
+        }
+
+        return result;
+    }
+
+    private static String lower(Object value, Locale locale) {
+        return value == null ? null : value.toString().toLowerCase(locale);
+    }
 
 }

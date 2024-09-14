@@ -25,18 +25,18 @@ import org.omnifaces.optimusfaces.test.service.PersonService;
 @RequestScoped
 public class OptimusFacesITLazyStatelessBean {
 
-	private PagedDataModel<Person> lazyPersons;
+    private PagedDataModel<Person> lazyPersons;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		lazyPersons = PagedDataModel.lazy(personService).build();
-	}
+    @PostConstruct
+    public void init() {
+        lazyPersons = PagedDataModel.lazy(personService).build();
+    }
 
-	public PagedDataModel<Person> getLazyPersons() {
-		return lazyPersons;
-	}
+    public PagedDataModel<Person> getLazyPersons() {
+        return lazyPersons;
+    }
 
 }

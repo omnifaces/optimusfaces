@@ -13,133 +13,133 @@
 
 -->
 <ui:composition
-	xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:f="http://xmlns.jcp.org/jsf/core"
-	xmlns:h="http://xmlns.jcp.org/jsf/html"
-	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
-	xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
-	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
-	xmlns:fn="http://xmlns.jcp.org/jsp/jstl/functions"
-	xmlns:o="http://omnifaces.org/ui"
-	xmlns:of="http://omnifaces.org/functions"
-	xmlns:p="http://primefaces.org/ui"
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:f="http://xmlns.jcp.org/jsf/core"
+    xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+    xmlns:a="http://xmlns.jcp.org/jsf/passthrough"
+    xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+    xmlns:fn="http://xmlns.jcp.org/jsp/jstl/functions"
+    xmlns:o="http://omnifaces.org/ui"
+    xmlns:of="http://omnifaces.org/functions"
+    xmlns:p="http://primefaces.org/ui"
 >
-	<o:tagAttribute name="id" />
-		<o:tagAttribute name="value" />
-		<o:tagAttribute name="styleClass" />
-		<o:tagAttribute name="rendered" default="#{true}" />
-		<o:tagAttribute name="updateQueryString" default="#{true}" />
-		<o:tagAttribute name="queryParameterPrefix" />
+    <o:tagAttribute name="id" />
+        <o:tagAttribute name="value" />
+        <o:tagAttribute name="styleClass" />
+        <o:tagAttribute name="rendered" default="#{true}" />
+        <o:tagAttribute name="updateQueryString" default="#{true}" />
+        <o:tagAttribute name="queryParameterPrefix" />
 
-	<o:tagAttribute name="sortable" default="#{true}" />
-	<o:tagAttribute name="filterable" default="#{true}" />
-	<o:tagAttribute name="paginable" default="#{true}" />
-		<o:tagAttribute name="rows" default="10" />
-		<o:tagAttribute name="rowsPerPage" default="10,25,50" />
-		<o:tagAttribute name="paginatorTemplate" default="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}" />
-		<o:tagAttribute name="currentPageReportPrefix" default="Showing" />
-		<o:tagAttribute name="currentPageReportTemplate" default="{startRecord} - {endRecord} of {totalRecords}" />
-		<o:tagAttribute name="currentPageReportSuffix" default="records" />
+    <o:tagAttribute name="sortable" default="#{true}" />
+    <o:tagAttribute name="filterable" default="#{true}" />
+    <o:tagAttribute name="paginable" default="#{true}" />
+        <o:tagAttribute name="rows" default="10" />
+        <o:tagAttribute name="rowsPerPage" default="10,25,50" />
+        <o:tagAttribute name="paginatorTemplate" default="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}" />
+        <o:tagAttribute name="currentPageReportPrefix" default="Showing" />
+        <o:tagAttribute name="currentPageReportTemplate" default="{startRecord} - {endRecord} of {totalRecords}" />
+        <o:tagAttribute name="currentPageReportSuffix" default="records" />
 
-	<o:tagAttribute name="searchable" default="#{false}" />
-		<o:tagAttribute name="searchPlaceholder" default="Search…" />
-		<o:tagAttribute name="searchButtonLabel" default="Search" />
+    <o:tagAttribute name="searchable" default="#{false}" />
+        <o:tagAttribute name="searchPlaceholder" default="Search…" />
+        <o:tagAttribute name="searchButtonLabel" default="Search" />
 
-	<o:tagAttribute name="exportable" default="#{false}" />
-		<o:tagAttribute name="columnTogglerButtonLabel" default="Columns" />
-		<o:tagAttribute name="exportType" default="csv" />
-		<o:tagAttribute name="exportButtonLabel" default="CSV" />
-		<o:tagAttribute name="exportVisibleColumnsButtonLabel" default="Visible Columns" />
-		<o:tagAttribute name="exportAllColumnsButtonLabel" default="All Columns" />
-		<o:tagAttribute name="exportFilename" default="#{id}-#{of:formatDate(now, 'yyyyMMddHHmmss')}" />
-		<o:methodParam name="exportPreProcessorMethod" value="#{exportPreProcessor}" />
-		<o:methodParam name="exportPostProcessorMethod" value="#{exportPostProcessor}" />
+    <o:tagAttribute name="exportable" default="#{false}" />
+        <o:tagAttribute name="columnTogglerButtonLabel" default="Columns" />
+        <o:tagAttribute name="exportType" default="csv" />
+        <o:tagAttribute name="exportButtonLabel" default="CSV" />
+        <o:tagAttribute name="exportVisibleColumnsButtonLabel" default="Visible Columns" />
+        <o:tagAttribute name="exportAllColumnsButtonLabel" default="All Columns" />
+        <o:tagAttribute name="exportFilename" default="#{id}-#{of:formatDate(now, 'yyyyMMddHHmmss')}" />
+        <o:methodParam name="exportPreProcessorMethod" value="#{exportPreProcessor}" />
+        <o:methodParam name="exportPostProcessorMethod" value="#{exportPostProcessor}" />
 
-	<o:tagAttribute name="actionable" default="#{false}" />
+    <o:tagAttribute name="actionable" default="#{false}" />
 
-	<o:tagAttribute name="selectable" default="#{false}" />
+    <o:tagAttribute name="selectable" default="#{false}" />
 
-	<p:dataTable id="#{id}" widgetVar="#{id}" rendered="#{rendered}"
-		value="#{value}" var="item" lazy="true" filteredValue="#{value.filteredValue}"
-		rows="#{rows}" paginator="#{paginable}" paginatorPosition="bottom" paginatorAlwaysVisible="true"
-		styleClass="#{styleClass}#{empty value.wrappedData ? ' empty' : ''}" paginatorTemplate="#{paginatorTemplate}" rowsPerPageTemplate="#{rowsPerPage}"
-		currentPageReportTemplate="#{currentPageReportPrefix} #{currentPageReportTemplate} #{currentPageReportSuffix}"
-	>
-		<f:attribute name="updateQueryString" value="#{updateQueryString}" />
-		<f:attribute name="queryParameterPrefix" value="#{queryParameterPrefix}" />
-		<f:attribute name="sortable" value="#{sortable}" />
-		<f:attribute name="filterable" value="#{filterable}" />
-		<f:attribute name="searchable" value="#{searchable}" />
-		<c:if test="#{paginable}">
-			<p:ajax event="page" update="@(.updateOnDataTablePage)" />
-		</c:if>
-		<c:if test="#{sortable}">
-			<f:attribute name="sortBy" value="#{value.ordering}" />
-			<p:ajax event="sort" update="@(.updateOnDataTableSort)" />
-		</c:if>
-		<c:if test="#{filterable or searchable}">
-			<p:ajax event="filter" update="@(.updateOnDataTableFilter)" />
-		</c:if>
-		<c:if test="#{selectable}">
-			<f:attribute name="selection" value="#{value.selection}" />
-			<f:attribute name="selectionMode" value="multiple" /><!-- TODO: support single selection -->
-			<p:ajax event="rowSelect" update="@(.updateOnDataTableSelect)" />
-			<p:ajax event="rowUnselect" update="@(.updateOnDataTableSelect)" />
-		</c:if>
-		<c:if test="#{searchable or exportable or actionable}">
-			<f:facet name="header">
-				<div class="ui-datatable-actions ui-helper-clearfix">
-					<c:if test="#{searchable}">
-						<span class="ui-datatable-search">
-							<p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" placeholder="#{searchPlaceholder}"
-								styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
-							</p:inputText>
-							<p:button id="search" type="button" value="#{searchButtonLabel}"
-								styleClass="search" a:data-tablewidgetid="#{id}" onclick="return false">
-							</p:button>
-							<h:inputHidden id="globalFilter" />
-						</span>
-					</c:if>
+    <p:dataTable id="#{id}" widgetVar="#{id}" rendered="#{rendered}"
+        value="#{value}" var="item" lazy="true" filteredValue="#{value.filteredValue}"
+        rows="#{rows}" paginator="#{paginable}" paginatorPosition="bottom" paginatorAlwaysVisible="true"
+        styleClass="#{styleClass}#{empty value.wrappedData ? ' empty' : ''}" paginatorTemplate="#{paginatorTemplate}" rowsPerPageTemplate="#{rowsPerPage}"
+        currentPageReportTemplate="#{currentPageReportPrefix} #{currentPageReportTemplate} #{currentPageReportSuffix}"
+    >
+        <f:attribute name="updateQueryString" value="#{updateQueryString}" />
+        <f:attribute name="queryParameterPrefix" value="#{queryParameterPrefix}" />
+        <f:attribute name="sortable" value="#{sortable}" />
+        <f:attribute name="filterable" value="#{filterable}" />
+        <f:attribute name="searchable" value="#{searchable}" />
+        <c:if test="#{paginable}">
+            <p:ajax event="page" update="@(.updateOnDataTablePage)" />
+        </c:if>
+        <c:if test="#{sortable}">
+            <f:attribute name="sortBy" value="#{value.ordering}" />
+            <p:ajax event="sort" update="@(.updateOnDataTableSort)" />
+        </c:if>
+        <c:if test="#{filterable or searchable}">
+            <p:ajax event="filter" update="@(.updateOnDataTableFilter)" />
+        </c:if>
+        <c:if test="#{selectable}">
+            <f:attribute name="selection" value="#{value.selection}" />
+            <f:attribute name="selectionMode" value="multiple" /><!-- TODO: support single selection -->
+            <p:ajax event="rowSelect" update="@(.updateOnDataTableSelect)" />
+            <p:ajax event="rowUnselect" update="@(.updateOnDataTableSelect)" />
+        </c:if>
+        <c:if test="#{searchable or exportable or actionable}">
+            <f:facet name="header">
+                <div class="ui-datatable-actions ui-helper-clearfix">
+                    <c:if test="#{searchable}">
+                        <span class="ui-datatable-search">
+                            <p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" placeholder="#{searchPlaceholder}"
+                                styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
+                            </p:inputText>
+                            <p:button id="search" type="button" value="#{searchButtonLabel}"
+                                styleClass="search" a:data-tablewidgetid="#{id}" onclick="return false">
+                            </p:button>
+                            <h:inputHidden id="globalFilter" />
+                        </span>
+                    </c:if>
 
-					<c:if test="#{exportable}">
-						<span class="ui-datatable-export">
-							<p:commandButton id="columnToggler" type="button" value="#{columnTogglerButtonLabel}" styleClass="toggle" />
-							<p:splitButton id="#{id}_export" value="#{exportButtonLabel}" styleClass="export"
-								actionListener="#{value.prepareExportVisible(id)}" ajax="false">
-								<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
-									preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
-								</p:dataExporter>
-								<f:param name="$export" value="visible" />
-								<p:menuitem id="#{id}_exportVisible" value="#{exportVisibleColumnsButtonLabel}" styleClass="visible" 
-									actionListener="#{value.prepareExportVisible(id)}" ajax="false">
-									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
-										preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
-									</p:dataExporter>
-									<f:param name="$export" value="visible" />
-								</p:menuitem>
-								<p:menuitem id="#{id}_exportAll" value="#{exportAllColumnsButtonLabel}" styleClass="all"
-									actionListener="#{value.prepareExportAll(id)}" ajax="false">
-									<p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
-										preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
-									</p:dataExporter>
-									<f:param name="$export" value="all" />
-								</p:menuitem>
-							</p:splitButton>
-							<span class="ui-menubutton">
-								<p:columnToggler id="#{id}_toggler" trigger="columnToggler" datasource="#{id}">
-									<p:ajax event="toggle" listener="#{value.toggleColumn}" />
-								</p:columnToggler>
-							</span>
-						</span>
-					</c:if>
-					
-					<ui:insert name="actions" />
-				</div>
-			</f:facet>
-		</c:if>
-		<ui:insert />
-	</p:dataTable>
+                    <c:if test="#{exportable}">
+                        <span class="ui-datatable-export">
+                            <p:commandButton id="columnToggler" type="button" value="#{columnTogglerButtonLabel}" styleClass="toggle" />
+                            <p:splitButton id="#{id}_export" value="#{exportButtonLabel}" styleClass="export"
+                                actionListener="#{value.prepareExportVisible(id)}" ajax="false">
+                                <p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
+                                    preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
+                                </p:dataExporter>
+                                <f:param name="$export" value="visible" />
+                                <p:menuitem id="#{id}_exportVisible" value="#{exportVisibleColumnsButtonLabel}" styleClass="visible" 
+                                    actionListener="#{value.prepareExportVisible(id)}" ajax="false">
+                                    <p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
+                                        preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
+                                    </p:dataExporter>
+                                    <f:param name="$export" value="visible" />
+                                </p:menuitem>
+                                <p:menuitem id="#{id}_exportAll" value="#{exportAllColumnsButtonLabel}" styleClass="all"
+                                    actionListener="#{value.prepareExportAll(id)}" ajax="false">
+                                    <p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
+                                        preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
+                                    </p:dataExporter>
+                                    <f:param name="$export" value="all" />
+                                </p:menuitem>
+                            </p:splitButton>
+                            <span class="ui-menubutton">
+                                <p:columnToggler id="#{id}_toggler" trigger="columnToggler" datasource="#{id}">
+                                    <p:ajax event="toggle" listener="#{value.toggleColumn}" />
+                                </p:columnToggler>
+                            </span>
+                        </span>
+                    </c:if>
+                    
+                    <ui:insert name="actions" />
+                </div>
+            </f:facet>
+        </c:if>
+        <ui:insert />
+    </p:dataTable>
 
-	<h:outputScript library="optimusfaces" name="scripts/optimusfaces.js" target="head" />
-	<h:outputScript library="optimusfaces" name="scripts/datatable.js" target="head" />
+    <h:outputScript library="optimusfaces" name="scripts/optimusfaces.js" target="head" />
+    <h:outputScript library="optimusfaces" name="scripts/datatable.js" target="head" />
 </ui:composition>

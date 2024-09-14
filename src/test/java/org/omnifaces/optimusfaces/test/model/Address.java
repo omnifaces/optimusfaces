@@ -20,59 +20,59 @@ import org.hibernate.annotations.Formula;
 @Entity
 public class Address extends LocalGeneratedIdEntity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private @NotNull String street;
-	private @NotNull String houseNumber;
-	private @NotNull String postcode;
-	private @NotNull String city;
-	private @NotNull String country;
+    private @NotNull String street;
+    private @NotNull String houseNumber;
+    private @NotNull String postcode;
+    private @NotNull String city;
+    private @NotNull String country;
 
-	@Formula("CONCAT(street, ' ', houseNumber, ', ', postcode, ' ', city, ', ', country)") // NOTE: EclipseLink doesn't have a reasonable equivalent for @Formula.
-	private String string;
+    @Formula("CONCAT(street, ' ', houseNumber, ', ', postcode, ' ', city, ', ', country)") // NOTE: EclipseLink doesn't have a reasonable equivalent for @Formula.
+    private String string;
 
-	public String getStreet() {
-		return street;
-	}
+    public String getStreet() {
+        return street;
+    }
 
-	public void setStreet(String street) {
-		this.street = street;
-	}
+    public void setStreet(String street) {
+        this.street = street;
+    }
 
-	public String getHouseNumber() {
-		return houseNumber;
-	}
+    public String getHouseNumber() {
+        return houseNumber;
+    }
 
-	public void setHouseNumber(String houseNumber) {
-		this.houseNumber = houseNumber;
-	}
+    public void setHouseNumber(String houseNumber) {
+        this.houseNumber = houseNumber;
+    }
 
-	public String getPostcode() {
-		return postcode;
-	}
+    public String getPostcode() {
+        return postcode;
+    }
 
-	public void setPostcode(String postcode) {
-		this.postcode = postcode;
-	}
+    public void setPostcode(String postcode) {
+        this.postcode = postcode;
+    }
 
-	public String getCity() {
-		return city;
-	}
+    public String getCity() {
+        return city;
+    }
 
-	public void setCity(String city) {
-		this.city = city;
-	}
+    public void setCity(String city) {
+        this.city = city;
+    }
 
-	public String getCountry() {
-		return country;
-	}
+    public String getCountry() {
+        return country;
+    }
 
-	public void setCountry(String country) {
-		this.country = country;
-	}
+    public void setCountry(String country) {
+        this.country = country;
+    }
 
-	public String getString() {
-		return string;
-	}
+    public String getString() {
+        return string;
+    }
 
 }

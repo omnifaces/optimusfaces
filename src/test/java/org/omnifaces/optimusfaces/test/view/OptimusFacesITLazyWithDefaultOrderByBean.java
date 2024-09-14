@@ -26,21 +26,21 @@ import java.io.Serializable;
 @ViewScoped
 public class OptimusFacesITLazyWithDefaultOrderByBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<Person> lazyPersons;
+    private PagedDataModel<Person> lazyPersons;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		lazyPersons = PagedDataModel.lazy(personService)
-				.orderBy(Person::getEmail, false)
-				.build();
-	}
+    @PostConstruct
+    public void init() {
+        lazyPersons = PagedDataModel.lazy(personService)
+                .orderBy(Person::getEmail, false)
+                .build();
+    }
 
-	public PagedDataModel<Person> getLazyPersons() {
-		return lazyPersons;
-	}
+    public PagedDataModel<Person> getLazyPersons() {
+        return lazyPersons;
+    }
 }
