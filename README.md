@@ -23,7 +23,7 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-web-api</artifactId>
-        <version>9.0.0</version><!-- Minimum supported version is 9.0.0 -->
+        <version>10.0.0</version><!-- Minimum supported version is 10.0.0 -->
         <scope>provided</scope>
     </dependency>
 
@@ -31,27 +31,28 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>4.0-M16</version><!-- Minimum supported version is 4.0 -->
+        <version>4.0</version><!-- Minimum supported version is 4.0 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
         <classifier>jakarta</classifier>
-        <version>10.0.0</version><!-- Minimum supported version is 10.0.0 -->
+        <version>13.0.0</version><!-- Minimum supported version is 13.0.0 -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.16.J1</version>
+        <version>0.17.J1</version>
     </dependency>
 </dependencies>
 ```
 
 **Minumum supported OmniFaces / PrimeFaces versions**
 
-- OptimusFaces 0.1 - 0.14: OmniFaces 2.2 / PrimeFaces 7.0
-- OptimusFaces 0.15+: OmniFaces 3.0 / PrimeFaces 10.0.0
+- OptimusFaces 0.17-J1+: OmniFaces 4.0 / PrimeFaces 13.0.0:jakarta
 - OptimusFaces 0.14-J1+: OmniFaces 4.0 / PrimeFaces 10.0.0:jakarta
+- OptimusFaces 0.15+: OmniFaces 3.0 / PrimeFaces 10.0.0
+- OptimusFaces 0.1 - 0.14: OmniFaces 2.2 / PrimeFaces 7.0
 
 
 ### Basic Usage
