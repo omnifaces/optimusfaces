@@ -68,11 +68,11 @@
 
 		<!-- Test versions. -->
 		<test.wildfly.version>33.0.1.Final</test.wildfly.version> <!-- https://mvnrepository.com/artifact/org.wildfly.bom/wildfly -->
-		<test.payara.version>6.2024.8</test.payara.version> <!-- https://mvnrepository.com/artifact/fish.payara.distributions/payara-web -->
+        <test.glassfish.version>7.0.17</test.glassfish.version> <!-- https://mvnrepository.com/artifact/org.glassfish.main.distributions/glassfish -->
 		<test.tomee.version>9.1.3</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee TODO: JEE9 compatible version which supports jakarta.ee XML namespace (M7 unfortunately doesn't support it yet, it still throws jakarta.xml.bind.UnmarshalException: unexpected element (uri:"https://jakarta.ee/xml/ns/jakartaee", local:"web-fragment")) https://issues.apache.org/jira/browse/TOMEE-3824 -->
 		<test.wildfly-eclipselink.version>5.0.0-B02</test.wildfly-eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink -->
-		<test.payara-hibernate.version>6.1.7.Final</test.payara-hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<test.h2.version>2.3.232</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+		<test.glassfish-hibernate.version>6.1.7.Final</test.glassfish-hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
+		<test.h2.version>1.4.200</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 TODO: bump to 2.x once EclipseLink is compatible with it -->
 		<test.mysql-driver.version>8.0.33</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
 		<test.postgresql-driver.version>42.7.4</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
 		<test.omnifaces.version>4.5.1</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
@@ -145,7 +145,7 @@
 		<dependency>
 			<groupId>org.hibernate.orm</groupId>
 			<artifactId>hibernate-core</artifactId>
-			<version>${test.payara-hibernate.version}</version>
+			<version>${test.glassfish-hibernate.version}</version>
 			<scope>test</scope> <!-- Only for the @Formula annotation on Address entity. -->
 			<exclusions>
 				<exclusion> <!-- Conflicts with Selenium's own one. -->
@@ -170,11 +170,33 @@
 
 		<plugins>
 
+            <!-- Prevent wrong JDK from being used to build the project. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[${javase.version},)</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
 			<!-- Add missing license headers to source files. -->
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>4.1</version>
+				<version>4.5</version>
 				<configuration>
 					<header>license.txt</header>
 					<excludes>
@@ -231,7 +253,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.2.2</version>
+				<version>3.4.2</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -265,7 +287,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.4.0</version>
+				<version>3.10.0</version>
 				<configuration>
 					<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
 					<javadocVersion>${javase.version}</javadocVersion>
@@ -275,7 +297,7 @@
 					<doctitle>OptimusFaces API documentation</doctitle>
 					<links>
 						<link>https://jakarta.ee/specifications/platform/${jakartaee.version}/apidocs/</link>
-						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.16.J1/</link>
+						<link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.21.J1/</link>
 					</links>
 					<additionalJOption>-J-Dhttp.agent=maven-javadoc-plugin-${pom‌​.name}</additionalJOption>
 				</configuration>
@@ -293,7 +315,7 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.13</version>
+				<version>1.7.0</version>
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>
@@ -318,7 +340,7 @@
 									<pluginExecutionFilter>
 										<groupId>com.mycila</groupId>
 										<artifactId>license-maven-plugin</artifactId>
-										<versionRange>[4.1,)</versionRange>
+										<versionRange>[4.4,)</versionRange>
 										<goals>
 											<goal>format</goal>
 										</goals>
@@ -353,7 +375,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-dependency-plugin</artifactId>
-					<version>3.3.0</version>
+					<version>3.8.0</version>
 					<executions>
 						<execution>
 							<phase>process-test-classes</phase>
@@ -369,7 +391,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-failsafe-plugin</artifactId>
-					<version>2.22.2</version>
+					<version>3.5.0</version>
 					<executions>
 						<execution>
 							<goals>
@@ -385,7 +407,7 @@
 							<optimusfaces.jar>${project.build.directory}/${project.build.finalName}.jar</optimusfaces.jar>
 							<test.omnifaces.version>${test.omnifaces.version}</test.omnifaces.version>
 							<test.primefaces.version>${test.primefaces.version}</test.primefaces.version>
-							<test.payara-hibernate.version>${test.payara-hibernate.version}</test.payara-hibernate.version>
+							<test.glassfish-hibernate.version>${test.glassfish-hibernate.version}</test.glassfish-hibernate.version>
 						</systemPropertyVariables>
 					</configuration>
 				</plugin>
@@ -476,7 +498,6 @@
 						<configuration>
 							<systemPropertyVariables>
 								<jboss.home>${project.build.directory}/wildfly-preview-${test.wildfly.version}</jboss.home>
-								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 							</systemPropertyVariables>
 						</configuration>
 					</plugin>
@@ -603,7 +624,6 @@
 						<configuration>
 							<systemPropertyVariables>
 								<jboss.home>${project.build.directory}/wildfly-preview-${test.wildfly.version}</jboss.home>
-								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
 							</systemPropertyVariables>
 						</configuration>
 					</plugin>
@@ -611,9 +631,9 @@
 			</build>
 		</profile>
 
-		<!-- Payara/Hibernate integration test profile: mvn verify -P payara-hibernate -->
+		<!-- GlassFish/Hibernate integration test profile: mvn verify -P glassfish-hibernate -->
 		<profile>
-			<id>payara-hibernate</id>
+			<id>glassfish-hibernate</id>
 			<dependencies>
 				<dependency>
 					<groupId>org.jboss.arquillian.container</groupId>
@@ -632,16 +652,16 @@
 								<configuration>
 									<artifactItems>
 										<artifactItem>
-											<groupId>fish.payara.distributions</groupId>
-											<artifactId>payara-web</artifactId>
-											<version>${test.payara.version}</version>
+                                            <groupId>org.glassfish.main.distributions</groupId>
+                                            <artifactId>glassfish</artifactId>
+                                            <version>${test.glassfish.version}</version>
 											<type>zip</type>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
 							<execution>
-								<id>install-h2-in-payara</id>
+                                <id>install-h2-in-glassfish</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy</goal>
@@ -653,13 +673,13 @@
 											<artifactId>h2</artifactId>
 											<version>${test.h2.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
 							<execution>
-								<id>install-mysql-driver-in-payara</id>
+								<id>install-mysql-driver-in-glassfish</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy</goal>
@@ -671,13 +691,13 @@
 											<artifactId>mysql-connector-java</artifactId>
 											<version>${test.mysql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
 							<execution>
-								<id>install-psql-driver-in-payara</id>
+								<id>install-psql-driver-in-glassfish</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy</goal>
@@ -689,7 +709,7 @@
 											<artifactId>postgresql</artifactId>
 											<version>${test.postgresql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -701,7 +721,7 @@
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
                             <environmentVariables>
-                                <GLASSFISH_HOME>${project.build.directory}/payara6</GLASSFISH_HOME>
+                                <GLASSFISH_HOME>${project.build.directory}/glassfish7</GLASSFISH_HOME>
                             </environmentVariables>
 						</configuration>
 					</plugin>
@@ -709,9 +729,9 @@
 			</build>
 		</profile>
 
-		<!-- Payara/EclipseLink integration test profile: mvn verify -P payara-eclipselink -->
+		<!-- GlassFish/EclipseLink integration test profile: mvn verify -P glassfish-eclipselink -->
 		<profile>
-			<id>payara-eclipselink</id>
+			<id>glassfish-eclipselink</id>
 			<dependencies>
 				<dependency>
                     <groupId>org.jboss.arquillian.container</groupId>
@@ -730,16 +750,16 @@
 								<configuration>
 									<artifactItems>
 										<artifactItem>
-											<groupId>fish.payara.distributions</groupId>
-											<artifactId>payara-web</artifactId>
-											<version>${test.payara.version}</version>
+                                            <groupId>org.glassfish.main.distributions</groupId>
+                                            <artifactId>glassfish</artifactId>
+                                            <version>${test.glassfish.version}</version>
 											<type>zip</type>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
 							<execution>
-								<id>install-h2-in-payara</id>
+								<id>install-h2-in-glassfish</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy</goal>
@@ -751,13 +771,13 @@
 											<artifactId>h2</artifactId>
 											<version>${test.h2.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
 							<execution>
-								<id>install-mysql-driver-in-payara</id>
+								<id>install-mysql-driver-in-glassfish</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy</goal>
@@ -769,13 +789,13 @@
 											<artifactId>mysql-connector-java</artifactId>
 											<version>${test.mysql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
 							</execution>
 							<execution>
-								<id>install-psql-driver-in-payara</id>
+								<id>install-psql-driver-in-glassfish</id>
 								<phase>pre-integration-test</phase>
 								<goals>
 									<goal>copy</goal>
@@ -787,7 +807,7 @@
 											<artifactId>postgresql</artifactId>
 											<version>${test.postgresql-driver.version}</version>
 											<type>jar</type>
-											<outputDirectory>${project.build.directory}/payara6/glassfish/modules</outputDirectory>
+											<outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
 										</artifactItem>
 									</artifactItems>
 								</configuration>
@@ -799,7 +819,7 @@
 						<artifactId>maven-failsafe-plugin</artifactId>
 						<configuration>
                             <environmentVariables>
-                                <GLASSFISH_HOME>${project.build.directory}/payara6</GLASSFISH_HOME>
+                                <GLASSFISH_HOME>${project.build.directory}/glassfish7</GLASSFISH_HOME>
                             </environmentVariables>
 						</configuration>
 					</plugin>

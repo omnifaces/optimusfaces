@@ -129,7 +129,7 @@ public abstract class OptimusFacesIT {
 	}
 
 	private static void addDataSourceConfig(Database database, WebArchive archive) {
-		var dataSourceConfigXml = isWildFly() ? "wildfly-ds.xml" : isPayara() ? "glassfish-resources.xml" : isTomEE() ? "resources.xml" : null;
+		var dataSourceConfigXml = isWildFly() ? "wildfly-ds.xml" : isGlassFish() ? "glassfish-resources.xml" : isTomEE() ? "resources.xml" : null;
 
 		if (dataSourceConfigXml != null) {
 			archive.addAsWebInfResource("WEB-INF/" + dataSourceConfigXml + "/" + database.name().toLowerCase() + ".xml", dataSourceConfigXml);
@@ -142,9 +142,9 @@ public abstract class OptimusFacesIT {
 
 		archive.addAsResource(persistenceXml + "/" + persistenceConfigXml, persistenceXml);
 
-		if (isPayara() && isHibernate()) {
+		if (isGlassFish() && isHibernate()) {
 			// Does not work when placed in glassfish/modules? TODO: investigate.
-			archive.addAsLibraries(maven.resolve("org.hibernate.orm:hibernate-core:" + getProperty("test.payara-hibernate.version"), "dom4j:dom4j:1.6.1").withTransitivity().asFile());
+			archive.addAsLibraries(maven.resolve("org.hibernate.orm:hibernate-core:" + getProperty("test.glassfish-hibernate.version"), "dom4j:dom4j:1.6.1").withTransitivity().asFile());
 		}
 	}
 
@@ -252,8 +252,8 @@ public abstract class OptimusFacesIT {
 		return getProperty("profile.id").startsWith("wildfly-");
 	}
 
-	protected static boolean isPayara() {
-		return getProperty("profile.id").startsWith("payara-");
+	protected static boolean isGlassFish() {
+		return getProperty("profile.id").startsWith("glassfish-");
 	}
 
 	protected static boolean isTomEE() {
