@@ -13,18 +13,22 @@
     specific language governing permissions and limitations under the License.
 
 -->
-<persistence
-    xmlns="https://jakarta.ee/xml/ns/persistence"
+<!-- 
+    web.xml with H2 data source configuration.
+ -->
+<web-app
+    xmlns="https://jakarta.ee/xml/ns/jakartaee"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
-    version="3.0"
+    xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+    version="5.0"
 >
-    <persistence-unit name="OptimusFacesIT">
-        <jta-data-source>java:app/OptimusFacesIT</jta-data-source>
-
-        <properties>
-            <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create" />
-            <property name="hibernate.show_sql" value="true" />
-        </properties>
-    </persistence-unit>
-</persistence>
+    <data-source>
+        <name>java:app/OptimusFacesIT</name>
+        <class-name>org.h2.jdbcx.JdbcDataSource</class-name>
+        <url>jdbc:h2:mem:playground;MODE=LEGACY</url>
+        <user>sa</user>
+        <password>sa</password>
+        <transactional>true</transactional>
+        <isolation-level>TRANSACTION_READ_COMMITTED</isolation-level>
+    </data-source>
+</web-app>
