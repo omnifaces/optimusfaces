@@ -19,7 +19,7 @@
 <resources>
     <Resource id="OptimusFacesIT" type="javax.sql.DataSource">
         JdbcDriver org.h2.Driver
-        JdbcUrl jdbc:h2:mem:test
+        JdbcUrl jdbc:h2:mem:test;MODE=LEGACY
         UserName sa
         Password sa
         jtaManaged = true
