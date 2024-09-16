@@ -31,8 +31,6 @@ import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_SE
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_SELECTION;
 import static org.omnifaces.optimusfaces.test.service.StartupService.ROWS_PER_PAGE;
 import static org.omnifaces.optimusfaces.test.service.StartupService.TOTAL_RECORDS;
-import static org.omnifaces.persistence.Database.H2;
-import static org.omnifaces.persistence.Database.MYSQL;
 import static org.omnifaces.persistence.Database.POSTGRESQL;
 import static org.openqa.selenium.Keys.BACK_SPACE;
 import static org.openqa.selenium.Keys.SPACE;
@@ -123,21 +121,19 @@ public abstract class OptimusFacesIT {
             .addAsLibraries(maven.loadPomFromFile("pom.xml").importCompileAndRuntimeDependencies().resolve().withTransitivity().asFile())
             .addAsLibraries(maven.resolve("org.omnifaces:omnifaces:" + getProperty("test.omnifaces.version"), "org.primefaces:primefaces:jar:jakarta:" + getProperty("test.primefaces.version")).withTransitivity().asFile());
 
-        addDataSourceConfig(maven, archive, database);
+        addDataSourceConfig(database, archive);
         addPersistenceConfig(maven, archive);
         addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
 
         return archive;
     }
 
-    private static void addDataSourceConfig(MavenResolverSystem maven, WebArchive archive, Database database) {
-        var jdbcDriverDependency = database == H2 ? "com.h2database:h2:" + getProperty("test.h2-driver.version")
-                : database == MYSQL ? "mysql:mysql-connector-java:" + getProperty("test.mysql-driver.version")
-                : database == POSTGRESQL ? "org.postgresql:postgresql:" + getProperty("test.postgresql-driver.version")
-                : null;
-        archive
-            .addAsWebInfResource("WEB-INF/web.xml/" + database.name().toLowerCase() + ".xml", "web.xml")
-            .addAsLibraries(maven.resolve(jdbcDriverDependency).withTransitivity().asFile());
+    private static void addDataSourceConfig(Database database, WebArchive archive) {
+        var dataSourceConfigXml = isWildFly() ? "wildfly-ds.xml" : isGlassFish() ? "glassfish-resources.xml" : isTomEE() ? "resources.xml" : null;
+
+        if (dataSourceConfigXml != null) {
+            archive.addAsWebInfResource("WEB-INF/" + dataSourceConfigXml + "/" + database.name().toLowerCase() + ".xml", dataSourceConfigXml);
+        }
     }
 
     private static void addPersistenceConfig(MavenResolverSystem maven, WebArchive archive) {

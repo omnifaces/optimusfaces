@@ -13,18 +13,15 @@
     specific language governing permissions and limitations under the License.
 
 -->
-<persistence
-    xmlns="https://jakarta.ee/xml/ns/persistence"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
-    version="3.0"
->
-    <persistence-unit name="OptimusFacesIT">
-        <jta-data-source>OptimusFacesIT</jta-data-source>
-
-        <properties>
-            <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create" />
-            <property name="hibernate.show_sql" value="true" />
-        </properties>
-    </persistence-unit>
-</persistence>
+<!-- 
+    MySQL data source configuration for TomEE.
+ -->
+<resources>
+    <Resource id="OptimusFacesIT" type="javax.sql.DataSource">
+        JdbcDriver com.mysql.jdbc.Driver
+        JdbcUrl jdbc:mysql://localhost:3306/test
+        UserName root
+        Password root
+        jtaManaged = true
+    </Resource>
+</resources>
