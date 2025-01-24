@@ -39,6 +39,7 @@
         <o:tagAttribute name="visible" default="#{true}" />
         <o:tagAttribute name="width" />
         <o:tagAttribute name="iterable" default="#{$ITERABLE_CLASS.isInstance(value)}" />
+        <o:tagAttribute name="emptyValue" />
 
     <o:tagAttribute name="sortable" default="#{$dataTable.attributes.sortable}" />
         <o:tagAttribute name="sortDescending" default="#{false}" />
@@ -72,10 +73,13 @@
         <ui:fragment rendered="#{not $exporting}">
             <span title="#{tooltip}">
                 <ui:insert name="cell">
-                    <ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment>
-                    <ui:repeat rendered="#{iterable}" value="#{iterable ? of:iterableToList(value) : []}" var="$value" 
-                        varStatus="loop"><span>#{$value.toString()}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
-                    <ui:remove><!-- NOTE: explicit toString() call on value makes sure that it's also called on enums instead of name() (because that's not overridable). --></ui:remove>
+                    <ui:fragment rendered="#{not empty value}">
+                        <ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment>
+                        <ui:repeat rendered="#{iterable}" value="#{iterable ? of:iterableToList(value) : []}" var="$value" 
+                            varStatus="loop"><span>#{$value.toString()}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
+                        <ui:remove><!-- NOTE: explicit toString() call on value makes sure that it's also called on enums instead of name() (because that's not overridable). --></ui:remove>
+                    </ui:fragment>
+                    <ui:fragment rendered="#{empty value}">#{emptyValue}</ui:fragment>
                 </ui:insert>
             </span>
         </ui:fragment>
