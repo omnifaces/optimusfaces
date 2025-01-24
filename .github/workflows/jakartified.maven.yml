@@ -45,8 +45,8 @@ jobs:
         sudo systemctl start postgresql.service
         sudo -u postgres psql postgres -c "CREATE DATABASE test;"
         sudo -u postgres psql postgres -c "CREATE USER test WITH ENCRYPTED PASSWORD 'test';"
-        sudo -u postgres psql postgres -c "ALTER SCHEMA public OWNER TO test;"
         sudo -u postgres psql postgres -c "GRANT ALL PRIVILEGES ON DATABASE test TO test;"
-        sudo -u postgres psql postgres -c "GRANT USAGE, CREATE ON SCHEMA public TO test;"
+        sudo -u postgres psql postgres -c "\c test postgres"
+        sudo -u postgres psql postgres -c "GRANT ALL ON SCHEMA public TO test;"
     - name: Test with Maven
-      run: mvn verify -Dmaven.javadoc.skip=true -P ${{matrix.server}}
+      run: mvn -B verify -Dmaven.javadoc.skip=true -P ${{matrix.server}}
