@@ -77,6 +77,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.Select;
@@ -99,9 +100,9 @@ public abstract class OptimusFacesIT {
 
     @BeforeAll
     public void setup() {
+        Logger.getLogger(RemoteWebDriver.class.getPackageName()).setLevel(Level.WARNING);
         WebDriverManager.chromedriver().setup();
         var chrome = new ChromeDriver(new ChromeOptions().addArguments("--no-sandbox", "--headless"));
-        chrome.setLogLevel(Level.INFO);
         browser = chrome;
         PageFactory.initElements(browser, this);
     }
