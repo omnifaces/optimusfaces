@@ -69,11 +69,11 @@
         <!-- Test versions. -->
         <test.wildfly.version>33.0.2.Final</test.wildfly.version> <!-- https://mvnrepository.com/artifact/org.wildfly.bom/wildfly -->
         <test.glassfish.version>7.0.21</test.glassfish.version> <!-- https://mvnrepository.com/artifact/org.glassfish.main.distributions/glassfish -->
-        <test.tomee.version>9.1.3</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee -->
+        <test.tomee.version>10.0.0</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee --> <!-- TODO: this is still not working. -->
         <test.wildfly-eclipselink.version>5.0.0-B05</test.wildfly-eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink -->
-        <test.glassfish-hibernate.version>6.1.7.Final</test.glassfish-hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core TODO: Hibernate 6.2.0 and newer somehow threw java.lang.ClassCircularityError: org/hibernate/jpa/internal/enhance/EnhancingClassTransformerImpl$Entry -->
+        <test.glassfish-hibernate.version>6.6.5.Final</test.glassfish-hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
         <test.h2.version>2.3.232</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-        <test.mysql-driver.version>8.0.33</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <test.mysql-driver.version>9.2.0</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <test.postgresql-driver.version>42.7.5</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <test.omnifaces.version>5.0-M2</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
         <test.primefaces.version>14.0.10</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
@@ -81,7 +81,7 @@
 
     <dependencies>
 
-        <!-- Jakarta EE 9 web profile dependencies. -->
+        <!-- Jakarta EE web profile dependencies. -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>
@@ -461,8 +461,8 @@
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <groupId>mysql</groupId>
-                                            <artifactId>mysql-connector-java</artifactId>
+                                            <groupId>com.mysql</groupId>
+                                            <artifactId>mysql-connector-j</artifactId>
                                             <version>${test.mysql-driver.version}</version>
                                             <type>jar</type>
                                             <outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/standalone/deployments</outputDirectory>
