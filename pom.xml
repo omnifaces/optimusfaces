@@ -543,8 +543,8 @@
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <groupId>mysql</groupId>
-                                            <artifactId>mysql-connector-java</artifactId>
+                                            <groupId>com.mysql</groupId>
+                                            <artifactId>mysql-connector-j</artifactId>
                                             <version>${test.mysql-driver.version}</version>
                                             <type>jar</type>
                                             <outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/standalone/deployments</outputDirectory>
@@ -687,8 +687,8 @@
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <groupId>mysql</groupId>
-                                            <artifactId>mysql-connector-java</artifactId>
+                                            <groupId>com.mysql</groupId>
+                                            <artifactId>mysql-connector-j</artifactId>
                                             <version>${test.mysql-driver.version}</version>
                                             <type>jar</type>
                                             <outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
@@ -785,8 +785,8 @@
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <groupId>mysql</groupId>
-                                            <artifactId>mysql-connector-java</artifactId>
+                                            <groupId>com.mysql</groupId>
+                                            <artifactId>mysql-connector-j</artifactId>
                                             <version>${test.mysql-driver.version}</version>
                                             <type>jar</type>
                                             <outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
@@ -884,8 +884,8 @@
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <groupId>mysql</groupId>
-                                            <artifactId>mysql-connector-java</artifactId>
+                                            <groupId>com.mysql</groupId>
+                                            <artifactId>mysql-connector-j</artifactId>
                                             <version>${test.mysql-driver.version}</version>
                                             <type>jar</type>
                                             <outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
