@@ -99,7 +99,7 @@
         <dependency>
             <groupId>org.omnifaces</groupId>
             <artifactId>omnipersistence</artifactId>
-            <version>0.22.J3</version>
+            <version>0.22.J4</version>
         </dependency>
 
         <!-- PrimeFaces dependencies. -->
