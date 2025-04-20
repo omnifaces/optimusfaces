@@ -27,6 +27,7 @@
     <o:tagAttribute name="id" />
         <o:tagAttribute name="value" />
         <o:tagAttribute name="styleClass" />
+        <o:tagAttribute name="responsive" default="#{true}" />
         <o:tagAttribute name="rendered" default="#{true}" />
         <o:tagAttribute name="updateQueryString" default="#{true}" />
         <o:tagAttribute name="queryParameterPrefix" />
@@ -59,7 +60,7 @@
 
     <o:tagAttribute name="selectable" default="#{false}" />
 
-    <p:dataTable id="#{id}" widgetVar="#{id}" rendered="#{rendered}"
+    <p:dataTable id="#{id}" widgetVar="#{id}" rendered="#{rendered}" reflow="#{responsive}"
         value="#{value}" var="item" lazy="true" filteredValue="#{value.filteredValue}"
         rows="#{rows}" paginator="#{paginable}" paginatorPosition="bottom" paginatorAlwaysVisible="true"
         styleClass="#{styleClass}#{empty value.wrappedData ? ' empty' : ''}" paginatorTemplate="#{paginatorTemplate}" rowsPerPageTemplate="#{rowsPerPage}"

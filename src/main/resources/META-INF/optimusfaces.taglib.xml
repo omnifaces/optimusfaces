@@ -46,6 +46,12 @@
                 <type>java.lang.String</type>
             </attribute>
             <attribute>
+                <description>Whether to reflow the p:dataTable in 640px screens. Defaults to true.</description>
+                <name>responsive</name>
+                <required>false</required>
+                <type>boolean</type>
+            </attribute>
+            <attribute>
                 <description>Whether the table is rendered. Defaults to true.</description>
                 <name>rendered</name>
                 <required>false</required>
@@ -260,6 +266,12 @@
                 <name>visible</name>
                 <required>false</required>
                 <type>boolean</type>
+            </attribute>
+            <attribute>
+                <description>Integer-based priority whether to hide the column in smaller screens. Defaults to 0 (always visible).</description>
+                <name>responsivePriority</name>
+                <required>false</required>
+                <type>int</type>
             </attribute>
             <attribute>
                 <description>The width of the p:column. Defaults to null.</description>
