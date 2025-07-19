@@ -75,10 +75,9 @@
             <span title="#{tooltip}">
                 <ui:insert name="cell">
                     <ui:fragment rendered="#{not empty value}">
-                        <ui:fragment rendered="#{not iterable}">#{value.toString()}</ui:fragment>
+                        <ui:fragment rendered="#{not iterable}"><h:outputText value="#{value}"><ui:insert /></h:outputText></ui:fragment>
                         <ui:repeat rendered="#{iterable}" value="#{iterable ? of:iterableToList(value) : []}" var="$value" 
-                            varStatus="loop"><span>#{$value.toString()}</span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
-                        <ui:remove><!-- NOTE: explicit toString() call on value makes sure that it's also called on enums instead of name() (because that's not overridable). --></ui:remove>
+                            varStatus="loop"><span><h:outputText value="#{$value}"><ui:insert /></h:outputText></span><h:outputText value="&lt;br/&gt;" escape="false" rendered="#{not loop.last}" /></ui:repeat>
                     </ui:fragment>
                     <ui:fragment rendered="#{empty value}">#{emptyValue}</ui:fragment>
                 </ui:insert>
