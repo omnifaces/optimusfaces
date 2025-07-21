@@ -8,7 +8,7 @@
 
     <groupId>org.omnifaces</groupId>
     <artifactId>optimusfaces</artifactId>
-    <version>0.20.J1</version>
+    <version>0.21.J1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>OptimusFaces</name>
@@ -76,7 +76,7 @@
         <test.mysql-driver.version>9.2.0</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <test.postgresql-driver.version>42.7.5</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <test.omnifaces.version>5.0-M2</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
-        <test.primefaces.version>14.0.10</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
+        <test.primefaces.version>15.0.5</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
     </properties>
 
     <dependencies>
@@ -107,7 +107,7 @@
             <groupId>org.primefaces</groupId>
             <artifactId>primefaces</artifactId>
             <classifier>jakarta</classifier>
-            <version>13.0.0</version><!-- minimum version since OptimusFaces 0.17 -->
+            <version>15.0.0</version><!-- minimum version since OptimusFaces 0.21 -->
             <scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
         </dependency>
 

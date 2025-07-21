@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jakarta.faces.component.UIComponent;
+import jakarta.faces.component.UIData;
 import jakarta.faces.component.UINamingContainer;
 import jakarta.faces.context.FacesContext;
 
@@ -64,8 +65,8 @@ import org.omnifaces.util.Servlets;
 import org.omnifaces.utils.Lang;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.omnifaces.utils.reflect.Getter;
+import org.primefaces.component.api.PrimeUIData;
 import org.primefaces.component.api.UIColumn;
-import org.primefaces.component.api.UIData;
 import org.primefaces.component.datascroller.DataScroller;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.model.FilterMeta;
@@ -206,15 +207,15 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
         return loader.getPage(page, estimateTotalNumberOfResults);
     }
 
-    protected UIData getDataComponent() {
+    protected PrimeUIData getDataComponent() {
         var currentComponent = getCurrentComponent();
 
-        if (currentComponent instanceof UIData) {
-            return (UIData) currentComponent;
+        if (currentComponent instanceof PrimeUIData) {
+            return (PrimeUIData) currentComponent;
         }
         else {
             var id = currentComponent.getId().split("_", 2)[0];
-            return (UIData) currentComponent.findComponent(id);
+            return (PrimeUIData) currentComponent.findComponent(id);
         }
     }
 
