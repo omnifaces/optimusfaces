@@ -371,25 +371,25 @@ public abstract class OptimusFacesIT {
     @FindBy(css="#form\\:table_data tr.ui-state-highlight")
     private WebElement selectedRow;
 
-    @FindBy(css="#form\\:table_paginator_bottom span.ui-paginator-current")
+    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-current")
     private WebElement pageReport;
 
-    @FindBy(css="#form\\:table_paginator_bottom a.ui-paginator-first")
+    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-first")
     private WebElement pageFirst;
 
-    @FindBy(css="#form\\:table_paginator_bottom a.ui-paginator-prev")
+    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-prev")
     private WebElement pagePrevious;
 
-    @FindBy(css="#form\\:table_paginator_bottom a.ui-paginator-page")
+    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-page")
     private List<WebElement> pages;
 
-    @FindBy(css="#form\\:table_paginator_bottom a.ui-paginator-page.ui-state-active")
+    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-page.ui-state-active")
     private WebElement pageCurrent;
 
-    @FindBy(css="#form\\:table_paginator_bottom a.ui-paginator-next")
+    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-next")
     private WebElement pageNext;
 
-    @FindBy(css="#form\\:table_paginator_bottom a.ui-paginator-last")
+    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-last")
     private WebElement pageLast;
 
     @FindBy(id="form:criteria:0")
