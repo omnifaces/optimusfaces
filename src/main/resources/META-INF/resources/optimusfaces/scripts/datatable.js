@@ -26,7 +26,11 @@ if (PrimeFaces.widget.DataTable) {
     }
 
     function checkIfDefaultSortNeedsToBeDescending($sortableColumns) {
-        for(var i = 0; i < $sortableColumns.length; i++) {
+        if (!$sortableColumns || !$sortableColumns.length) {
+            return;
+        }
+
+        for (var i = 0; i < $sortableColumns.length; i++) {
             var $sortableColumn = $sortableColumns.eq(i);
             if ($sortableColumn.hasClass("desc") && !$sortableColumn.hasClass("ui-state-active")) {
                 $sortableColumn.data("sortorder", 1);
