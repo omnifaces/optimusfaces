@@ -18,9 +18,9 @@ import static org.omnifaces.persistence.Provider.HIBERNATE;
 
 import java.util.LinkedHashMap;
 
-import javax.ejb.Stateless;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
+import jakarta.ejb.Stateless;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
 
 import org.omnifaces.optimusfaces.test.model.Address;
 import org.omnifaces.optimusfaces.test.model.Person;
@@ -34,64 +34,64 @@ import org.omnifaces.utils.reflect.Getter;
 @Stateless
 public class PersonService extends BaseEntityService<Long, Person> {
 
-	public PartialResultList<Person> getPageWithAddress(Page page, boolean count) {
-		return getPage(page, count, (builder, query, person) -> {
-			person.fetch("address");
-		});
-	}
+    public PartialResultList<Person> getPageWithAddress(Page page, boolean count) {
+        return getPage(page, count, (builder, query, person) -> {
+            person.fetch("address");
+        });
+    }
 
-	public PartialResultList<Person> getPageWithPhones(Page page, boolean count) {
-		return getPage(page, count, (builder, query, person) -> {
-			person.fetch("phones");
-		});
-	}
+    public PartialResultList<Person> getPageWithPhones(Page page, boolean count) {
+        return getPage(page, count, (builder, query, person) -> {
+            person.fetch("phones");
+        });
+    }
 
-	public PartialResultList<Person> getPageWithGroups(Page page, boolean count) {
-		return getPage(page, count, (builder, query, person) -> {
-			person.fetch("groups");
-		});
-	}
+    public PartialResultList<Person> getPageWithGroups(Page page, boolean count) {
+        return getPage(page, count, (builder, query, person) -> {
+            person.fetch("groups");
+        });
+    }
 
-	public PartialResultList<PersonCard> getPageOfPersonCards(Page page, boolean count) {
-		return getPage(page, count, PersonCard.class, (builder, query, person) -> {
-			Join<Person, Address> personAddress = person.join("address");
-			Join<Person, Phone> personPhones = person.join("phones");
+    public PartialResultList<PersonCard> getPageOfPersonCards(Page page, boolean count) {
+        return getPage(page, count, PersonCard.class, (builder, query, person) -> {
+            Join<Person, Address> personAddress = person.join("address");
+            Join<Person, Phone> personPhones = person.join("phones");
 
-			LinkedHashMap<Getter<PersonCard>, Expression<?>> mapping = new LinkedHashMap<>();
-			mapping.put(PersonCard::getId, person.get("id"));
-			mapping.put(PersonCard::getEmail, person.get("email"));
+            LinkedHashMap<Getter<PersonCard>, Expression<?>> mapping = new LinkedHashMap<>();
+            mapping.put(PersonCard::getId, person.get("id"));
+            mapping.put(PersonCard::getEmail, person.get("email"));
 
-			if (getProvider() == HIBERNATE) {
-				mapping.put(PersonCard::getAddressString, personAddress.get("string")); // address.string uses Hibernate specific @Formula, so no need for manual concat().
-			}
-			else {
-				mapping.put(PersonCard::getAddressString, concat(builder, personAddress.get("street"), " ", personAddress.get("houseNumber"), ", ", personAddress.get("postcode"), " ", personAddress.get("city"), ", ", personAddress.get("country")));
-			}
+            if (getProvider() == HIBERNATE) {
+                mapping.put(PersonCard::getAddressString, personAddress.get("string")); // address.string uses Hibernate specific @Formula, so no need for manual concat().
+            }
+            else {
+                mapping.put(PersonCard::getAddressString, concat(builder, personAddress.get("street"), " ", personAddress.get("houseNumber"), ", ", personAddress.get("postcode"), " ", personAddress.get("city"), ", ", personAddress.get("country")));
+            }
 
-			if (getDatabase() == POSTGRESQL) { // Doesn't hurt on other DBs but makes query unnecessarily bloated.
-				query.groupBy(personAddress);
-			}
+            if (getDatabase() == POSTGRESQL) { // Doesn't hurt on other DBs but makes query unnecessarily bloated.
+                query.groupBy(personAddress);
+            }
 
-			mapping.put(PersonCard::getTotalPhones, builder.count(personPhones));
+            mapping.put(PersonCard::getTotalPhones, builder.count(personPhones));
 
-			return mapping;
-		});
-	}
+            return mapping;
+        });
+    }
 
-	public PartialResultList<Person> getAllWithAddress() {
-		return getPageWithAddress(Page.ALL, false);
-	}
+    public PartialResultList<Person> getAllWithAddress() {
+        return getPageWithAddress(Page.ALL, false);
+    }
 
-	public PartialResultList<Person> getAllWithPhones() {
-		return getPageWithPhones(Page.ALL, false);
-	}
+    public PartialResultList<Person> getAllWithPhones() {
+        return getPageWithPhones(Page.ALL, false);
+    }
 
-	public PartialResultList<Person> getAllWithGroups() {
-		return getPageWithGroups(Page.ALL, false);
-	}
+    public PartialResultList<Person> getAllWithGroups() {
+        return getPageWithGroups(Page.ALL, false);
+    }
 
-	public PartialResultList<PersonCard> getAllPersonCards() {
-		return getPageOfPersonCards(Page.ALL, false);
-	}
+    public PartialResultList<PersonCard> getAllPersonCards() {
+        return getPageOfPersonCards(Page.ALL, false);
+    }
 
 }

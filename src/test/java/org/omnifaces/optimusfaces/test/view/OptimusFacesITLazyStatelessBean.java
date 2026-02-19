@@ -12,10 +12,10 @@
  */
 package org.omnifaces.optimusfaces.test.view;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.omnifaces.optimusfaces.model.PagedDataModel;
 import org.omnifaces.optimusfaces.test.model.Person;
@@ -25,18 +25,18 @@ import org.omnifaces.optimusfaces.test.service.PersonService;
 @RequestScoped
 public class OptimusFacesITLazyStatelessBean {
 
-	private PagedDataModel<Person> lazyPersons;
+    private PagedDataModel<Person> lazyPersons;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		lazyPersons = PagedDataModel.lazy(personService).build();
-	}
+    @PostConstruct
+    public void init() {
+        lazyPersons = PagedDataModel.lazy(personService).build();
+    }
 
-	public PagedDataModel<Person> getLazyPersons() {
-		return lazyPersons;
-	}
+    public PagedDataModel<Person> getLazyPersons() {
+        return lazyPersons;
+    }
 
 }

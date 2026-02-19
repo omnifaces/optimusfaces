@@ -20,13 +20,16 @@
     version="3.0"
 >
     <persistence-unit name="OptimusFacesIT">
-        <jta-data-source>java:openejb/Resource/OptimusFacesIT</jta-data-source>
-
-        <class>org.omnifaces.persistence.model.BaseEntity</class>
+        <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+        <jta-data-source>java:app/OptimusFacesIT</jta-data-source>
 
         <properties>
-            <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema(foreignKeys=true,schemaAction='dropDB,add')" />
-            <property name="openjpa.Log" value="DefaultLevel=WARN, Runtime=INFO, SQL=TRACE" />
+            <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create" />
+            <property name="eclipselink.logging.logger" value="ServerLogger"/>
+            <property name="eclipselink.logging.level.sql" value="FINE" />
+            <property name="eclipselink.logging.timestamp" value="false" />
+            <property name="eclipselink.logging.thread" value="false" />
+            <property name="eclipselink.logging.session" value="false" />
         </properties>
     </persistence-unit>
 </persistence>

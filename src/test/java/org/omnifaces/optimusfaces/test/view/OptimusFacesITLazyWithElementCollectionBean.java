@@ -20,9 +20,9 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.optimusfaces.model.PagedDataModel;
@@ -35,34 +35,34 @@ import org.omnifaces.utils.reflect.Getter;
 @ViewScoped
 public class OptimusFacesITLazyWithElementCollectionBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<Person> lazyGroupies;
-	private Set<Group> selectedGroups;
+    private PagedDataModel<Person> lazyGroupies;
+    private Set<Group> selectedGroups;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		lazyGroupies = PagedDataModel.lazy(personService::getPageWithGroups).criteria(this::mapSelectedCriteria).build();
-	}
+    @PostConstruct
+    public void init() {
+        lazyGroupies = PagedDataModel.lazy(personService::getPageWithGroups).criteria(this::mapSelectedCriteria).build();
+    }
 
-	private Map<Getter<Person>, Object> mapSelectedCriteria() {
-		return isEmpty(selectedGroups) ? emptyMap() : singletonMap(Person::getGroups, selectedGroups);
-	}
+    private Map<Getter<Person>, Object> mapSelectedCriteria() {
+        return isEmpty(selectedGroups) ? emptyMap() : singletonMap(Person::getGroups, selectedGroups);
+    }
 
-	public PagedDataModel<Person> getLazyGroupies() {
-		return lazyGroupies;
-	}
+    public PagedDataModel<Person> getLazyGroupies() {
+        return lazyGroupies;
+    }
 
-	public Set<Group> getSelectedGroups() {
-		return selectedGroups;
-	}
+    public Set<Group> getSelectedGroups() {
+        return selectedGroups;
+    }
 
-	public void setSelectedGroups(Set<Group> selectedGroups) {
-		this.selectedGroups = selectedGroups;
-	}
+    public void setSelectedGroups(Set<Group> selectedGroups) {
+        this.selectedGroups = selectedGroups;
+    }
 
 }
 

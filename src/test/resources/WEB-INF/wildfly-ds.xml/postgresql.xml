@@ -14,15 +14,15 @@
 
 -->
 <!-- 
-	PostgreSQL data source configuration for WildFly.
+    PostgreSQL data source configuration for WildFly.
  -->
 <datasources>
-	<datasource jta="true" jndi-name="java:/OptimusFacesIT" pool-name="OptimusFacesIT" enabled="true" use-java-context="true">
-		<connection-url>jdbc:postgresql:test</connection-url>
-		<driver>postgresql.jar</driver>
-		<security>
-			<user-name>test</user-name>
-			<password>test</password>
-		</security>
-	</datasource>
+    <datasource jta="true" jndi-name="java:/OptimusFacesIT" pool-name="OptimusFacesIT" enabled="true" use-java-context="true">
+        <connection-url>jdbc:postgresql:test</connection-url>
+        <driver>postgresql.jar</driver>
+        <security>
+            <user-name>test</user-name>
+            <password>test</password>
+        </security>
+    </datasource>
 </datasources>

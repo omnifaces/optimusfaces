@@ -11,13 +11,13 @@
 # specific language governing permissions and limitations under the License.
 #
 
-name: develop
+name: jakartified
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ jakartified ]
   pull_request:
-    branches: [ develop ]
+    branches: [ jakartified ]
 
 jobs:
   test:
@@ -26,14 +26,14 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        server: [wildfly-hibernate, wildfly-eclipselink, payara-hibernate, payara-eclipselink, tomee-openjpa]
+        server: [wildfly-hibernate, wildfly-eclipselink, glassfish-hibernate, glassfish-eclipselink, tomee-openjpa]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 8
-      uses: actions/setup-java@v2
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
       with:
-        java-version: '8'
+        java-version: '17'
         distribution: 'adopt'
         cache: maven
     - name : Set up MySQL
@@ -46,5 +46,6 @@ jobs:
         sudo -u postgres psql postgres -c "CREATE DATABASE test;"
         sudo -u postgres psql postgres -c "CREATE USER test WITH ENCRYPTED PASSWORD 'test';"
         sudo -u postgres psql postgres -c "GRANT ALL PRIVILEGES ON DATABASE test TO test;"
+        sudo -u postgres psql postgres -c "\c test postgres" -c "GRANT ALL ON SCHEMA public TO test;"
     - name: Test with Maven
-      run: mvn verify -Dmaven.javadoc.skip=true -P ${{matrix.server}}
+      run: mvn -B verify -Dmaven.javadoc.skip=true -P ${{matrix.server}}

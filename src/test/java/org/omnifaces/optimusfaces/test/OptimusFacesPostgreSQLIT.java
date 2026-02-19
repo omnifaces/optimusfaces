@@ -22,9 +22,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ArquillianExtension.class)
 public class OptimusFacesPostgreSQLIT extends OptimusFacesIT {
 
-	@Deployment(testable=false)
-	public static WebArchive createDeployment() {
-		return createArchive(OptimusFacesPostgreSQLIT.class, POSTGRESQL);
-	}
+    @Deployment(testable=false)
+    public static WebArchive createDeployment() {
+        return createArchive(OptimusFacesPostgreSQLIT.class, POSTGRESQL);
+    }
 
 }

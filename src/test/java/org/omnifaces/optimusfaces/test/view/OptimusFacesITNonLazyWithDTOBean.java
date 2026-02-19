@@ -14,9 +14,9 @@ package org.omnifaces.optimusfaces.test.view;
 
 import java.io.Serializable;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.optimusfaces.model.PagedDataModel;
@@ -27,20 +27,20 @@ import org.omnifaces.optimusfaces.test.service.PersonService;
 @ViewScoped
 public class OptimusFacesITNonLazyWithDTOBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<PersonCard> allPersonCards;
+    private PagedDataModel<PersonCard> allPersonCards;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		allPersonCards = PagedDataModel.nonLazy(personService.getAllPersonCards()).build();
-	}
+    @PostConstruct
+    public void init() {
+        allPersonCards = PagedDataModel.nonLazy(personService.getAllPersonCards()).build();
+    }
 
-	public PagedDataModel<PersonCard> getAllPersonCards() {
-		return allPersonCards;
-	}
+    public PagedDataModel<PersonCard> getAllPersonCards() {
+        return allPersonCards;
+    }
 
 }

@@ -22,82 +22,82 @@ var OptimusFaces = OptimusFaces || {};
  */
 OptimusFaces.Util = (function(window, document) {
 
-	// Private static fields ------------------------------------------------------------------------------------------
+    // Private static fields ------------------------------------------------------------------------------------------
 
-	var self = {};
+    var self = {};
 
-	// Public static functions ----------------------------------------------------------------------------------------
+    // Public static functions ----------------------------------------------------------------------------------------
 
-	self.historyPushQueryString = function(queryString) {
-		if (window.history && window.history.pushState) {
-			var url = window.location.href.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
-			window.history.pushState(null, document.title, url);
-		}
-	}
+    self.historyPushQueryString = function(queryString) {
+        if (window.history && window.history.pushState) {
+            var url = window.location.href.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
+            window.history.pushState(null, document.title, url);
+        }
+    }
 
-	self.historyPushQueryStringParameter = function(name, value) {
-		if (window.history && window.history.pushState) {
-			var url = self.updateQueryStringParameter(window.location.href, name, value);
-			window.history.pushState(null, document.title, url);
-		}
-	}
+    self.historyPushQueryStringParameter = function(name, value) {
+        if (window.history && window.history.pushState) {
+            var url = self.updateQueryStringParameter(window.location.href, name, value);
+            window.history.pushState(null, document.title, url);
+        }
+    }
 
-	self.historyReplaceQueryString = function(queryString) {
-		if (window.history && window.history.replaceState) {
-			var url = window.location.href.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
-			window.history.replaceState(null, document.title, url);
-		}
-	}
+    self.historyReplaceQueryString = function(queryString) {
+        if (window.history && window.history.replaceState) {
+            var url = window.location.href.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
+            window.history.replaceState(null, document.title, url);
+        }
+    }
 
-	self.historyReplaceQueryStringParameter = function(name, value) {
-		if (window.history && window.history.replaceState) {
-			var url = self.updateQueryStringParameter(window.location.href, name, value);
-			window.history.replaceState(null, document.title, url);
-		}
-	}
+    self.historyReplaceQueryStringParameter = function(name, value) {
+        if (window.history && window.history.replaceState) {
+            var url = self.updateQueryStringParameter(window.location.href, name, value);
+            window.history.replaceState(null, document.title, url);
+        }
+    }
 
-	self.updateQueryString = function(queryString) {
-		self.historyReplaceQueryString(queryString);
-		for (var i = 0; i < document.forms.length; i++) {
-			var form = document.forms[i];
-			if (form["javax.faces.ViewState"]) {
-				form.action = form.action.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
-			}
-		}
-	}
+    self.updateQueryString = function(queryString) {
+        self.historyReplaceQueryString(queryString);
+        for (var i = 0; i < document.forms.length; i++) {
+            var form = document.forms[i];
+            if (form["jakarta.faces.ViewState"]) {
+                form.action = form.action.split(/\?/, 2)[0] + (queryString ? "?" : "") + queryString;
+            }
+        }
+    }
 
-	self.updateQueryStringParameter = function(url, name, value) {
-		var parts = url.split(/#/, 2);
-		var uri = parts[0];
-		var hash = (parts.length > 1) ? ("#" + parts[1]) : "";
-		var re = new RegExp("([?&])" + name + "=.*?(&|$)", "i");
+    self.updateQueryStringParameter = function(url, name, value) {
+        var parts = url.split(/#/, 2);
+        var uri = parts[0];
+        var hash = (parts.length > 1) ? ("#" + parts[1]) : "";
+        var re = new RegExp("([?&])" + name + "=.*?(&|$)", "i");
 
-		if (value) {
-			var parameter = name + "=" + encodeURIComponent(value);
+        if (value) {
+            var parameter = name + "=" + encodeURIComponent(value);
 
-			if (uri.match(re)) {
-				uri = uri.replace(re, "$1" + parameter + "$2");
-			}
-			else {
-				uri += "&" + parameter;
-			}
-		}
-		else {
-			uri = uri.replace(re, "$2");
-		}
+            if (uri.match(re)) {
+                uri = uri.replace(re, "$1" + parameter + "$2");
+            }
+            else {
+                uri += "&" + parameter;
+            }
+        }
+        else {
+            uri = uri.replace(re, "$2");
+        }
 
-		if (uri.indexOf("?") == -1) {
-			uri = uri.replace(/&/, "?");
-		}
-		else if (uri.slice(-1) == "?") {
-			uri = uri.slice(0, -1);
-		}
+        if (uri.indexOf("?") == -1) {
+            uri = uri.replace(/&/, "?");
+        }
+        else if (uri.slice(-1) == "?") {
+            uri = uri.slice(0, -1);
+        }
 
-		return uri + hash;
-	}
+        return uri + hash;
+    }
 
-	// Expose self to public ------------------------------------------------------------------------------------------
+    // Expose self to public ------------------------------------------------------------------------------------------
 
-	return self;
+    return self;
 
 })(window, document);

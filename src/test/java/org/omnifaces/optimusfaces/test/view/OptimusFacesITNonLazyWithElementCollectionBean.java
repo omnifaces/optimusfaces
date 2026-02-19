@@ -18,9 +18,9 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.optimusfaces.model.PagedDataModel;
@@ -33,34 +33,34 @@ import org.omnifaces.utils.reflect.Getter;
 @ViewScoped
 public class OptimusFacesITNonLazyWithElementCollectionBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<Person> nonLazyGroupies;
-	private Set<Group> selectedGroups;
+    private PagedDataModel<Person> nonLazyGroupies;
+    private Set<Group> selectedGroups;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		nonLazyGroupies = PagedDataModel.nonLazy(personService.getAllWithGroups()).criteria(this::mapSelectedCriteria).build();
-	}
+    @PostConstruct
+    public void init() {
+        nonLazyGroupies = PagedDataModel.nonLazy(personService.getAllWithGroups()).criteria(this::mapSelectedCriteria).build();
+    }
 
-	private Map<Getter<Person>, Object> mapSelectedCriteria() {
-		return singletonMap(Person::getGroups, selectedGroups);
-	}
+    private Map<Getter<Person>, Object> mapSelectedCriteria() {
+        return singletonMap(Person::getGroups, selectedGroups);
+    }
 
-	public PagedDataModel<Person> getNonLazyGroupies() {
-		return nonLazyGroupies;
-	}
+    public PagedDataModel<Person> getNonLazyGroupies() {
+        return nonLazyGroupies;
+    }
 
-	public Set<Group> getSelectedGroups() {
-		return selectedGroups;
-	}
+    public Set<Group> getSelectedGroups() {
+        return selectedGroups;
+    }
 
-	public void setSelectedGroups(Set<Group> selectedGroups) {
-		this.selectedGroups = selectedGroups;
-	}
+    public void setSelectedGroups(Set<Group> selectedGroups) {
+        this.selectedGroups = selectedGroups;
+    }
 
 }
 

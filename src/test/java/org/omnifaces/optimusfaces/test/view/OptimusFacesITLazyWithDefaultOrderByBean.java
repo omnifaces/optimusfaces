@@ -17,30 +17,30 @@ import org.omnifaces.optimusfaces.model.PagedDataModel;
 import org.omnifaces.optimusfaces.test.model.Person;
 import org.omnifaces.optimusfaces.test.service.PersonService;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.io.Serializable;
 
 @Named
 @ViewScoped
 public class OptimusFacesITLazyWithDefaultOrderByBean implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private PagedDataModel<Person> lazyPersons;
+    private PagedDataModel<Person> lazyPersons;
 
-	@Inject
-	private PersonService personService;
+    @Inject
+    private PersonService personService;
 
-	@PostConstruct
-	public void init() {
-		lazyPersons = PagedDataModel.lazy(personService)
-				.orderBy(Person::getEmail, false)
-				.build();
-	}
+    @PostConstruct
+    public void init() {
+        lazyPersons = PagedDataModel.lazy(personService)
+                .orderBy(Person::getEmail, false)
+                .build();
+    }
 
-	public PagedDataModel<Person> getLazyPersons() {
-		return lazyPersons;
-	}
+    public PagedDataModel<Person> getLazyPersons() {
+        return lazyPersons;
+    }
 }

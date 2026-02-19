@@ -12,11 +12,11 @@
  */
 package org.omnifaces.optimusfaces.test.model;
 
-import static javax.persistence.GenerationType.IDENTITY;
+import static jakarta.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 
 import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.GeneratedIdEntity;
@@ -38,18 +38,18 @@ import org.omnifaces.persistence.model.GeneratedIdEntity;
 @MappedSuperclass
 public class LocalGeneratedIdEntity extends BaseEntity<Long> {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Id @GeneratedValue(strategy = IDENTITY)
-	private Long id;
+    @Id @GeneratedValue(strategy = IDENTITY)
+    private Long id;
 
-	@Override
-	public Long getId() {
-		return id;
-	}
+    @Override
+    public Long getId() {
+        return id;
+    }
 
-	@Override
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

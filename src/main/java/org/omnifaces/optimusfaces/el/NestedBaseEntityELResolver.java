@@ -19,25 +19,25 @@ import java.beans.FeatureDescriptor;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.el.ELContext;
-import javax.el.ELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.ELResolver;
 
 import org.omnifaces.persistence.model.BaseEntity;
 
 public class NestedBaseEntityELResolver extends ELResolver {
 
-	@Override
-	public Class<?> getCommonPropertyType(ELContext context, Object base) {
-		return null;
-	}
+    @Override
+    public Class<?> getCommonPropertyType(ELContext context, Object base) {
+        return null;
+    }
 
-	@Override
-	public Class<?> getType(ELContext context, Object base, Object property) {
-		return null;
-	}
+    @Override
+    public Class<?> getType(ELContext context, Object base, Object property) {
+        return null;
+    }
 
-	@Override
-	public Object getValue(ELContext context, Object base, Object property) {
+    @Override
+    public Object getValue(ELContext context, Object base, Object property) {
         if (!(base instanceof BaseEntity)) {
             return null;
         }
@@ -45,38 +45,38 @@ public class NestedBaseEntityELResolver extends ELResolver {
         String propertyString = property.toString();
 
         if (!propertyString.contains(".")) {
-        	return null;
+            return null;
         }
 
         Object value = base;
 
         for (String propertyPart : propertyString.split("\\.")) {
-        	if (value instanceof Collection) {
-        		value = stream(value).map(item -> context.getELResolver().getValue(context, item, propertyPart)).collect(toList());
-        	}
-        	else {
-        		value = context.getELResolver().getValue(context, value, propertyPart);
-        	}
+            if (value instanceof Collection) {
+                value = stream(value).map(item -> context.getELResolver().getValue(context, item, propertyPart)).collect(toList());
+            }
+            else {
+                value = context.getELResolver().getValue(context, value, propertyPart);
+            }
 
         }
 
         context.setPropertyResolved(true);
         return value;
-	}
+    }
 
-	@Override
-	public void setValue(ELContext context, Object base, Object property, Object val) {
-		// NOOP.
-	}
+    @Override
+    public void setValue(ELContext context, Object base, Object property, Object val) {
+        // NOOP.
+    }
 
-	@Override
-	public boolean isReadOnly(ELContext context, Object base, Object property) {
-		return true;
-	}
+    @Override
+    public boolean isReadOnly(ELContext context, Object base, Object property) {
+        return true;
+    }
 
-	@Override
-	public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object base) {
-		return null;
-	}
+    @Override
+    public Iterator<FeatureDescriptor> getFeatureDescriptors(ELContext context, Object base) {
+        return null;
+    }
 
 }

@@ -21,63 +21,67 @@
  */
 if (PrimeFaces.widget.DataTable) {
 
-	function makeRowWithKey0Unselectable(id) {
-		$(document.getElementById(id)).find("tr[data-rk=0]").removeClass("ui-widget-content");
-	}
+    function makeRowWithKey0Unselectable(id) {
+        $(document.getElementById(id)).find("tr[data-rk=0]").removeClass("ui-widget-content");
+    }
 
-	function checkIfDefaultSortNeedsToBeDescending($sortableColumns) {
-		for(var i = 0; i < $sortableColumns.length; i++) {
-			var $sortableColumn = $sortableColumns.eq(i);
-			if ($sortableColumn.hasClass("desc") && !$sortableColumn.hasClass("ui-state-active")) {
-				$sortableColumn.data("sortorder", 1);
-			}
-		}
-	}
+    function checkIfDefaultSortNeedsToBeDescending($sortableColumns) {
+        if (!$sortableColumns || !$sortableColumns.length) {
+            return;
+        }
 
-	PrimeFaces.widget.DataTable = PrimeFaces.widget.DataTable.extend({
-		init: function(cfg) {
-			makeRowWithKey0Unselectable(cfg.id);
-			this._super(cfg);
-			checkIfDefaultSortNeedsToBeDescending(this.sortableColumns);
-		},
-		sort: function(columnHeader, order, multi) {
-			this._super(columnHeader, order, multi);
-			checkIfDefaultSortNeedsToBeDescending(this.sortableColumns);
-		},
-		postUpdateData: function() {
-			this._super();
-	        this.jq.toggleClass("empty", this.isEmpty());
-		}
-	});
+        for (var i = 0; i < $sortableColumns.length; i++) {
+            var $sortableColumn = $sortableColumns.eq(i);
+            if ($sortableColumn.hasClass("desc") && !$sortableColumn.hasClass("ui-state-active")) {
+                $sortableColumn.data("sortorder", 1);
+            }
+        }
+    }
 
-	/**
-	 * Toggle global filter class in filterable columns on focus of global filter input.
-	 */
-	$(document).on("focus", ".ui-datatable-actions .ui-inputfield.filter", function() {
-		$(this).closest("form").find("th.ui-filter-column").addClass("global");
-	}).on("blur", ".ui-datatable-actions .ui-inputfield.filter", function() {
-		$(this).closest("form").find("th.ui-filter-column").removeClass("global");
-	});
+    PrimeFaces.widget.DataTable = PrimeFaces.widget.DataTable.extend({
+        init: function(cfg) {
+            makeRowWithKey0Unselectable(cfg.id);
+            this._super(cfg);
+            checkIfDefaultSortNeedsToBeDescending(this.sortableColumns);
+        },
+        sort: function(columnHeader, order, multi) {
+            this._super(columnHeader, order, multi);
+            checkIfDefaultSortNeedsToBeDescending(this.sortableColumns);
+        },
+        postUpdateData: function() {
+            this._super();
+            this.jq.toggleClass("empty", this.isEmpty());
+        }
+    });
 
-	/**
-	 * Global search actions.
-	 */
-	$(document).on("keypress", ".ui-datatable-actions .ui-inputfield.filter", function(event) {
-		if (event.keyCode == 13) {
-			$(this).next().click();
-			return false;
-		}
-	}).on("search", ".ui-datatable-actions .ui-inputfield.filter", function() {
-		$(this).next().click();
-	}).on("click", ".ui-datatable-actions .ui-button.search", function() {
-		var dataTableWidget = PF($(this).data("tablewidgetid"));
-		var $globalFilter = dataTableWidget.jq.find("[id$=globalFilter]");
-		var $globalFilterValue = $(this).prev().val().trim();
+    /**
+     * Toggle global filter class in filterable columns on focus of global filter input.
+     */
+    $(document).on("focus", ".ui-datatable-actions .ui-inputfield.filter", function() {
+        $(this).closest("form").find("th.ui-filter-column").addClass("global");
+    }).on("blur", ".ui-datatable-actions .ui-inputfield.filter", function() {
+        $(this).closest("form").find("th.ui-filter-column").removeClass("global");
+    });
 
-		if ($globalFilter.val() != $globalFilterValue) {
-			$globalFilter.val($globalFilterValue);
-			dataTableWidget.filter();
-		}
-	});
+    /**
+     * Global search actions.
+     */
+    $(document).on("keypress", ".ui-datatable-actions .ui-inputfield.filter", function(event) {
+        if (event.keyCode == 13) {
+            $(this).next().click();
+            return false;
+        }
+    }).on("search", ".ui-datatable-actions .ui-inputfield.filter", function() {
+        $(this).next().click();
+    }).on("click", ".ui-datatable-actions .ui-button.search", function() {
+        var dataTableWidget = PF($(this).data("tablewidgetid"));
+        var $globalFilter = dataTableWidget.jq.find("[id$=globalFilter]");
+        var $globalFilterValue = $(this).prev().val().trim();
+
+        if ($globalFilter.val() != $globalFilterValue) {
+            $globalFilter.val($globalFilterValue);
+            dataTableWidget.filter();
+        }
+    });
 
 }

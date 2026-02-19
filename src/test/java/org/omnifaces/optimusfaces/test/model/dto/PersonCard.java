@@ -16,24 +16,24 @@ import org.omnifaces.optimusfaces.test.model.Person;
 
 public class PersonCard extends Person {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private String addressString;
-	private Long totalPhones;
+    private String addressString;
+    private Long totalPhones;
 
-	public PersonCard(Long id, String email, String addressString, Long totalPhones) {
-		setId(id);
-		setEmail(email);
-		this.addressString = addressString;
-		this.totalPhones = totalPhones;
-	}
+    public PersonCard(Long id, String email, String addressString, Long totalPhones) {
+        setId(id);
+        setEmail(email);
+        this.addressString = addressString;
+        this.totalPhones = totalPhones;
+    }
 
-	public String getAddressString() {
-		return addressString;
-	}
+    public String getAddressString() {
+        return addressString;
+    }
 
-	public Long getTotalPhones() {
-		return totalPhones;
-	}
+    public Long getTotalPhones() {
+        return totalPhones;
+    }
 
 }

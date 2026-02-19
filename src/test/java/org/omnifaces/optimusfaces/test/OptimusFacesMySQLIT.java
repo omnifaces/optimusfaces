@@ -22,9 +22,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ArquillianExtension.class)
 public class OptimusFacesMySQLIT extends OptimusFacesIT {
 
-	@Deployment(testable=false)
-	public static WebArchive createDeployment() {
-		return createArchive(OptimusFacesMySQLIT.class, MYSQL);
-	}
+    @Deployment(testable=false)
+    public static WebArchive createDeployment() {
+        return createArchive(OptimusFacesMySQLIT.class, MYSQL);
+    }
 
 }

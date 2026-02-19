@@ -25,13 +25,13 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javax.faces.model.SelectItem;
-import javax.persistence.ElementCollection;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
+import jakarta.faces.model.SelectItem;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
 
 import org.omnifaces.persistence.criteria.Between;
 import org.omnifaces.persistence.criteria.Bool;
@@ -67,7 +67,7 @@ import org.primefaces.model.Visibility;
  * its {@link LazyDataModel}.
  *
  *
- * <h3 id="usage"><a href="#usage">Basic Usage</a></h3>
+ * <h2 id="usage"><a href="#usage">Basic Usage</a></h2>
  * <p>
  * First create your entity service extending {@link BaseEntityService} from OmniPersistence project.
  * <pre>
@@ -138,13 +138,13 @@ import org.primefaces.model.Visibility;
  * of <code>&lt;p:column&gt;</code>.
  *
  *
- * <h3 id="relationships"><a href="#relationships">Relationships</a></h3>
+ * <h2 id="relationships"><a href="#relationships">Relationships</a></h2>
  * <p>
  * The <code>&lt;op:dataTable&gt;</code> supports models with {@link OneToOne}, {@link ManyToOne}, {@link OneToMany} and
  * {@link ElementCollection} relationships. The <code>field</code> attribute of <code>&lt;op:column&gt;</code> can take
  * a JavaBean path, like as you would do in EL, <code>parent.child.subchild</code>. Below are some examples.
  *
- * <h4>OneToOne/ManyToOne</h4>
+ * <h3>OneToOne/ManyToOne</h3>
  * <p>
  * Given an <code>Invoice</code> with <code>&#64;OneToOne private Order order</code>, <code>&#64;ManyToOne User seller</code> and <code>&#64;ManyToOne User buyer</code>:
  * <pre>
@@ -156,7 +156,7 @@ import org.primefaces.model.Visibility;
  * &lt;/op:dataTable&gt;
  * </pre>
  *
- * <h4>OneToMany</h4>
+ * <h3>OneToMany</h3>
  * <p>
  * Given a <code>Order</code> with <code>&#64;OneToMany List&lt;Product&gt; products</code>:
  * <pre>
@@ -169,7 +169,7 @@ import org.primefaces.model.Visibility;
  * &lt;/op:dataTable&gt;
  * </pre>
  *
- * <h4>ElementCollection</h4>
+ * <h3>ElementCollection</h3>
  * <p>
  * Given a <code>Product</code> with <code>&#64;ElementCollection List&lt;Tag&gt; tags</code>:
  * <pre>
@@ -184,7 +184,7 @@ import org.primefaces.model.Visibility;
  * Note: the <code>&#64;ElementCollection</code> has currently one limitation, sorting is not supported in lazy models
  * due to the task not being trivial in JPQL (for now). It's only supported in non-lazy models.
  *
- * <h4>DTO</h4>
+ * <h3>DTO</h3>
  * <p>
  * DTO subclasses of entities are also supported by providing an additional <code>Class&lt;DTO&gt; resultType</code>
  * argument to one of the protected {@link BaseEntityService#getPage(Page, boolean)} methods.
@@ -228,7 +228,7 @@ import org.primefaces.model.Visibility;
  * that the mapping must be in exactly the same order as constructor arguments of your DTO.
  *
  *
- * <h3 id="criteria-backend"><a href="#criteria-backend">Providing specific criteria in backend</a></h3>
+ * <h2 id="criteria-backend"><a href="#criteria-backend">Providing specific criteria in backend</a></h2>
  * <p>
  * In the backend, create a new <code>getPageXxx()</code> method and delegate to one of
  * {@link BaseEntityService#getPage(Page, boolean)} methods which takes a <code>QueryBuilder</code> argument providing the
@@ -270,7 +270,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="criteria-frontend"><a href="#criteria-frontend">Providing specific criteria in frontend</a></h3>
+ * <h2 id="criteria-frontend"><a href="#criteria-frontend">Providing specific criteria in frontend</a></h2>
  * <p>
  * Specify a method reference to a <code>Map&lt;Getter&lt;E&gt;, Object&gt;</code> supplier in {@link Builder#criteria(Supplier)}
  * This way you can provide criteria from e.g. a separate form with custom filters.
@@ -329,7 +329,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="non-lazy"><a href="#non-lazy">Non-lazy data model</a></h3>
+ * <h2 id="non-lazy"><a href="#non-lazy">Non-lazy data model</a></h2>
  * <p>
  * If you have a static list and you'd like to use <code>&lt;op:dataTable&gt;</code>, then you can use
  * either {@link PagedDataModel#nonLazy(List)} to create a non-lazy {@link PagedDataModel}.
@@ -357,7 +357,7 @@ import org.primefaces.model.Visibility;
  * entities just of type {@link Identifiable} which is easier to apply on DTOs.
  *
  *
- * <h3 id="presentation"><a href="#presentation">Presentation</a></h3>
+ * <h2 id="presentation"><a href="#presentation">Presentation</a></h2>
  * <p>
  * By default, the <code>field</code> attribute is shown as column header text. You can optionally use <code>head</code>
  * attribute of <code>&lt;op:column&gt;</code> to set the header text.
@@ -394,7 +394,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="pagination"><a href="#pagination">Pagination</a></h3>
+ * <h2 id="pagination"><a href="#pagination">Pagination</a></h2>
  * <p>
  * By default, the table is paginable on 10 rows which is overrideable via <code>rows</code> attribute.
  * <pre>
@@ -417,7 +417,7 @@ import org.primefaces.model.Visibility;
  * </ul>
  *
  *
- * <h3 id="sorting"><a href="#sorting">Sorting</a></h3>
+ * <h2 id="sorting"><a href="#sorting">Sorting</a></h2>
  * <p>
  * By default, the model is sorted by {@link BaseEntity#getId()} in descending order. You can override this by
  * {@link Builder#orderBy(Getter, boolean)} passing the getter method reference and whether you want to sort ascending
@@ -468,7 +468,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="filtering"><a href="#filtering">Filtering</a></h3>
+ * <h2 id="filtering"><a href="#filtering">Filtering</a></h2>
  * <p>
  * By default, every column is filterable. In the frontend you can optionally set <code>filterable</code> attribute of
  * <code>&lt;op:column&gt;</code> to <code>false</code> to make a column non-filterable.
@@ -519,7 +519,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="global-search"><a href="#global-search">Global search</a></h3>
+ * <h2 id="global-search"><a href="#global-search">Global search</a></h2>
  * <p>
  * You can optionally turn on "global search" by setting <code>searchable</code> attribute of
  * <code>&lt;op:dataTable&gt;</code> to <code>true</code>.
@@ -543,7 +543,7 @@ import org.primefaces.model.Visibility;
  * </ul>
  *
  *
- * <h3 id="exporting"><a href="#exporting">Exporting</a></h3>
+ * <h2 id="exporting"><a href="#exporting">Exporting</a></h2>
  * <p>
  * You can optionally show column toggler and CSV export buttons by setting <code>exportable</code> attribute of
  * <code>&lt;op:dataTable&gt;</code> to <code>true</code>.
@@ -575,7 +575,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="selection"><a href="#selection">Selection</a></h3>
+ * <h2 id="selection"><a href="#selection">Selection</a></h2>
  * <p>
  * You can optionally make the rows selectable by setting <code>selectable</code> attribute of
  * <code>&lt;op:dataTable&gt;</code> to <code>true</code>.
@@ -620,7 +620,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="ajax-events"><a href="#ajax-events">Ajax events</a></h3>
+ * <h2 id="ajax-events"><a href="#ajax-events">Ajax events</a></h2>
  * <p>
  * On every paging, sorting, filtering, searching and selection action, an ajax event will be fired. The
  * <code>&lt;op:dataTable&gt;</code> makes use of PrimeFaces Selectors (PFS) to find components which need to be updated
@@ -633,7 +633,7 @@ import org.primefaces.model.Visibility;
  * </ul>
  *
  *
- * <h3 id="query-parameters"><a href="#query-parameters">Query parameters</a></h3>
+ * <h2 id="query-parameters"><a href="#query-parameters">Query parameters</a></h2>
  * <p>
  * On every paging, sorting, filtering, searching and selection action the query parameter string in the URL will be
  * updated to reflect the current table's state. Every page after the first page gets a <code>p={pageNumber}</code>
@@ -663,7 +663,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="css"><a href="#css">CSS</a></h3>
+ * <h2 id="css"><a href="#css">CSS</a></h2>
  * <p>
  * Standard PrimeFaces CSS is being reused as much as possible, including the fix of missing <code>.ui-state-active</code>
  * class on a sorted column when sorting is done via <code>field</code> attribute. Below is a list of new additions:
@@ -691,7 +691,7 @@ import org.primefaces.model.Visibility;
  * <code>.ui-datatable tbody td &gt; span</code>.
  *
  *
- * <h3 id="adding-buttons"><a href="#adding-buttons">Adding custom action buttons</a></h3>
+ * <h2 id="adding-buttons"><a href="#adding-buttons">Adding custom action buttons</a></h2>
  * <p>
  * When you want more buttons in the <code>.ui-datatable-actions</code> div, then you can use <code>&lt;ui:define name="actions"&gt;</code>
  * for this.
@@ -707,7 +707,7 @@ import org.primefaces.model.Visibility;
  * They will end up after the search and export buttons.
  *
  *
- * <h3 id="setting-attributes"><a href="#setting-attributes">Setting PrimeFaces-specific attributes</a></h3>
+ * <h2 id="setting-attributes"><a href="#setting-attributes">Setting PrimeFaces-specific attributes</a></h2>
  * <p>
  * In case you'd like to finetune the underlying <code>&lt;p:dataTable&gt;</code> further with additional attributes
  * which are in turn not supported by <code>&lt;op:dataTable&gt;</code>, then you could always use
@@ -731,7 +731,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  *
  *
- * <h3 id="extending-tagfiles"><a href="#extending-tagfiles">Extending tagfiles</a></h3>
+ * <h2 id="extending-tagfiles"><a href="#extending-tagfiles">Extending tagfiles</a></h2>
  * <p>
  * In case you'd like to change the defaults of <code>&lt;op:dataTable&gt;</code>, then you can always extend it into
  * your own tagfile like below with desired defaults supplied via <code>&lt;ui:param&gt;</code>. The below example
@@ -814,189 +814,190 @@ import org.primefaces.model.Visibility;
  */
 public interface PagedDataModel<E extends Identifiable<?>> extends Serializable {
 
-	// Constants ------------------------------------------------------------------------------------------------------
+    // Constants ------------------------------------------------------------------------------------------------------
 
-	/** The query parameter name representing the value of the global search query. */
-	public static final String QUERY_PARAMETER_SEARCH = "q";
+    /** The query parameter name representing the value of the global search query. */
+    String QUERY_PARAMETER_SEARCH = "q";
 
-	/** The query parameter name representing the current page number. */
-	public static final String QUERY_PARAMETER_PAGE = "p";
+    /** The query parameter name representing the current page number. */
+    String QUERY_PARAMETER_PAGE = "p";
 
-	/** The query parameter name representing the current sort order. */
-	public static final String QUERY_PARAMETER_ORDER = "o";
+    /** The query parameter name representing the current sort order. */
+    String QUERY_PARAMETER_ORDER = "o";
 
-	/** The query parameter name representing the current selection. */
-	public static final String QUERY_PARAMETER_SELECTION = "s";
+    /** The query parameter name representing the current selection. */
+    String QUERY_PARAMETER_SELECTION = "s";
 
-	// Note that those names are intentionally kept single-char in order to not potentially clash with field names.
-
-
-	// Default methods ------------------------------------------------------------------------------------------------
-
-	/**
-	 * Invoked when default <code>id</code> attribute of <code>&lt;op:column&gt;</code> is to be set. This is by default based on the
-	 * <code>field</code> and the ID attribute does not support periods.
-	 * @param field The column field.
-	 * @return The column ID based on given field.
-	 */
-	default String computeColumnId(String field) {
-		return field.replace('.', '_');
-	}
-
-	/**
-	 * Invoked when <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code> is provided.
-	 * Problem is, the underlying <code>&lt;p:column&gt;</code> only supports <code>SelectItem[]</code> or
-	 * <code>List&lt;SelectItem&gt;</code>.
-	 * @param filterOptions The filter options.
-	 * @return The filter options converted to <code>SelectItem[]</code>.
-	 */
-	default SelectItem[] convertFilterOptionsIfNecessary(Object filterOptions) {
-		Stream<SelectItem> stream;
-
-		if (filterOptions instanceof SelectItem[]) {
-			stream = stream(filterOptions);
-		}
-		if (filterOptions instanceof Object[]) {
-			stream = stream(filterOptions).map(SelectItem::new);
-		}
-		else if (filterOptions instanceof Collection<?>) {
-			stream = stream(filterOptions).map(item -> (item instanceof SelectItem) ? (SelectItem) item : new SelectItem(item));
-		}
-		else if (filterOptions instanceof Map<?, ?>) {
-			stream = stream((Map<?, ?>) filterOptions).map(entry -> new SelectItem(entry.getKey(), String.valueOf(entry.getValue())));
-		}
-		else {
-			throw new IllegalArgumentException("filterOptions must be an instance of SelectItem[], Object[], Collection or Map");
-		}
-
-		return Stream.concat(Stream.of(new SelectItem("")), stream).toArray(SelectItem[]::new);
-	}
-
-	/**
-	 * Invoked when "Columns" is adjusted.
-	 * @param event Toggle event.
-	 */
-	default void toggleColumn(ToggleEvent event) {
-		String tableId = ((ColumnToggler) event.getComponent()).getDatasource();
-		DataTable table = (DataTable) getCurrentComponent().findComponent(tableId);
-		((Column) table.getColumns().get((Integer) event.getData())).setVisible(event.getVisibility() == Visibility.VISIBLE);
-	}
-
-	/**
-	 * Invoked when "Export Visible Columns" is chosen.
-	 * @param tableId Table ID.
-	 */
-	default void prepareExportVisible(String tableId) {
-		DataTable table = (DataTable) getCurrentComponent().findComponent(tableId);
-		table.getColumns().forEach(column -> setExportable((Column) column, column.isVisible()));
-	}
-
-	/**
-	 * Invoked when "Export All Columns" is chosen.
-	 * @param tableId Table ID.
-	 */
-	default void prepareExportAll(String tableId) {
-		DataTable table = (DataTable) getCurrentComponent().findComponent(tableId);
-		table.getColumns().forEach(column -> setExportable((Column) column, true));
-	}
-
-	/**
-	 * Remembers original value of "exportable" attribute in case it's been explicitly set.
-	 * @param column The column.
-	 * @param exportable Whether it should be set exportable if not already explicitly disabled.
-	 */
-	static void setExportable(Column column, boolean exportable) {
-		boolean wasExportable = column.getAttributes().putIfAbsent("wasExportable", column.isExportable()) == Boolean.TRUE || column.isExportable();
-
-		if (wasExportable) {
-			column.setExportable(exportable);
-		}
-	}
+    // Note that those names are intentionally kept single-char in order to not potentially clash with field names.
 
 
-	// PagedDataModel state -------------------------------------------------------------------------------------------
+    // Default methods ------------------------------------------------------------------------------------------------
 
-	/**
-	 * Returns the current Page.
-	 * @return The current Page.
-	 */
-	Page getPage();
+    /**
+     * Invoked when default <code>id</code> attribute of <code>&lt;op:column&gt;</code> is to be set. This is by default based on the
+     * <code>field</code> and the ID attribute does not support periods.
+     * @param field The column field.
+     * @return The column ID based on given field.
+     */
+    default String computeColumnId(String field) {
+        return field.replace('.', '_');
+    }
+
+    /**
+     * Invoked when <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code> is provided.
+     * Problem is, the underlying <code>&lt;p:column&gt;</code> only supports <code>SelectItem[]</code> or
+     * <code>List&lt;SelectItem&gt;</code>.
+     * @param filterOptions The filter options.
+     * @return The filter options converted to <code>SelectItem[]</code>.
+     */
+    default SelectItem[] convertFilterOptionsIfNecessary(Object filterOptions) {
+        Stream<SelectItem> stream;
+
+        if (filterOptions instanceof SelectItem[]) {
+            stream = stream(filterOptions);
+        }
+        if (filterOptions instanceof Object[]) {
+            stream = stream(filterOptions).map(SelectItem::new);
+        }
+        else if (filterOptions instanceof Collection<?>) {
+            stream = stream(filterOptions).map(item -> item instanceof SelectItem ? (SelectItem) item : new SelectItem(item));
+        }
+        else if (filterOptions instanceof Map<?, ?>) {
+            stream = stream((Map<?, ?>) filterOptions).map(entry -> new SelectItem(entry.getKey(), String.valueOf(entry.getValue())));
+        }
+        else {
+            throw new IllegalArgumentException("filterOptions must be an instance of SelectItem[], Object[], Collection or Map");
+        }
+
+        return Stream.concat(Stream.of(new SelectItem("")), stream).toArray(SelectItem[]::new);
+    }
+
+    /**
+     * Invoked when "Columns" is adjusted.
+     * @param event Toggle event.
+     */
+    default void toggleColumn(ToggleEvent event) {
+        var tableId = ((ColumnToggler) event.getComponent()).getDatasource();
+        var table = (DataTable) getCurrentComponent().findComponent(tableId);
+        ((Column) table.getColumns().get((Integer) event.getData())).setVisible(event.getVisibility() == Visibility.VISIBLE);
+    }
+
+    /**
+     * Invoked when "Export Visible Columns" is chosen.
+     * @param tableId Table ID.
+     */
+    default void prepareExportVisible(String tableId) {
+        var table = (DataTable) getCurrentComponent().findComponent(tableId);
+        table.getColumns().forEach(column -> setExportable((Column) column, column.isVisible()));
+    }
+
+    /**
+     * Invoked when "Export All Columns" is chosen.
+     * @param tableId Table ID.
+     */
+    default void prepareExportAll(String tableId) {
+        var table = (DataTable) getCurrentComponent().findComponent(tableId);
+        table.getColumns().forEach(column -> setExportable((Column) column, true));
+    }
+
+    /**
+     * Remembers original value of "exportable" attribute in case it's been explicitly set.
+     * @param column The column.
+     * @param exportable Whether it should be set exportable if not already explicitly disabled.
+     */
+    static void setExportable(Column column, boolean exportable) {
+        var wasExportable = column.getAttributes().putIfAbsent("wasExportable", column.isExportable()) == Boolean.TRUE || column.isExportable();
+
+        if (wasExportable) {
+            column.setExportable(exportable);
+        }
+    }
 
 
-	// op:dataTable properties ----------------------------------------------------------------------------------------
+    // PagedDataModel state -------------------------------------------------------------------------------------------
 
-	SortMeta getOrdering(); // TODO: support new multisort feature
-	Map<String, FilterMeta> getFilters();
-
-	List<E> getFilteredValue();
-	void setFilteredValue(List<E> filteredValue);
-
-	List<E> getSelection();
-	void setSelection(List<E> selection);
+    /**
+     * Returns the current Page.
+     * @return The current Page.
+     */
+    Page getPage();
 
 
-	// Builder --------------------------------------------------------------------------------------------------------
+    // op:dataTable properties ----------------------------------------------------------------------------------------
 
-	@FunctionalInterface
-	public static interface PartialResultListLoader<E extends Identifiable<?>> {
-		PartialResultList<E> getPage(Page page, boolean estimateTotalNumberOfResults);
-	}
+    SortMeta getOrdering(); // TODO: support new multisort feature
+    Map<String, FilterMeta> getFilters();
+    FilterMeta getFilter(String field);
 
-	/**
-	 * Use this if you want to build a lazy paged data model using a {@link BaseEntityService}.
-	 * @param <I> The generic ID type.
-	 * @param <E> The generic base entity type.
-	 * @param entityService The entity service.
-	 * @return A new paged data model builder.
-	 */
-	public static <I extends Comparable<I> & Serializable, E extends BaseEntity<I>> Builder<E> lazy(BaseEntityService<I, E> entityService) {
-		return new Builder<>(entityService::getPage);
-	}
+    List<E> getFilteredValue();
+    void setFilteredValue(List<E> filteredValue);
 
-	/**
-	 * Use this if you want to build a lazy paged data model using a custom
-	 * {@link BaseEntityService#getPage(Page, boolean)} implementation.
-	 * @param <E> The generic base entity type.
-	 * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
-	 * @return A new paged data model builder.
-	 */
-	public static <E extends Identifiable<?>> Builder<E> lazy(PartialResultListLoader<E> loader) {
-		return new Builder<>(loader);
-	}
+    List<E> getSelection();
+    void setSelection(List<E> selection);
 
-	/**
-	 * Use this if you want to build a non-lazy paged data model based on given list.
-	 * @param <E> The generic base entity type.
-	 * @param allData List of all data.
-	 * @return A new paged data model builder.
-	 */
-	public static <E extends Identifiable<?>> Builder<E> nonLazy(List<E> allData) {
-		return new Builder<>(allData);
-	}
 
-	/**
-	 * The paged data model builder.
-	 *
-	 * @param <E> The generic base entity type.
-	 * @author Bauke Scholtz
-	 */
-	public static class Builder<E extends Identifiable<?>> {
+    // Builder --------------------------------------------------------------------------------------------------------
 
-		private List<E> allData;
-		private PartialResultListLoader<E> loader;
+    @FunctionalInterface
+    public interface PartialResultListLoader<E extends Identifiable<?>> {
+        PartialResultList<E> getPage(Page page, boolean estimateTotalNumberOfResults);
+    }
+
+    /**
+     * Use this if you want to build a lazy paged data model using a {@link BaseEntityService}.
+     * @param <I> The generic ID type.
+     * @param <E> The generic base entity type.
+     * @param entityService The entity service.
+     * @return A new paged data model builder.
+     */
+    static <I extends Comparable<I> & Serializable, E extends BaseEntity<I>> Builder<E> lazy(BaseEntityService<I, E> entityService) {
+        return new Builder<>(entityService::getPage);
+    }
+
+    /**
+     * Use this if you want to build a lazy paged data model using a custom
+     * {@link BaseEntityService#getPage(Page, boolean)} implementation.
+     * @param <E> The generic base entity type.
+     * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
+     * @return A new paged data model builder.
+     */
+    static <E extends Identifiable<?>> Builder<E> lazy(PartialResultListLoader<E> loader) {
+        return new Builder<>(loader);
+    }
+
+    /**
+     * Use this if you want to build a non-lazy paged data model based on given list.
+     * @param <E> The generic base entity type.
+     * @param allData List of all data.
+     * @return A new paged data model builder.
+     */
+    static <E extends Identifiable<?>> Builder<E> nonLazy(List<E> allData) {
+        return new Builder<>(allData);
+    }
+
+    /**
+     * The paged data model builder.
+     *
+     * @param <E> The generic base entity type.
+     * @author Bauke Scholtz
+     */
+    public static class Builder<E extends Identifiable<?>> {
+
+        private List<E> allData;
+        private PartialResultListLoader<E> loader;
 
 		private LinkedHashMap<String, Boolean> predefinedOrdering;
 		private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
 		private Map<String, Object> predefinedCriteria;
 		private Supplier<Map<Getter<E>, Object>> dynamicCriteria;
 
-		private Builder(List<E> allData) {
-			this.allData = allData;
-		}
+        private Builder(List<E> allData) {
+            this.allData = allData;
+        }
 
-		private Builder(PartialResultListLoader<E> loader) {
-			this.loader = loader;
-		}
+        private Builder(PartialResultListLoader<E> loader) {
+            this.loader = loader;
+        }
 
 		/**
 		 * <p>
@@ -1037,9 +1038,9 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 				throw new IllegalStateException("Predefined criteria is already set");
 			}
 
-			this.predefinedCriteria = predefinedCriteria;
-			return this;
-		}
+            this.predefinedCriteria = predefinedCriteria;
+            return this;
+        }
 
 		/**
 		 * <p>
@@ -1080,9 +1081,9 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 				throw new IllegalStateException("Dynamic criteria is already set");
 			}
 
-			this.dynamicCriteria = dynamicCriteria;
-			return this;
-		}
+            this.dynamicCriteria = dynamicCriteria;
+            return this;
+        }
 
 		/**
 		 * <p>
@@ -1160,16 +1161,16 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 			ordering.putIfAbsent(ID, false);
 			Supplier rawDynamicCriteria = dynamicCriteria;
 
-			if (loader != null) {
-				return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, rawDynamicCriteria);
-			}
-			else if (allData != null) {
-				return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, rawDynamicCriteria);
-			}
-			else {
-				throw new IllegalStateException("You must provide non-null loader or allData.");
-			}
-		}
-	}
+            if (loader != null) {
+                return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, rawDynamicCriteria);
+            }
+            else if (allData != null) {
+                return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, rawDynamicCriteria);
+            }
+            else {
+                throw new IllegalStateException("You must provide non-null loader or allData.");
+            }
+        }
+    }
 
 }
