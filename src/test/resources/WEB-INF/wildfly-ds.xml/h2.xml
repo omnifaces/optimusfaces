@@ -18,7 +18,7 @@
  -->
 <datasources>
     <datasource jta="true" jndi-name="java:/OptimusFacesIT" pool-name="OptimusFacesIT" enabled="true" use-java-context="true">
-        <connection-url>jdbc:h2:mem:test;MODE=LEGACY</connection-url>
+        <connection-url>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=LEGACY</connection-url>
         <driver>h2</driver>
         <security>
             <user-name>sa</user-name>

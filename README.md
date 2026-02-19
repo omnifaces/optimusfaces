@@ -37,22 +37,19 @@ This project basically combines best of [OmniFaces](http://omnifaces.org/) and [
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
         <classifier>jakarta</classifier>
-        <version>13.0.0</version><!-- Minimum supported version is 13.0.0 -->
+        <version>15.0.0</version><!-- Minimum supported version is 15.0.0 -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>0.18.J1</version>
+        <version>1.0-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```
 
 **Minumum supported Java / OmniFaces / PrimeFaces versions**
 
-- OptimusFaces 0.1 - 0.14: Java 11 / OmniFaces 2.2 / PrimeFaces 7.0
-- OptimusFaces 0.15+: Java 11 / OmniFaces 3.0 / PrimeFaces 10.0.0
-- OptimusFaces 0.14-J1+: Java 11 / OmniFaces 4.0 / PrimeFaces 10.0.0:jakarta
-- OptimusFaces 0.17-J1+: Java 17 / OmniFaces 4.0 / PrimeFaces 13.0.0:jakarta
+Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
 
 
 ### Basic Usage
@@ -149,15 +146,15 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 - OpenJPA does not correctly apply setFirstResult/setMaxResults when an `@OneToMany` relationship is involved in the query. It will basically apply it on the results of the `@OneToMany` relationship instead of on the query root, causing the page to contain fewer records than expected. There is no clear solution/workaround for that yet.
 
 The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions/workflows/maven.yml):
-- WildFly 33.0.2 with Mojarra 4.1.0 and Hibernate 6.4.4
-- WildFly 33.0.2 with Mojarra 4.1.0 and EclipseLink 5.0.0
-- GlassFish 7.0.21 with Mojarra 4.0.9 and EclipseLink 4.0.3
-- GlassFish 7.0.21 with Mojarra 4.0.9 and Hibernate 6.6.5
-- ~TomEE 10.0.0~ this isn't anymore working
+- WildFly Preview 39.0.1 with Mojarra 4.1.5 and Hibernate 7.1.11
+- WildFly Preview 39.0.1 with Mojarra 4.1.5 and EclipseLink 5.0.0
+- GlassFish 8.0.0 with Mojarra 4.1.6 and EclipseLink 5.0.0
+- GlassFish 8.0.0 with Mojarra 4.1.6 and Hibernate 7.1.11
+- TomEE 10.1.4 with MyFaces 4.0.3 and OpenJPA 4.1.1
 
 Each environment will run the IT on following databases:
 - H2 2.3.232 (embedded database)
-- MySQL latest 8.x (provided by GitHub Actions) with JDBC driver 9.2.0
-- PostgreSQL latest 15.x (provided by GitHub Actions) with JDBC driver 42.7.5
+- MySQL latest 8.x (provided by GitHub Actions) with JDBC driver 9.6.0
+- PostgreSQL latest 15.x (provided by GitHub Actions) with JDBC driver 42.7.10
 
 Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L428) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).

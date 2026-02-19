@@ -67,16 +67,17 @@
         <maven.source.excludeResources>true</maven.source.excludeResources>
 
         <!-- Test versions. -->
-        <test.wildfly.version>33.0.2.Final</test.wildfly.version> <!-- https://mvnrepository.com/artifact/org.wildfly.bom/wildfly -->
-        <test.glassfish.version>7.0.21</test.glassfish.version> <!-- https://mvnrepository.com/artifact/org.glassfish.main.distributions/glassfish -->
-        <test.tomee.version>10.0.0</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee --> <!-- TODO: this is still not working. -->
-        <test.wildfly-eclipselink.version>5.0.0-B05</test.wildfly-eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink -->
-        <test.glassfish-hibernate.version>6.6.5.Final</test.glassfish-hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
+        <test.wildfly.version>39.0.1.Final</test.wildfly.version> <!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-preview-dist -->
+        <test.wildfly.hibernate.version>7.1.11.Final</test.wildfly.hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core --> <!-- NOTE: This must be Hibernate version bundled in test.wildfly.version -->
+        <test.glassfish.version>8.0.0</test.glassfish.version> <!-- https://mvnrepository.com/artifact/org.glassfish.main.distributions/glassfish --> <!-- NOTE: needs Java 21 instead of 17! Else it complains that it's unable eo execute bin/asadmin -->
+        <test.glassfish.eclipselink.version>5.0.0-B13</test.glassfish.eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink --> <!-- NOTE: This must be EclipseLink version bundled in test.glassfish.version -->
+        <test.tomee.version>10.1.4</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee -->
+        <test.tomee.openjpa.version>4.1.1</test.tomee.openjpa.version> <!-- https://mvnrepository.com/artifact/org.apache.openjpa/openjpa-all --> <!-- NOTE: This must be OpenJPA version bundled in test.tomee.version -->
         <test.h2.version>2.3.232</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-        <test.mysql-driver.version>9.2.0</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
-        <test.postgresql-driver.version>42.7.5</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <test.omnifaces.version>5.0-M2</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
-        <test.primefaces.version>15.0.5</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
+        <test.mysql-driver.version>9.6.0</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
+        <test.postgresql-driver.version>42.7.10</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <test.omnifaces.version>4.7.1</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
+        <test.primefaces.version>15.0.13</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
     </properties>
 
     <dependencies>
@@ -99,7 +100,7 @@
         <dependency>
             <groupId>org.omnifaces</groupId>
             <artifactId>omnipersistence</artifactId>
-            <version>0.22.J4</version>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <!-- PrimeFaces dependencies. -->
@@ -115,19 +116,19 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.11.0</version>
+            <version>6.0.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.arquillian.junit5</groupId>
             <artifactId>arquillian-junit5-container</artifactId>
-            <version>1.8.0.Final</version> <!-- NOTE: 1.9.x is incompatible with arquillian-glassfish-server-managed 1.6 -->
+            <version>1.10.0.Final</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.shrinkwrap.resolver</groupId>
             <artifactId>shrinkwrap-resolver-impl-maven-archive</artifactId>
-            <version>3.3.1</version>
+            <version>3.3.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -145,7 +146,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>${test.glassfish-hibernate.version}</version>
+            <version>${test.wildfly.hibernate.version}</version>
             <scope>test</scope> <!-- Only for the @Formula annotation on Address entity. -->
             <exclusions>
                 <exclusion> <!-- Conflicts with Selenium's own one. -->
@@ -196,22 +197,23 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>4.5</version>
-                <configuration>
-                    <header>license.txt</header>
-                    <excludes>
-                        <exclude>*.*</exclude>
-                    </excludes>
-                    <mapping>
-                        <java>SLASHSTAR_STYLE</java>
-                    </mapping>
-                </configuration>
+                <version>5.0.0</version>
                 <executions>
                     <execution>
                         <phase>process-sources</phase>
                         <goals>
                             <goal>format</goal>
                         </goals>
+                        <configuration>
+                            <licenseSets>
+                                <licenseSet>
+                                    <header>license.txt</header>
+                                    <excludes>
+                                       <exclude>*.*</exclude> <!-- excludes files in root folder -->
+                                    </excludes>
+                                </licenseSet>
+                            </licenseSets>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -220,13 +222,16 @@
             <plugin>
                 <groupId>com.github.blutorange</groupId>
                 <artifactId>closure-compiler-maven-plugin</artifactId>
-                <version>2.21.0</version>
+                <version>2.32.0</version>
                 <configuration>
                     <baseSourceDir>${basedir}/src/main/resources</baseSourceDir>
                     <baseTargetDir>${project.build.outputDirectory}</baseTargetDir>
                     <sourceDir>META-INF/resources/optimusfaces</sourceDir>
                     <targetDir>META-INF/resources/optimusfaces</targetDir>
-                    <closureLanguageOut>ECMASCRIPT5</closureLanguageOut>
+                    <closureLanguageOut>ECMASCRIPT_2020</closureLanguageOut>
+                    <closureEmitUseStrict>false</closureEmitUseStrict>
+                    <closureCreateSourceMap>false</closureCreateSourceMap>
+                    <skipMerge>true</skipMerge>
                 </configuration>
                 <executions>
                     <execution>
@@ -246,7 +251,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.15.0</version>
             </plugin>
 
             <!-- Configure the jar with the binaries. -->
@@ -272,7 +277,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -287,7 +292,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.10.0</version>
+                <version>3.12.0</version>
                 <configuration>
                     <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                     <javadocVersion>${javase.version}</javadocVersion>
@@ -325,54 +330,11 @@
         <pluginManagement>
             <plugins>
 
-                <!-- Make sure Eclipse itself also runs license format and JavaScript minifier during build. -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>com.mycila</groupId>
-                                        <artifactId>license-maven-plugin</artifactId>
-                                        <versionRange>[4.4,)</versionRange>
-                                        <goals>
-                                            <goal>format</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute>
-                                            <runOnConfiguration>true</runOnConfiguration>
-                                        </execute>
-                                    </action>
-                                </pluginExecution>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>com.github.blutorange</groupId>
-                                        <artifactId>closure-compiler-maven-plugin</artifactId>
-                                        <versionRange>[2.21.0,)</versionRange>
-                                        <goals>
-                                            <goal>minify</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <execute>
-                                            <runOnConfiguration>true</runOnConfiguration>
-                                        </execute>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-
                 <!-- Global configuration for integration test profiles. -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.8.0</version>
+                    <version>3.10.0</version>
                     <executions>
                         <execution>
                             <phase>process-test-classes</phase>
@@ -388,7 +350,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>3.5.4</version>
                     <executions>
                         <execution>
                             <goals>
@@ -404,7 +366,7 @@
                             <optimusfaces.jar>${project.build.directory}/${project.build.finalName}.jar</optimusfaces.jar>
                             <test.omnifaces.version>${test.omnifaces.version}</test.omnifaces.version>
                             <test.primefaces.version>${test.primefaces.version}</test.primefaces.version>
-                            <test.glassfish-hibernate.version>${test.glassfish-hibernate.version}</test.glassfish-hibernate.version>
+                            <test.wildfly.hibernate.version>${test.wildfly.hibernate.version}</test.wildfly.hibernate.version>
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
@@ -413,9 +375,6 @@
     </build>
 
     <profiles>
-        <!-- NOTE: If Eclipse+M2E shows "Plugin execution not covered by lifecycle configuration" error in one of -->
-        <!-- below sections, then you need to add a default lifecycle mapping as instructed in M2E documentation: -->
-        <!-- https://www.eclipse.org/m2e/documentation/m2e-execution-not-covered.html#common-problems -->
 
         <!-- WildFly/Hibernate integration test profile: mvn verify -P wildfly-hibernate -->
         <profile>
@@ -633,9 +592,9 @@
             <id>glassfish-hibernate</id>
             <dependencies>
                 <dependency>
-                    <groupId>org.omnifaces.arquillian</groupId>
+                    <groupId>ee.omnifish.arquillian</groupId>
                     <artifactId>arquillian-glassfish-server-managed</artifactId>
-                    <version>1.6</version>
+                    <version>2.1.2</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
@@ -670,7 +629,7 @@
                                             <artifactId>h2</artifactId>
                                             <version>${test.h2.version}</version>
                                             <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>
@@ -688,7 +647,7 @@
                                             <artifactId>mysql-connector-j</artifactId>
                                             <version>${test.mysql-driver.version}</version>
                                             <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>
@@ -706,7 +665,7 @@
                                             <artifactId>postgresql</artifactId>
                                             <version>${test.postgresql-driver.version}</version>
                                             <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>
@@ -718,7 +677,7 @@
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
-                                <glassfish.home>${project.build.directory}/glassfish7</glassfish.home>
+                                <glassfish.home>${project.build.directory}/glassfish8</glassfish.home>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
@@ -731,9 +690,9 @@
             <id>glassfish-eclipselink</id>
             <dependencies>
                 <dependency>
-                    <groupId>org.omnifaces.arquillian</groupId>
+                    <groupId>ee.omnifish.arquillian</groupId>
                     <artifactId>arquillian-glassfish-server-managed</artifactId>
-                    <version>1.6</version>
+                    <version>2.1.2</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
@@ -768,7 +727,7 @@
                                             <artifactId>h2</artifactId>
                                             <version>${test.h2.version}</version>
                                             <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>
@@ -786,7 +745,7 @@
                                             <artifactId>mysql-connector-j</artifactId>
                                             <version>${test.mysql-driver.version}</version>
                                             <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>
@@ -804,7 +763,7 @@
                                             <artifactId>postgresql</artifactId>
                                             <version>${test.postgresql-driver.version}</version>
                                             <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish7/glassfish/modules</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>
@@ -816,7 +775,7 @@
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
-                                <glassfish.home>${project.build.directory}/glassfish7</glassfish.home>
+                                <glassfish.home>${project.build.directory}/glassfish8</glassfish.home>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
@@ -931,7 +890,7 @@
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.7.0</version>
+                        <version>0.10.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <autoPublish>true</autoPublish>
@@ -942,7 +901,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.2.8</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>

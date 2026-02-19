@@ -22,7 +22,7 @@
 <resources>
     <jdbc-resource jndi-name="java:app/OptimusFacesIT" pool-name="OptimusFacesIT" />
     <jdbc-connection-pool name="OptimusFacesIT" res-type="javax.sql.DataSource" datasource-classname="org.h2.jdbcx.JdbcDataSource">
-        <property name="url" value="jdbc:h2:mem:test;MODE=LEGACY" />
+        <property name="url" value="jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=LEGACY" />
         <property name="user" value="sa" />
         <property name="password" value="sa" />
     </jdbc-connection-pool>
