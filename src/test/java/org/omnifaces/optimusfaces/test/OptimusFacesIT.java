@@ -145,7 +145,7 @@ public abstract class OptimusFacesIT {
 
         if (isGlassFish() && isHibernate()) {
             // Does not work when placed in glassfish/modules with help of maven-dependency-plugin? TODO: investigate.
-            archive.addAsLibraries(maven.resolve("org.hibernate.orm:hibernate-core:" + getProperty("test.wildfly.hibernate.version"), "dom4j:dom4j:1.6.1").withTransitivity().asFile());
+            archive.addAsLibraries(maven.resolve("org.hibernate.orm:hibernate-core:" + getProperty("test.glassfish.hibernate.version"), "dom4j:dom4j:1.6.1").withTransitivity().asFile());
         }
     }
 

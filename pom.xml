@@ -68,15 +68,15 @@
 
         <!-- Test versions. -->
         <test.wildfly.version>39.0.1.Final</test.wildfly.version> <!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-preview-dist -->
-        <test.wildfly.hibernate.version>7.1.11.Final</test.wildfly.hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core --> <!-- NOTE: This must be Hibernate version bundled in test.wildfly.version -->
+        <test.wildfly.eclipselink.version>5.0.0-B13</test.wildfly.eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink -->
         <test.glassfish.version>8.0.0</test.glassfish.version> <!-- https://mvnrepository.com/artifact/org.glassfish.main.distributions/glassfish --> <!-- NOTE: needs Java 21 instead of 17! Else it complains that it's unable eo execute bin/asadmin -->
-        <test.glassfish.eclipselink.version>5.0.0-B13</test.glassfish.eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink --> <!-- NOTE: This must be EclipseLink version bundled in test.glassfish.version -->
+        <test.glassfish.hibernate.version>7.2.4.Final</test.glassfish.hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
         <test.tomee.version>10.1.4</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee -->
         <test.tomee.openjpa.version>4.1.1</test.tomee.openjpa.version> <!-- https://mvnrepository.com/artifact/org.apache.openjpa/openjpa-all --> <!-- NOTE: This must be OpenJPA version bundled in test.tomee.version -->
         <test.h2.version>2.3.232</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
         <test.mysql-driver.version>9.6.0</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <test.postgresql-driver.version>42.7.10</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <test.omnifaces.version>4.7.1</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
+        <test.omnifaces.version>5.0-M6</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
         <test.primefaces.version>15.0.13</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
     </properties>
 
@@ -146,7 +146,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>${test.wildfly.hibernate.version}</version>
+            <version>${test.glassfish.hibernate.version}</version>
             <scope>test</scope> <!-- Only for the @Formula annotation on Address entity. -->
             <exclusions>
                 <exclusion> <!-- Conflicts with Selenium's own one. -->
@@ -366,7 +366,7 @@
                             <optimusfaces.jar>${project.build.directory}/${project.build.finalName}.jar</optimusfaces.jar>
                             <test.omnifaces.version>${test.omnifaces.version}</test.omnifaces.version>
                             <test.primefaces.version>${test.primefaces.version}</test.primefaces.version>
-                            <test.wildfly.hibernate.version>${test.wildfly.hibernate.version}</test.wildfly.hibernate.version>
+                            <test.glassfish.hibernate.version>${test.glassfish.hibernate.version}</test.glassfish.hibernate.version>
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
@@ -539,7 +539,7 @@
                                         <artifactItem>
                                             <groupId>org.eclipse.persistence</groupId>
                                             <artifactId>eclipselink</artifactId>
-                                            <version>${test.wildfly-eclipselink.version}</version>
+                                            <version>${test.wildfly.eclipselink.version}</version>
                                             <type>jar</type>
                                             <outputDirectory>${project.build.directory}/wildfly-preview-${test.wildfly.version}/modules/system/layers/base/org/eclipse/persistence/main</outputDirectory>
                                             <destFileName>eclipselink.jar</destFileName>

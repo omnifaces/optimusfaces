@@ -23,6 +23,11 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <jta-data-source>java:app/OptimusFacesIT</jta-data-source>
 
+        <!-- TODO: auto-scanning doesn't work anymore since GF8+HH7? -->
+        <class>org.omnifaces.optimusfaces.test.model.Person</class>
+        <class>org.omnifaces.optimusfaces.test.model.Phone</class>
+        <class>org.omnifaces.optimusfaces.test.model.Address</class>
+
         <properties>
             <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create" />
             <property name="hibernate.show_sql" value="true" />
