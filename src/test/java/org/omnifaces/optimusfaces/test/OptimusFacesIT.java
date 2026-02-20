@@ -39,6 +39,7 @@ import static org.openqa.selenium.Keys.TAB;
 import java.io.File;
 import java.io.Serializable;
 import java.net.URL;
+import java.nio.file.Path;
 import java.text.Collator;
 import java.time.LocalDate;
 import java.util.List;
@@ -52,6 +53,7 @@ import java.util.logging.Logger;
 
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolverSystem;
@@ -125,6 +127,9 @@ public abstract class OptimusFacesIT {
         addDataSourceConfig(database, archive);
         addPersistenceConfig(maven, archive);
         addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
+
+        var targetDir = Path.of(System.getProperty("user.dir"), "target");
+        archive.as(ZipExporter.class).exportTo(new File(targetDir + "/" + testClass.getSimpleName() + ".war"));
 
         return archive;
     }
@@ -205,7 +210,7 @@ public abstract class OptimusFacesIT {
 
         browser.manage().deleteAllCookies(); // Else IT on pagination/sorting may fail because they're apparently cached somewhere in session. TODO: investigate
         browser.get(url.toString());
-        waitUntil(() -> executeScript("return !!Object.keys(window.PrimeFaces.widgets).length"));
+        waitUntil(() -> executeScript("return window.PrimeFaces && !!Object.keys(window.PrimeFaces.widgets).length"));
     }
 
     protected void guardFacesAjax(Runnable action) {
@@ -437,6 +442,11 @@ public abstract class OptimusFacesIT {
     @Test
     public void testLazyDefaultState() {
         open("Lazy");
+
+        System.out.println("========================================================================================");
+        System.out.println(browser.getPageSource());
+        System.out.println("========================================================================================");
+
         testDefaultState();
     }
 
