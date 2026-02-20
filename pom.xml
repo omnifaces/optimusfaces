@@ -73,7 +73,7 @@
         <test.glassfish.hibernate.version>7.2.4.Final</test.glassfish.hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
         <test.tomee.version>10.1.4</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee -->
         <test.tomee.openjpa.version>4.1.1</test.tomee.openjpa.version> <!-- https://mvnrepository.com/artifact/org.apache.openjpa/openjpa-all --> <!-- NOTE: This must be OpenJPA version bundled in test.tomee.version -->
-        <test.h2.version>2.3.232</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+        <test.h2.version>2.4.240</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
         <test.mysql-driver.version>9.6.0</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <test.postgresql-driver.version>42.7.10</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <test.omnifaces.version>5.0-M6</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
