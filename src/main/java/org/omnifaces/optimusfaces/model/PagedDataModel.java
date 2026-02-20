@@ -856,7 +856,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
         if (filterOptions instanceof SelectItem[]) {
             stream = stream(filterOptions);
         }
-        if (filterOptions instanceof Object[]) {
+        else if (filterOptions instanceof Object[]) {
             stream = stream(filterOptions).map(SelectItem::new);
         }
         else if (filterOptions instanceof Collection<?>) {

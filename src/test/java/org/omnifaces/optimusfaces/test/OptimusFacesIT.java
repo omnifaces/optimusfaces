@@ -442,11 +442,6 @@ public abstract class OptimusFacesIT {
     @Test
     public void testLazyDefaultState() {
         open("Lazy");
-
-        System.out.println("========================================================================================");
-        System.out.println(browser.getPageSource());
-        System.out.println("========================================================================================");
-
         testDefaultState();
     }
 
