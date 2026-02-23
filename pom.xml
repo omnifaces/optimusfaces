@@ -56,9 +56,10 @@
 
     <properties>
 
-        <!-- Minimum required Java versions. -->
+        <!-- Minimum required versions. -->
         <javase.version>17</javase.version>
         <jakartaee.version>10</jakartaee.version>
+        <omnipersistence.version>1.0-SNAPSHOT</omnipersistence.version>
 
         <!-- Essential Maven defaults. -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -68,11 +69,10 @@
 
         <!-- Test versions. -->
         <test.wildfly.version>39.0.1.Final</test.wildfly.version> <!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-preview-dist -->
-        <test.wildfly.eclipselink.version>5.0.0-B13</test.wildfly.eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink -->
+        <test.wildfly.eclipselink.version>5.0.0-B13</test.wildfly.eclipselink.version> <!-- https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink --> <!-- NOTE: B13 fails in PostgreSQL tests: https://github.com/eclipse-ee4j/eclipselink/issues/2644 -->
         <test.glassfish.version>8.0.0</test.glassfish.version> <!-- https://mvnrepository.com/artifact/org.glassfish.main.distributions/glassfish --> <!-- NOTE: needs Java 21 instead of 17! Else it complains that it's unable eo execute bin/asadmin -->
         <test.glassfish.hibernate.version>7.2.4.Final</test.glassfish.hibernate.version> <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
         <test.tomee.version>10.1.4</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee -->
-        <test.tomee.openjpa.version>4.1.1</test.tomee.openjpa.version> <!-- https://mvnrepository.com/artifact/org.apache.openjpa/openjpa-all --> <!-- NOTE: This must be OpenJPA version bundled in test.tomee.version -->
         <test.h2.version>2.4.240</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
         <test.mysql-driver.version>9.6.0</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <test.postgresql-driver.version>42.7.10</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
@@ -86,21 +86,21 @@
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-web-api</artifactId>
-            <version>${jakartaee.version}.0.0</version><!-- minimum required version -->
-            <scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
+            <version>${jakartaee.version}.0.0</version> <!-- minimum required version -->
+            <scope>provided</scope> <!-- by enduser (of course enduser can provide a newer version) -->
         </dependency>
 
         <!-- OmniFaces dependencies. -->
         <dependency>
             <groupId>org.omnifaces</groupId>
             <artifactId>omnifaces</artifactId>
-            <version>4.0</version><!-- minimum required version -->
-            <scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
+            <version>4.0</version> <!-- minimum required version -->
+            <scope>provided</scope> <!-- by enduser (of course enduser can provide a newer version) -->
         </dependency>
         <dependency>
             <groupId>org.omnifaces</groupId>
             <artifactId>omnipersistence</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${omnipersistence.version}</version>
         </dependency>
 
         <!-- PrimeFaces dependencies. -->
@@ -108,8 +108,8 @@
             <groupId>org.primefaces</groupId>
             <artifactId>primefaces</artifactId>
             <classifier>jakarta</classifier>
-            <version>15.0.0</version><!-- minimum version since OptimusFaces 0.21 -->
-            <scope>provided</scope><!-- by enduser (of course enduser can provide a newer version) -->
+            <version>15.0.0</version> <!-- minimum required version -->
+            <scope>provided</scope> <!-- by enduser (of course enduser can provide a newer version) -->
         </dependency>
 
         <!-- Test dependencies.    -->
@@ -140,13 +140,13 @@
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
-            <version>4.24.0</version>
+            <version>4.41.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
-            <version>6.1.0</version>
+            <version>6.3.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -308,7 +308,7 @@
                     <doctitle>OptimusFaces API documentation</doctitle>
                     <links>
                         <link>https://jakarta.ee/specifications/platform/${jakartaee.version}/apidocs/</link>
-                        <link>https://static.javadoc.io/org.omnifaces/omnipersistence/0.21.J1/</link>
+                        <link>https://javadoc.io/doc/org.omnifaces/omnipersistence/${omnipersistence.version}/</link>
                     </links>
                     <additionalJOption>-J-Dhttp.agent=maven-javadoc-plugin-${pom‌​.name}</additionalJOption>
                 </configuration>
