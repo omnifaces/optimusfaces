@@ -808,6 +808,7 @@ import org.primefaces.model.Visibility;
  *
  *
  * @author Bauke Scholtz
+ * @since 1.0
  * @see BaseEntityService
  * @see Page
  * @see Criteria
@@ -860,7 +861,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
             stream = stream(filterOptions).map(SelectItem::new);
         }
         else if (filterOptions instanceof Collection<?>) {
-            stream = stream(filterOptions).map(item -> item instanceof SelectItem ? (SelectItem) item : new SelectItem(item));
+            stream = stream(filterOptions).map(item -> item instanceof SelectItem s ? s : new SelectItem(item));
         }
         else if (filterOptions instanceof Map<?, ?>) {
             stream = stream((Map<?, ?>) filterOptions).map(entry -> new SelectItem(entry.getKey(), String.valueOf(entry.getValue())));
@@ -925,21 +926,69 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     // op:dataTable properties ----------------------------------------------------------------------------------------
 
+    /**
+     * Returns the primary active sort as a PrimeFaces {@link SortMeta}.
+     * @return The current sort descriptor; <code>null</code> when no ordering is defined.
+     */
     SortMeta getOrdering(); // TODO: support new multisort feature
+
+    /**
+     * Returns the active column filters as a map of field name to {@link FilterMeta}.
+     * @return The current active filters; empty map when none are active.
+     */
     Map<String, FilterMeta> getFilters();
+
+    /**
+     * Returns the {@link FilterMeta} for the given field.
+     * @param field The column field name.
+     * @return The {@link FilterMeta} for the field; never <code>null</code>.
+     */
     FilterMeta getFilter(String field);
 
+    /**
+     * Returns the filtered-value list used by PrimeFaces {@link DataTable} for client-side filtering support.
+     * @return The filtered-value list; may be <code>null</code>.
+     */
     List<E> getFilteredValue();
+
+    /**
+     * Sets the filtered-value list used by PrimeFaces {@link DataTable} for client-side filtering support.
+     * @param filteredValue The filtered list to store.
+     */
     void setFilteredValue(List<E> filteredValue);
 
+    /**
+     * Returns the currently selected rows.
+     * @return The selection list; may be <code>null</code> when selection has not been initialised.
+     */
     List<E> getSelection();
+
+    /**
+     * Updates the currently selected rows.
+     * @param selection The new selection list.
+     */
     void setSelection(List<E> selection);
 
 
     // Builder --------------------------------------------------------------------------------------------------------
 
+    /**
+     * Functional interface that abstracts the data-store call for loading one page of results.
+     * <p>
+     * The loader is typically a method reference to a {@link BaseEntityService#getPage(Page, boolean)}
+     * implementation. Implement this interface when you need to supply a custom query builder.
+     * @param <E> The entity type, which must extend {@link Identifiable}.
+     */
     @FunctionalInterface
     public interface PartialResultListLoader<E extends Identifiable<?>> {
+
+        /**
+         * Loads and returns one page of results.
+         * @param page Describes offset, limit, ordering and filter criteria for the query.
+         * @param estimateTotalNumberOfResults <code>true</code> when the total row count is needed to update
+         * the paginator; <code>false</code> when only the rows themselves are required.
+         * @return A {@link PartialResultList} containing the requested rows and an estimated total count.
+         */
         PartialResultList<E> getPage(Page page, boolean estimateTotalNumberOfResults);
     }
 
@@ -980,6 +1029,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
      *
      * @param <E> The generic base entity type.
      * @author Bauke Scholtz
+     * @since 1.0
      */
     public static class Builder<E extends Identifiable<?>> {
 

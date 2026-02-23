@@ -13,25 +13,47 @@
 package org.omnifaces.optimusfaces.component;
 
 import jakarta.faces.context.FacesContext;
-import jakarta.faces.model.DataModel;
 
 import org.omnifaces.optimusfaces.model.LazyPagedDataModel;
 import org.primefaces.component.datatable.DataTable;
 
 /**
  * <p>
- * This extended data table is already automatically registered via our <code>faces-config.xml</code>.
- * This will preload lazy loaded model for decode against a request scoped bean or a stateless view.
+ * Infrastructure extension of the PrimeFaces {@link DataTable} component, registered as the default
+ * <code>&lt;p:dataTable&gt;</code> renderer via the bundled <code>faces-config.xml</code>. Users do not
+ * need reference or configure this class directly.
+ *
+ * <h2>Why this extension is necessary</h2>
+ * <p>
+ * PrimeFaces {@link DataTable} calls the <code>decode</code> lifecycle phase on the data table <em>before</em> invoking the
+ * lazy model's {@link LazyPagedDataModel#load} method. For <code>@ViewScoped</code> backing beans this is not
+ * a problem because the model is populated during the initial render and kept alive across the postback.
+ * However, for <strong>request-scoped beans</strong> and <strong>stateless views</strong> the model is brand
+ * new on every postback and its wrapped data is <code>null</code> at the point decode runs, causing selection,
+ * pagination and other postback actions to silently fail.
+ * <p>
+ * {@link #preDecode} detects this situation and calls {@link LazyPagedDataModel#preloadPage} to populate the
+ * model from the data store before decode proceeds, restoring correct postback behaviour for those bean scopes.
+ *
+ * @see LazyPagedDataModel#preloadPage
+ * @author Bauke Scholtz
+ * @since 1.0
  */
 public class ExtendedDataTable extends DataTable {
 
+    /**
+     * Preloads the lazy model's first page before PrimeFaces {@link DataTable} runs decode, when the model has no wrapped data
+     * yet. This happens on postbacks against request-scoped beans or stateless views whose model is constructed
+     * fresh on every request and therefore arrives at decode empty.
+     * @param context The current {@link FacesContext}.
+     */
     @Override
     protected void preDecode(FacesContext context) {
         if (context.isPostback() && isLazy()) {
-            DataModel<?> model = getDataModel();
+            var model = getDataModel();
 
-            if (model instanceof LazyPagedDataModel && model.getWrappedData() == null) {
-                   ((LazyPagedDataModel<?>) model).preloadPage(context, this);
+            if (model instanceof LazyPagedDataModel lazyModel && lazyModel.getWrappedData() == null) {
+                lazyModel.preloadPage(context, this);
             }
         }
 

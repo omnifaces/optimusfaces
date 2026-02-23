@@ -45,13 +45,26 @@ import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.datatable.DataTable;
+import org.primefaces.component.datatable.feature.FilterFeature;
+import org.primefaces.component.datatable.feature.SortFeature;
 import org.primefaces.model.SortMeta;
 
 /**
- * Use {@link PagedDataModel#nonLazy(List)} to build one.
+ * <p>
+ * In-memory {@link PagedDataModel} implementation that applies filtering, sorting and pagination entirely in Java
+ * on a pre-loaded list of entities, without touching the data store on every page request.
+ * <p>
+ * Filtering supports {@link org.omnifaces.persistence.criteria.Criteria}-based predicates as well as plain
+ * equality and case-insensitive string comparison. Sorting uses a {@link java.util.Comparator} that handles
+ * nested properties, {@link java.util.Collection}-valued paths, <code>null</code>-ordering and
+ * locale-aware string comparison.
+ * <p>
+ * Construct via {@link PagedDataModel#nonLazy(List)}.
  *
+ * @param <E> The entity type, which must extend {@link org.omnifaces.persistence.model.Identifiable}.
  * @see PagedDataModel
  * @author Bauke Scholtz
+ * @since 1.0
  */
 public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends LazyPagedDataModel<E> {
 
@@ -72,6 +85,16 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
         this.allData = unmodifiableList(allData);
     }
 
+    /**
+     * Applies in-memory filtering, sorting and pagination on the full data list.
+     * <p>
+     * The full list is first filtered according to the required and optional criteria in the given {@link Page},
+     * then sorted using a locale-aware, null-safe comparator, and finally sliced to the requested offset and
+     * limit. The total count is always exact.
+     * @param page Describes offset, limit, ordering and filter criteria.
+     * @param estimateTotalNumberOfResults Unused; the total is always computed from the filtered list.
+     * @return A {@link PartialResultList} containing the requested slice and the total filtered count.
+     */
     @Override
     @SuppressWarnings("unchecked")
     protected PartialResultList<E> load(Page page, boolean estimateTotalNumberOfResults) {
@@ -102,7 +125,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
     }
 
     /**
-     * Optimized version of PrimeFaces FilterFeature which does not use EL to resolve properties.
+     * Optimized version of PrimeFaces {@link FilterFeature} for non-lazy models.
      */
     private class BeanPropertyFilter {
 
@@ -144,17 +167,15 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
                 return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
             }
             else {
-                return stream(criteriaValue).anyMatch(value -> {
-                    return (value instanceof Criteria && ((Criteria<?>) value).applies(propertyValue))
-                            || (Objects.equals(propertyValue, value))
-                            || (Objects.equals(lower(propertyValue, locale), lower(value, locale)));
-                });
+                return stream(criteriaValue).anyMatch(value -> ((value instanceof Criteria && ((Criteria<?>) value).applies(propertyValue))
+                        || (Objects.equals(propertyValue, value))
+                        || (Objects.equals(lower(propertyValue, locale), lower(value, locale)))));
             }
         }
     }
 
     /**
-     * Optimized version of PrimeFaces SortFeature which does not use EL to resolve properties.
+     * Optimized version of PrimeFaces {@link SortFeature} for non-lazy models.
      */
     private class BeanPropertyComparator implements Comparator<E> {
 
