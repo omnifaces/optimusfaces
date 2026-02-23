@@ -150,6 +150,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
+            <version>1.9.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${test.glassfish.hibernate.version}</version>
