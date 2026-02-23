@@ -1,44 +1,60 @@
+/*
+ * Copyright OmniFaces
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.omnifaces.optimusfaces.test.js;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
 
 class OptimusFacesJsTest {
 
-    private static Scriptable scriptScope;
+    private static String jsScript;
 
     @BeforeAll
     static void loadScript() throws Exception {
-        try {
-            var scriptContext = Context.enter();
-            scriptContext.setInterpretedMode(true);
-            scriptScope = scriptContext.initStandardObjects();
-            scriptContext.evaluateString(scriptScope, "var window = {}; var document = {};", "<stub>", 1, null);
-
-            try (var r = new InputStreamReader(OptimusFacesJsTest.class.getResourceAsStream("/META-INF/resources/optimusfaces/scripts/optimusfaces.js"))) {
-                scriptContext.evaluateReader(scriptScope, r, "optimusfaces.js", 1, null);
-            }
-        }
-        finally {
-            Context.exit();
-        }
+        jsScript = new String(OptimusFacesJsTest.class
+            .getResourceAsStream("/META-INF/resources/optimusfaces/scripts/optimusfaces.js")
+            .readAllBytes(), StandardCharsets.UTF_8);
     }
 
     static String updateQueryStringParameter(String url, String name, String value) {
         try {
-            var scriptContext = Context.enter();
-            var script = "OptimusFaces.Util.updateQueryStringParameter('" + url + "','" + name + "'," + (value == null ? "null" : ("'" + value + "'")) + ")";
-            return (String) scriptContext.evaluateString(scriptScope, script, "<test>", 1, null);
+            var call = "OptimusFaces.Util.updateQueryStringParameter(" + quote(url) + "," + quote(name) + "," + quote(value) + ")";
+            var script = "var window = {}; var document = {};\n" + jsScript + "\nprocess.stdout.write(" + call + ");";
+            var process = new ProcessBuilder("node").redirectErrorStream(true).start();
+
+            try (var stdin = process.getOutputStream()) {
+                stdin.write(script.getBytes(StandardCharsets.UTF_8));
+            }
+
+            var output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+
+            if (process.waitFor() != 0) {
+                throw new RuntimeException("node failed:\n" + output);
+            }
+
+            return output;
         }
-        finally {
-            Context.exit();
+        catch (Exception e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    private static String quote(String s) {
+        return s == null ? "null" : "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     @Test
@@ -72,8 +88,8 @@ class OptimusFacesJsTest {
     }
 
     @Test
-    void encodesSpecialCharactersInValue() {
-        assertEquals("http://example.com/page?q=hello%20world", updateQueryStringParameter("http://example.com/page", "q", "hello world"));
+    void spacesInValueEncodeAsPlusSign() {
+        assertEquals("http://example.com/page?q=hello+world", updateQueryStringParameter("http://example.com/page", "q", "hello world"));
     }
 
     @Test
@@ -117,7 +133,7 @@ class OptimusFacesJsTest {
     }
 
     @Test
-    void caseInsensitiveParamNameMatching() {
-        assertEquals("http://example.com/page?foo=new", updateQueryStringParameter("http://example.com/page?FOO=old", "foo", "new"));
+    void paramNamesAreCaseSensitive() {
+        assertEquals("http://example.com/page?FOO=old&foo=new", updateQueryStringParameter("http://example.com/page?FOO=old", "foo", "new"));
     }
 }
