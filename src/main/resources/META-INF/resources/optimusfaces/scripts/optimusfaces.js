@@ -69,31 +69,20 @@ OptimusFaces.Util = (function(window, document) {
     self.updateQueryStringParameter = function(url, name, value) {
         var parts = url.split(/#/, 2);
         var uri = parts[0];
-        var hash = (parts.length > 1) ? ("#" + parts[1]) : "";
-        var re = new RegExp("([?&])" + name + "=.*?(&|$)", "i");
+        var hash = parts.length > 1 ? "#" + parts[1] : "";
+        var questionMarkIndex = uri.indexOf("?");
+        var base = questionMarkIndex === -1 ? uri : uri.slice(0, questionMarkIndex);
+        var params = new URLSearchParams(questionMarkIndex === -1 ? "" : uri.slice(questionMarkIndex + 1));
 
         if (value) {
-            var parameter = name + "=" + encodeURIComponent(value);
-
-            if (uri.match(re)) {
-                uri = uri.replace(re, "$1" + parameter + "$2");
-            }
-            else {
-                uri += "&" + parameter;
-            }
+            params.set(name, value);
         }
         else {
-            uri = uri.replace(re, "$2");
+            params.delete(name);
         }
 
-        if (uri.indexOf("?") == -1) {
-            uri = uri.replace(/&/, "?");
-        }
-        else if (uri.slice(-1) == "?") {
-            uri = uri.slice(0, -1);
-        }
-
-        return uri + hash;
+        var queryString = params.toString();
+        return base + (queryString ? "?" + queryString : "") + hash;
     }
 
     // Expose self to public ------------------------------------------------------------------------------------------
