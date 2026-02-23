@@ -10,7 +10,7 @@ Utility library for OmniFaces + PrimeFaces combined.
 
 ## This project is currently still in development stage!
 
-This project basically combines best of [OmniFaces](http://omnifaces.org/) and [PrimeFaces](http://www.primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for JPA. This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a JPA model and a generic entity service.
+This project basically combines best of [OmniFaces](https://omnifaces.org/) and [PrimeFaces](https://primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for JPA. This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a JPA model and a generic entity service.
 
 
 ### Installation
@@ -54,7 +54,7 @@ Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
 
 ### Basic Usage
 
-First create your entity service extending [`org.omnifaces.omnipersistence.service.BaseEntityService`](https://static.javadoc.io/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/service/BaseEntityService.html). You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
+First create your entity service extending [`org.omnifaces.omnipersistence.service.BaseEntityService`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/service/BaseEntityService.html). You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
 
 ```Java
 @Stateless
@@ -65,7 +65,7 @@ public class YourEntityService extends BaseEntityService<Long, YourEntity> {
 }
 ```
 
-And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://static.javadoc.io/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity`, `TimestampedBaseEntity`, `VersionedEntity` or `VersionedBaseEntity`.
+And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity`, `TimestampedBaseEntity`, `VersionedEntity` or `VersionedBaseEntity`.
 
 ```Java
 @Entity
@@ -129,9 +129,9 @@ The `field` attribute of `<op:column>` represents the entity property path. This
 in turn be used in `id`, `field`, `headerText` and `filterBy` attributes
 of `<p:column>`.
 
-Here's how it looks like with default PrimeFaces UI and all. This example uses **exactly** the above Java and XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `LocalDate dateOfBirth` fields.
+Here's how it looks like with default PrimeFaces 15 UI and all. This example uses **exactly** the above Java and XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `LocalDate dateOfBirth` fields.
 
-![example of op:dataTable](https://i.imgur.com/VJyNKMH.png)
+![example of op:dataTable](https://github.com/user-attachments/assets/682ad9d2-4458-4b4f-a866-5e3571394663)
 
 
 ### Advanced Usage
@@ -145,16 +145,16 @@ Here's how it looks like with default PrimeFaces UI and all. This example uses *
 - OpenJPA adds internally a second `JOIN` when sorting a column referenced by a join (`@OneToMany` and `@ElementCollection`). This has as consequence that the sorting is performed on a different join than the one referenced in `GROUP BY` and will thus be off from what's presented. You should for now set such columns as `<op:column ... sortable="false">` or consider using a DTO instead.
 - OpenJPA does not correctly apply setFirstResult/setMaxResults when an `@OneToMany` relationship is involved in the query. It will basically apply it on the results of the `@OneToMany` relationship instead of on the query root, causing the page to contain fewer records than expected. There is no clear solution/workaround for that yet.
 
-The [integration tests](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions/workflows/maven.yml):
+The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions):
 - WildFly Preview 39.0.1 with Mojarra 4.1.5 and Hibernate 7.1.11
-- WildFly Preview 39.0.1 with Mojarra 4.1.5 and EclipseLink 5.0.0
-- GlassFish 8.0.0 with Mojarra 4.1.6 and EclipseLink 5.0.0
-- GlassFish 8.0.0 with Mojarra 4.1.6 and Hibernate 7.1.11
+- WildFly Preview 39.0.1 with Mojarra 4.1.5 and EclipseLink 5.0.0-B13
+- GlassFish 8.0.0 with Mojarra 4.1.6 and EclipseLink 5.0.0-B13
+- GlassFish 8.0.0 with Mojarra 4.1.6 and Hibernate 7.2.24
 - TomEE 10.1.4 with MyFaces 4.0.3 and OpenJPA 4.1.1
 
 Each environment will run the IT on following databases:
-- H2 2.3.232 (embedded database)
+- H2 2.4.240 (embedded database)
 - MySQL latest 8.x (provided by GitHub Actions) with JDBC driver 9.6.0
 - PostgreSQL latest 15.x (provided by GitHub Actions) with JDBC driver 42.7.10
 
-Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/develop/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java#L428) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/develop/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
