@@ -914,6 +914,14 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
         }
     }
 
+    /**
+     * Returns true if the given value is an instance of {@link Iterable}.
+     * Returns {@code true} if the given value is an instance of {@link Iterable}.
+     */
+    default boolean isIterable(Object value) {
+        return value instanceof Iterable;
+    }
+
 
     // PagedDataModel state -------------------------------------------------------------------------------------------
 

@@ -26,8 +26,7 @@
     <!-- NOTE: Internal variables start with an unconventional $ in order to prevent interfering with user defined variables in same scope. -->
     <c:set var="$dataTable" value="#{component.findComponent(id).namingContainer}" />
     <c:set var="$pagedDataModel" value="#{$dataTable.value}" />
-    <c:set var="$exporting" value="#{not empty param.$export}" scope="request" />
-    <c:set var="$ITERABLE_CLASS" value="#{{}['class'].interfaces[0].interfaces[0].interfaces[0]}" scope="application" /><!-- TODO: this is hacky -->
+    <c:set var="$exporting" value="#{not empty param.$export}" />
 
     <o:tagAttribute name="field" />
         <o:tagAttribute name="id" default="#{empty $pagedDataModel ? field.replace('.', '_') : $pagedDataModel.computeColumnId(field)}" />
@@ -39,7 +38,7 @@
         <o:tagAttribute name="visible" default="#{true}" />
         <o:tagAttribute name="responsivePriority" default="0" />
         <o:tagAttribute name="width" />
-        <o:tagAttribute name="iterable" default="#{$ITERABLE_CLASS.isInstance(value)}" />
+        <o:tagAttribute name="iterable" default="#{$pagedDataModel.isIterable(value)}" />
         <o:tagAttribute name="emptyValue" />
 
     <o:tagAttribute name="sortable" default="#{$dataTable.attributes.sortable}" />

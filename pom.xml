@@ -308,7 +308,7 @@
                     <doctitle>OptimusFaces API documentation</doctitle>
                     <links>
                         <link>https://jakarta.ee/specifications/platform/${jakartaee.version}/apidocs/</link>
-                        <link>https://javadoc.io/doc/org.omnifaces/omnipersistence/${omnipersistence.version}/</link>
+                        <link>https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/</link>
                     </links>
                     <additionalJOption>-J-Dhttp.agent=maven-javadoc-plugin-${pom‌​.name}</additionalJOption>
                 </configuration>
