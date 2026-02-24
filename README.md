@@ -8,8 +8,6 @@
 Utility library for OmniFaces + PrimeFaces combined.
 
 
-## This project is currently still in development stage!
-
 This project basically combines best of [OmniFaces](https://omnifaces.org/) and [PrimeFaces](https://primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for JPA. This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a JPA model and a generic entity service.
 
 
@@ -47,7 +45,7 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
 </dependencies>
 ```
 
-**Minumum supported Java / OmniFaces / PrimeFaces versions**
+**Minimum supported Java / OmniFaces / PrimeFaces versions**
 
 Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
 
@@ -149,7 +147,7 @@ The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/
 - WildFly Preview 39.0.1 with Mojarra 4.1.5 and Hibernate 7.1.11
 - WildFly Preview 39.0.1 with Mojarra 4.1.5 and EclipseLink 5.0.0-B13
 - GlassFish 8.0.0 with Mojarra 4.1.6 and EclipseLink 5.0.0-B13
-- GlassFish 8.0.0 with Mojarra 4.1.6 and Hibernate 7.2.24
+- GlassFish 8.0.0 with Mojarra 4.1.6 and Hibernate 7.2.4
 - TomEE 10.1.4 with MyFaces 4.0.3 and OpenJPA 4.1.1
 
 Each environment will run the IT on following databases:
