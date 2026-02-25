@@ -38,7 +38,7 @@
         <o:tagAttribute name="visible" default="#{true}" />
         <o:tagAttribute name="responsivePriority" default="0" />
         <o:tagAttribute name="width" />
-        <o:tagAttribute name="iterable" default="#{$pagedDataModel.isIterable(value)}" />
+        <o:tagAttribute name="iterable" default="#{component.parent.namingContainer.value.isIterable(value)}" />
         <o:tagAttribute name="emptyValue" />
 
     <o:tagAttribute name="sortable" default="#{$dataTable.attributes.sortable}" />
