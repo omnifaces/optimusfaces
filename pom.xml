@@ -66,6 +66,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.release>${javase.version}</maven.compiler.release>
         <maven.source.excludeResources>true</maven.source.excludeResources>
+        <skipUTs>false</skipUTs>
+        <skipITs>true</skipITs>
 
         <!-- Test versions. -->
         <test.wildfly.version>39.0.1.Final</test.wildfly.version> <!-- https://mvnrepository.com/artifact/org.wildfly/wildfly-preview-dist -->
@@ -322,6 +324,43 @@
                 </executions>
             </plugin>
 
+            <!-- Configure the unit tests (*Test.java). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <skipTests>${skipUTs}</skipTests>
+                </configuration>
+            </plugin>
+    
+            <!-- Configure the integration tests (*IT.java). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.5.4</version>
+                <configuration>
+                    <skipITs>${skipITs}</skipITs>
+                    <trimStackTrace>false</trimStackTrace>
+                    <argLine>-Xms1024m -Xmx2048m</argLine><!-- https://github.com/travis-ci/travis-ci/issues/5631 -->
+                    <systemPropertyVariables>
+                        <profile.id>${project.activeProfiles[0].id}</profile.id>
+                        <optimusfaces.jar>${project.build.directory}/${project.build.finalName}.jar</optimusfaces.jar>
+                        <test.omnifaces.version>${test.omnifaces.version}</test.omnifaces.version>
+                        <test.primefaces.version>${test.primefaces.version}</test.primefaces.version>
+                        <test.glassfish.hibernate.version>${test.glassfish.hibernate.version}</test.glassfish.hibernate.version>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Configure snapshot deployment (release deployment is done via 'release' profile). -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -351,29 +390,6 @@
                     </executions>
                     <configuration>
                         <outputDirectory>${project.build.directory}</outputDirectory>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.5.4</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>integration-test</goal>
-                                <goal>verify</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <argLine>-Xms1024m -Xmx2048m</argLine><!-- https://github.com/travis-ci/travis-ci/issues/5631 -->
-                        <systemPropertyVariables>
-                            <profile.id>${project.activeProfiles[0].id}</profile.id>
-                            <optimusfaces.jar>${project.build.directory}/${project.build.finalName}.jar</optimusfaces.jar>
-                            <test.omnifaces.version>${test.omnifaces.version}</test.omnifaces.version>
-                            <test.primefaces.version>${test.primefaces.version}</test.primefaces.version>
-                            <test.glassfish.hibernate.version>${test.glassfish.hibernate.version}</test.glassfish.hibernate.version>
-                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
             </plugins>
