@@ -278,7 +278,7 @@ public abstract class OptimusFacesIT {
         return getProperty("profile.id").endsWith("-openjpa");
     }
 
-    protected boolean isPostgreSQL() {
+    protected static boolean isPostgreSQL() {
         return database == POSTGRESQL;
     }
 
@@ -975,7 +975,7 @@ public abstract class OptimusFacesIT {
 
     protected void testOneToOne() {
         assertNoCartesianProduct();
-        testGlobalFilter(false);
+        testGlobalFilter();
 
         clickColumn(address_houseNumberColumn);
         assertSortedState(address_houseNumberColumn, true);
@@ -989,7 +989,7 @@ public abstract class OptimusFacesIT {
         clickColumn(address_stringColumn);
         assertPaginatorState(1, 11);
 
-        if (isHibernate() && database == POSTGRESQL) {
+        if (isHibernate() && isPostgreSQL()) {
             System.out.println("SKIPPING assertSortedState(address.string) for Hibernate+PostgreSQL because it orders 'Street110, Street111, Street11, Street112, ...' instead of 'Street110, Street11, Street111, Street112, ...'."); // TODO: investigate
         }
         else {
@@ -1001,7 +1001,7 @@ public abstract class OptimusFacesIT {
         clearColumnFilter(address_houseNumberColumnFilter);
         assertPaginatorState(1, TOTAL_RECORDS);
 
-        if (!isHibernate() || database != POSTGRESQL) {
+        if ((!isHibernate() || !isPostgreSQL())) {
             assertSortedState(address_stringColumn, true);
         }
 
@@ -1023,8 +1023,8 @@ public abstract class OptimusFacesIT {
 
     protected void testOneToMany() {
         assertNoCartesianProduct();
-        assertPaginatorState(1, TOTAL_RECORDS, true);
-        testGlobalFilter(true);
+        assertPaginatorState(1, TOTAL_RECORDS);
+        testGlobalFilter();
 
         var skipAssertSortedState = (isEclipseLink() || isOpenJPA()) && isLazy();
 
@@ -1064,11 +1064,11 @@ public abstract class OptimusFacesIT {
         assertTrue(rowCount3 < rowCount1, rowCount3 + " must be less than " + rowCount1);
 
         clearColumnFilter(phones_numberColumnFilter);
-        assertPaginatorState(1, 119, true);
+        assertPaginatorState(1, 119);
         assertNoCartesianProduct();
 
         clearColumnFilter(emailColumnFilter);
-        assertPaginatorState(1, TOTAL_RECORDS, true);
+        assertPaginatorState(1, TOTAL_RECORDS);
         assertNoCartesianProduct();
 
         if (!skipAssertSortedState) {
@@ -1131,21 +1131,15 @@ public abstract class OptimusFacesIT {
             assertNoCartesianProduct();
 
             guardFacesAjax(criteriaPhoneTypeWORK::click); // Uncheck
-            assertPaginatorState(1, TOTAL_RECORDS, true);
+            assertPaginatorState(1, TOTAL_RECORDS);
             assertNoCartesianProduct();
         }
     }
 
     protected void testElementCollection() {
         assertNoCartesianProduct();
-        assertPaginatorState(1, TOTAL_RECORDS, true);
-
-        if (isOpenJPA()) {
-            System.out.println("SKIPPING testGlobalFilter() in testElementCollection() for OpenJPA because it doesn't like a LIKE on @ElementCollection"); // TODO: improve?
-        }
-        else {
-            testGlobalFilter(true);
-        }
+        assertPaginatorState(1, TOTAL_RECORDS);
+        testGlobalFilter();
 
         guardFacesAjax(criteriaGroupUSER::click);
         assertCriteriaState(groupsColumn, "USER");
@@ -1190,7 +1184,7 @@ public abstract class OptimusFacesIT {
         assertNoCartesianProduct();
 
         guardFacesAjax(criteriaGroupDEVELOPER::click); // Uncheck
-        assertPaginatorState(1, TOTAL_RECORDS, true);
+        assertPaginatorState(1, TOTAL_RECORDS);
         assertNoCartesianProduct();
     }
 
@@ -1238,10 +1232,10 @@ public abstract class OptimusFacesIT {
         assertNoCartesianProduct();
     }
 
-    protected void testGlobalFilter(boolean oneToManyOrElementCollection) {
+    protected void testGlobalFilter() {
         guardPrimeFacesAjax(() -> idColumnFilter.sendKeys("2"));
         assertFilteredState(idColumnFilter, "2");
-        assertPaginatorState(1, 39, oneToManyOrElementCollection);
+        assertPaginatorState(1, 39);
         assertNoCartesianProduct();
 
         globalFilter.sendKeys("name1");
@@ -1266,7 +1260,7 @@ public abstract class OptimusFacesIT {
 
         globalFilter.clear();
         guardPrimeFacesAjax(globalFilterButton::click);
-        assertPaginatorState(1, TOTAL_RECORDS, oneToManyOrElementCollection);
+        assertPaginatorState(1, TOTAL_RECORDS);
         assertNoCartesianProduct();
     }
 
@@ -1274,27 +1268,17 @@ public abstract class OptimusFacesIT {
     // Assertions -----------------------------------------------------------------------------------------------------
 
     protected void assertPaginatorState(int currentPage) {
-        assertPaginatorState(currentPage, getRowCount(), false);
+        assertPaginatorState(currentPage, getRowCount());
     }
 
     protected void assertPaginatorState(int currentPage, int expectedTotalRecords) {
-        assertPaginatorState(currentPage, expectedTotalRecords, false);
-    }
-
-    protected void assertPaginatorState(int currentPage, int expectedTotalRecords, boolean oneToManyOrElementCollection) {
         var totalRecords = getRowCount();
         var startRecord = (currentPage - 1) * ROWS_PER_PAGE + 1;
         var endRecord = min(startRecord + ROWS_PER_PAGE - 1, totalRecords);
         var pageCount = totalRecords / ROWS_PER_PAGE + (totalRecords % ROWS_PER_PAGE > 0 ? 1 : 0);
         var visibleRecords = endRecord - startRecord + 1;
 
-        if (oneToManyOrElementCollection && isOpenJPA()) {
-            System.out.println("SKIPPING assertEquals(visibleRecords, getCells(idColumn).size()) for OpenJPA because it doesn't correctly limit @OneToMany and @ElementCollection on root"); // TODO: improve?
-        }
-        else {
-            assertEquals(visibleRecords, getCells(idColumn).size(), "visible records");
-        }
-
+        assertEquals(visibleRecords, getCells(idColumn).size(), "visible records");
         assertEquals(expectedTotalRecords, totalRecords, "total records");
         assertEquals("Showing " + startRecord + " - " + endRecord + " of " + totalRecords + " records", pageReport.getText(), "page report");
         assertEquals(min(pageCount, 10), pages.size(), "page count");
