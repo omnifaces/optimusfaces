@@ -75,11 +75,19 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
     // Internal properties --------------------------------------------------------------------------------------------
 
+    /** The full, un-paged list of entities used as the source for in-memory operations. */
     private List<E> allData;
 
 
     // Constructors ---------------------------------------------------------------------------------------------------
 
+    /**
+     * Constructs a new non-lazy paged data model.
+     * @param allData The full list of data to be paged in-memory.
+     * @param defaultOrdering The default sort order.
+     * @param predefinedCriteria Fixed criteria to apply.
+     * @param dynamicCriteria Dynamic criteria supplier.
+     */
     NonLazyPagedDataModel(List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria, Supplier<Map<Getter<?>, Object>> dynamicCriteria) {
         super(null, defaultOrdering, predefinedCriteria, dynamicCriteria);
         this.allData = unmodifiableList(allData);

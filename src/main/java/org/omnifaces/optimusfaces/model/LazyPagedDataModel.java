@@ -107,29 +107,48 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     // Internal properties --------------------------------------------------------------------------------------------
 
+    /** The loader used to fetch pages of data. */
     private final PartialResultListLoader<E> loader;
+    /** The default ordering to be applied if no sorting is specified by the UI. */
     private final LinkedHashMap<String, Boolean> defaultOrdering;
+    /** Predefined criteria that are always applied to every query. */
     private final Map<String, Object> predefinedCriteria;
+    /** Supplier for dynamic criteria that may change during the view lifecycle. */
     private final Supplier<Map<Getter<?>, Object>> dynamicCriteria;
 
+    /** Flag indicating whether the browser query string should be updated via Ajax. */
     protected boolean updateQueryString;
+    /** Prefix for query parameters to avoid collisions when multiple tables are on one page. */
     protected String queryParameterPrefix;
+    /** The currently active ordering. */
     protected LinkedHashMap<String, Boolean> ordering;
+    /** The currently active column filters. */
     protected LinkedHashMap<String, Object> filters;
+    /** The currently active global search term. */
     protected String globalFilter;
 
+    /** The current page of data. */
     private Page page;
+    /** The most recently loaded list of results. */
     private PartialResultList<E> list;
-
 
     // op:dataTable properties ----------------------------------------------------------------------------------------
 
+    /** The current list of filtered entities. */
     private List<E> filteredValue;
+    /** The current selection of entities. */
     private List<E> selection;
 
 
     // Constructors ---------------------------------------------------------------------------------------------------
 
+    /**
+     * Internal constructor for the lazy paged data model.
+     * @param loader The strategy for loading partial result lists.
+     * @param defaultOrdering The default sort order.
+     * @param predefinedCriteria Fixed criteria to apply.
+     * @param dynamicCriteria Dynamic criteria supplier.
+     */
     LazyPagedDataModel(PartialResultListLoader<E> loader, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria, Supplier<Map<Getter<?>, Object>> dynamicCriteria) {
         this.loader = loader;
         this.defaultOrdering = defaultOrdering;
