@@ -1026,21 +1026,9 @@ public abstract class OptimusFacesIT {
         assertPaginatorState(1, TOTAL_RECORDS);
         testGlobalFilter();
 
-        var skipAssertSortedState = (isEclipseLink() || isOpenJPA()) && isLazy();
-
-        if (skipAssertSortedState) {
-            if (isEclipseLink()) {
-                System.out.println("SKIPPING assertSortedState(phones.number) for EclipseLink because it doesn't support join fetch with range and therefore sorting can't run in same query"); // TODO: improve?
-            }
-            else if (isOpenJPA()) {
-                System.out.println("SKIPPING assertSortedState(phones.number) for OpenJPA because BaseEntityService somehow performs a double join for the table"); // TODO: fix it
-            }
-        }
-        else {
-            clickColumn(phones_numberColumn);
-            assertSortedState(phones_numberColumn, true);
-            assertNoCartesianProduct();
-        }
+        clickColumn(phones_numberColumn);
+        assertSortedState(phones_numberColumn, true);
+        assertNoCartesianProduct();
 
         guardPrimeFacesAjax(() -> phones_numberColumnFilter.sendKeys("11"));
         assertFilteredState(phones_numberColumnFilter, "11");
@@ -1048,13 +1036,11 @@ public abstract class OptimusFacesIT {
         var rowCount1 = getRowCount();
         assertTrue(rowCount1 < TOTAL_RECORDS, rowCount1 + " must be less than " + TOTAL_RECORDS);
 
-        if (!skipAssertSortedState) {
-            clickColumn(phones_numberColumn);
-            assertSortedState(phones_numberColumn, false);
-            assertNoCartesianProduct();
-            var rowCount2 = getRowCount();
-            assertEquals(rowCount1, rowCount2, "rowcount is still the same");
-        }
+        clickColumn(phones_numberColumn);
+        assertSortedState(phones_numberColumn, false);
+        assertNoCartesianProduct();
+        var rowCount2 = getRowCount();
+        assertEquals(rowCount1, rowCount2, "rowcount is still the same");
 
         guardPrimeFacesAjax(() -> emailColumnFilter.sendKeys("1"));
         assertFilteredState(emailColumnFilter, "1");
@@ -1071,69 +1057,59 @@ public abstract class OptimusFacesIT {
         assertPaginatorState(1, TOTAL_RECORDS);
         assertNoCartesianProduct();
 
-        if (!skipAssertSortedState) {
-            clickColumn(phones_numberColumn);
-            assertSortedState(phones_numberColumn, true);
-        }
-
+        clickColumn(phones_numberColumn);
+        assertSortedState(phones_numberColumn, true);
         assertNoCartesianProduct();
 
-        var skipAssertCriteriaState = isEclipseLink() && isLazy();
+        var skipAssertRowCount = isOpenJPA() && isLazy(); // OpenJPA generates broken nested correlated subqueries for @OneToMany in count subquery context, so the count is inaccurate there.
 
-        if (skipAssertCriteriaState) {
-            System.out.println("SKIPPING assertCriteriaState(phones.type) for EclipseLink because it refuses to perform a JOIN when setFirstResult/setMaxResults is used");
+        if (skipAssertRowCount) {
+            System.out.println("SKIPPING assertRowCount(phones.type) for OpenJPA because count is inaccurate for @OneToMany in count subquery context");
         }
-        else {
-            var skipAssertRowCount = isOpenJPA() && isLazy();
 
-            if (skipAssertRowCount) {
-                System.out.println("SKIPPING skipAssertRowCount(phones.type) for OpenJPA because BaseEntityService somehow performs a double join for the table"); // TODO: fix it
-            }
-
-            guardFacesAjax(criteriaPhoneTypeMOBILE::click);
-            assertCriteriaState(phones_typeColumn, "MOBILE");
-            var rowCount4 = getRowCount();
-            if (!skipAssertRowCount) {
-                assertTrue(rowCount4 < TOTAL_RECORDS, rowCount4 + " must be less than " + TOTAL_RECORDS);
-            }
-            assertNoCartesianProduct();
-
-            guardFacesAjax(criteriaPhoneTypeHOME::click);
-            assertCriteriaState(phones_typeColumn, "MOBILE", "HOME");
-            var rowCount5 = getRowCount();
-            if (!skipAssertRowCount) {
-                assertTrue(rowCount5 < rowCount4, rowCount5 + " must be less than " + rowCount4);
-            }
-            assertNoCartesianProduct();
-
-            guardFacesAjax(criteriaPhoneTypeWORK::click);
-            assertCriteriaState(phones_typeColumn, "MOBILE", "HOME", "WORK");
-            var rowCount6 = getRowCount();
-            if (!skipAssertRowCount) {
-                assertTrue(rowCount6 < rowCount5, rowCount6 + " must be less than " + rowCount5);
-            }
-            assertNoCartesianProduct();
-
-            guardFacesAjax(criteriaPhoneTypeMOBILE::click); // Uncheck
-            assertCriteriaState(phones_typeColumn, "HOME", "WORK");
-            var rowCount7 = getRowCount();
-            if (!skipAssertRowCount) {
-                assertTrue(rowCount7 > rowCount6, rowCount7 + " must be more than " + rowCount6);
-            }
-            assertNoCartesianProduct();
-
-            guardFacesAjax(criteriaPhoneTypeHOME::click); // Uncheck
-            assertCriteriaState(phones_typeColumn, "WORK");
-            var rowCount8 = getRowCount();
-            if (!skipAssertRowCount) {
-                assertTrue(rowCount8 > rowCount7, rowCount8 + " must be more than " + rowCount7);
-            }
-            assertNoCartesianProduct();
-
-            guardFacesAjax(criteriaPhoneTypeWORK::click); // Uncheck
-            assertPaginatorState(1, TOTAL_RECORDS);
-            assertNoCartesianProduct();
+        guardFacesAjax(criteriaPhoneTypeMOBILE::click);
+        assertCriteriaState(phones_typeColumn, "MOBILE");
+        var rowCount4 = getRowCount();
+        if (!skipAssertRowCount) {
+            assertTrue(rowCount4 < TOTAL_RECORDS, rowCount4 + " must be less than " + TOTAL_RECORDS);
         }
+        assertNoCartesianProduct();
+
+        guardFacesAjax(criteriaPhoneTypeHOME::click);
+        assertCriteriaState(phones_typeColumn, "MOBILE", "HOME");
+        var rowCount5 = getRowCount();
+        if (!skipAssertRowCount) {
+            assertTrue(rowCount5 < rowCount4, rowCount5 + " must be less than " + rowCount4);
+        }
+        assertNoCartesianProduct();
+
+        guardFacesAjax(criteriaPhoneTypeWORK::click);
+        assertCriteriaState(phones_typeColumn, "MOBILE", "HOME", "WORK");
+        var rowCount6 = getRowCount();
+        if (!skipAssertRowCount) {
+            assertTrue(rowCount6 < rowCount5, rowCount6 + " must be less than " + rowCount5);
+        }
+        assertNoCartesianProduct();
+
+        guardFacesAjax(criteriaPhoneTypeMOBILE::click); // Uncheck
+        assertCriteriaState(phones_typeColumn, "HOME", "WORK");
+        var rowCount7 = getRowCount();
+        if (!skipAssertRowCount) {
+            assertTrue(rowCount7 > rowCount6, rowCount7 + " must be more than " + rowCount6);
+        }
+        assertNoCartesianProduct();
+
+        guardFacesAjax(criteriaPhoneTypeHOME::click); // Uncheck
+        assertCriteriaState(phones_typeColumn, "WORK");
+        var rowCount8 = getRowCount();
+        if (!skipAssertRowCount) {
+            assertTrue(rowCount8 > rowCount7, rowCount8 + " must be more than " + rowCount7);
+        }
+        assertNoCartesianProduct();
+
+        guardFacesAjax(criteriaPhoneTypeWORK::click); // Uncheck
+        assertPaginatorState(1, TOTAL_RECORDS);
+        assertNoCartesianProduct();
     }
 
     protected void testElementCollection() {
