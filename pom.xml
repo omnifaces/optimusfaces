@@ -59,7 +59,7 @@
         <!-- Minimum required versions. -->
         <javase.version>17</javase.version>
         <jakartaee.version>10</jakartaee.version>
-        <omnipersistence.version>1.0-M1</omnipersistence.version>
+        <omnipersistence.version>1.0-M2</omnipersistence.version>
 
         <!-- Essential Maven defaults. -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -601,6 +601,24 @@
                                             <outputDirectory>${project.build.directory}/glassfish8/glassfish/domains/domain1/lib</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>configure-glassfish-console-logging</id>
+                                <phase>pre-integration-test</phase>
+                                <goals><goal>run</goal></goals>
+                                <configuration>
+                                    <target>
+                                        <echo file="${project.build.directory}/glassfish8/glassfish/domains/domain1/config/logging.properties" append="true">
+                                            org.glassfish.main.jul.handler.GlassFishLogHandler.redirectStandardStreams=false
+                                        </echo>
+                                    </target>
                                 </configuration>
                             </execution>
                         </executions>
