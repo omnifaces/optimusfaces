@@ -70,7 +70,10 @@ jobs:
         done
         docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd \
           -S localhost -U sa -P "PassW0rd!" -No \
-          -Q "CREATE DATABASE test; CREATE LOGIN test WITH PASSWORD = 'PassW0rd!'; USE test; CREATE USER test FOR LOGIN test; ALTER ROLE db_owner ADD MEMBER test;"
+          -Q "CREATE DATABASE test; CREATE LOGIN test WITH PASSWORD = 'PassW0rd!';"
+        docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd \
+          -S localhost -U sa -P "PassW0rd!" -No -d test \
+          -Q "CREATE USER test FOR LOGIN test; ALTER ROLE db_owner ADD MEMBER test;"
 
     - name: Test with Maven
       run: mvn -B verify -DskipUTs=false -DskipITs=false -Dmaven.javadoc.skip=true -Dit.test=OptimusFaces${{matrix.database}}IT -P ${{matrix.server}}
