@@ -923,30 +923,7 @@ public abstract class OptimusFacesIT {
     }
 
     private void setPrimeFacesSelectOneMenuValue(WebElement selectOneMenu, Serializable value) {
-        String clientId = selectOneMenu.getAttribute("id");
-        var input = selectOneMenu.findElement(By.id(clientId + "_input"));
-        var itemValue = value.toString();
-        var itemLabel = (String) executeScript("return $(document.getElementById('" + input.getAttribute("id") + "')).find('option[value=\"" + itemValue + "\"]').text()"); // getText() doesn't work as option is hidden. It's needed because ui-selectonemenu-item doesn't have a data-value.
-        selectOneMenu.findElement(By.cssSelector(".ui-selectonemenu-trigger")).click(); // Open panel.
-        var document = selectOneMenu.findElement(By.xpath("/*"));
-        var panel = document.findElement(By.id(clientId + "_panel"));
-        waitUntil(panel::isDisplayed);
-        var selectItem = panel.findElement(By.cssSelector(".ui-selectonemenu-item[data-label='" + itemLabel + "']"));
-
-//        if (input.getAttribute("onchange") != null) {
-//            guardPrimeFacesAjax(selectItem::click);
-//        }
-//        else {
-//            selectItem.click();
-//        }
-
-        selectItem.click();
-
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        executeScript("const menu = PrimeFaces.getWidgetById('" + selectOneMenu.getAttribute("id") + "'); menu.selectValue('" + value + "'); menu.triggerChange();");
     }
 
     protected void testDTO() {
