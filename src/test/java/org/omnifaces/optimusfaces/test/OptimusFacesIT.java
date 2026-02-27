@@ -226,8 +226,8 @@ public abstract class OptimusFacesIT {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> T executeScript(String script) {
-        return (T) ((JavascriptExecutor) browser).executeScript(script);
+    protected <T> T executeScript(String script, Object... args) {
+        return (T) ((JavascriptExecutor) browser).executeScript(script, args);
     }
 
     protected String getQueryParameter(String name) {
@@ -931,6 +931,7 @@ public abstract class OptimusFacesIT {
         var document = selectOneMenu.findElement(By.xpath("/*"));
         var panel = document.findElement(By.id(clientId + "_panel"));
         waitUntil(panel::isDisplayed);
+        executeScript("$(arguments[0]).stop(true, true)", panel); // Jump to end of open animation before clicking.
         var selectItem = panel.findElement(By.cssSelector(".ui-selectonemenu-item[data-label='" + itemLabel + "']"));
 
         if (input.getAttribute("onchange") != null) {
