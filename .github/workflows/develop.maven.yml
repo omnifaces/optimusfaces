@@ -21,7 +21,7 @@ on:
 
 jobs:
   test:
-    name: Run tests on ${{matrix.server}}
+    name: Test ${{matrix.server}} + ${{matrix.database}}
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
@@ -35,6 +35,7 @@ jobs:
         env:
           SA_PASSWORD: "PassW0rd!"
           ACCEPT_EULA: "Y"
+          MSSQL_PID: "Developer"
         ports:
           - 1433:1433
         options: >-
