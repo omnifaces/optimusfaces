@@ -12,6 +12,7 @@
  */
 package org.omnifaces.optimusfaces.test.service;
 
+import static org.omnifaces.persistence.Database.DB2;
 import static org.omnifaces.persistence.Database.POSTGRESQL;
 import static org.omnifaces.persistence.Database.SQLSERVER;
 import static org.omnifaces.persistence.JPA.concat;
@@ -70,7 +71,7 @@ public class PersonService extends BaseEntityService<Long, Person> {
                 mapping.put(PersonCard::getAddressString, concat(builder, personAddress.get("street"), " ", personAddress.get("houseNumber"), ", ", personAddress.get("postcode"), " ", personAddress.get("city"), ", ", personAddress.get("country")));
             }
 
-            if ((getDatabase() == POSTGRESQL || getDatabase() == SQLSERVER) && !(query instanceof Subquery)) { // Both enforce the SQL standard strictly: every non-aggregated SELECT column must appear in GROUP BY. Other DBs (H2, MySQL) are lenient about this. The count subquery uses EXISTS and doesn't aggregate, so GROUP BY is not needed there.
+            if ((getDatabase() == POSTGRESQL || getDatabase() == SQLSERVER || getDatabase() == DB2) && !(query instanceof Subquery)) { // These enforce the SQL standard strictly: every non-aggregated SELECT column must appear in GROUP BY. Other DBs (H2, MySQL) are lenient about this. The count subquery uses EXISTS and doesn't aggregate, so GROUP BY is not needed there.
                 query.groupBy(person.get("id"), person.get("email"), personAddress);
             }
 

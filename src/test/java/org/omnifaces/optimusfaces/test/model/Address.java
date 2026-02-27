@@ -28,7 +28,7 @@ public class Address extends LocalGeneratedIdEntity {
     private @NotNull String city;
     private @NotNull String country;
 
-    @Formula("CONCAT(street, ' ', houseNumber, ', ', postcode, ' ', city, ', ', country)") // NOTE: EclipseLink doesn't have a reasonable equivalent for @Formula.
+    @Formula("CONCAT(CONCAT(CONCAT(CONCAT(CONCAT(CONCAT(CONCAT(CONCAT(street, ' '), houseNumber), ', '), postcode), ' '), city), ', '), country)") // NOTE: DB2 only supports 2-argument CONCAT, so we nest them.
     private String string;
 
     public String getStreet() {

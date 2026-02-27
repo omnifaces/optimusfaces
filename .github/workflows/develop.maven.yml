@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         server: [wildfly-hibernate, glassfish-eclipselink, tomee-openjpa]
-        database: [H2, MySQL, PostgreSQL, SQLServer]
+        database: [H2, MySQL, PostgreSQL, SQLServer, DB2]
 
     steps:
     - uses: actions/checkout@v4
@@ -63,8 +63,7 @@ jobs:
           -p 1433:1433 \
           mcr.microsoft.com/mssql/server:2022-latest
         for i in {1..10}; do
-          docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd \
-            -S localhost -U sa -P "PassW0rd!" -No -Q "SELECT 1" && break
+          docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "PassW0rd!" -No -Q "SELECT 1" && break
           echo "Waiting for SQL Server to be ready... ($i/10)"
           sleep 3
         done
@@ -74,6 +73,23 @@ jobs:
         docker exec sqlserver /opt/mssql-tools18/bin/sqlcmd \
           -S localhost -U sa -P "PassW0rd!" -No -d test \
           -Q "CREATE USER test FOR LOGIN test; ALTER ROLE db_owner ADD MEMBER test;"
+
+    - name: Set up DB2 (via IBM's Docker image)
+      if: matrix.database == 'DB2'
+      run: |
+        docker run -d --name db2 --privileged=true \
+          -p 50000:50000 \
+          -e LICENSE=accept \
+          -e DB2INST1_PASSWORD=PassW0rd! \
+          -e DBNAME=test \
+          -e SAMPLEDB=false \
+          -e ARCHIVE_LOGS=false \
+          icr.io/db2_community/db2
+        for i in {1..10}; do
+          docker exec db2 bash -lc "db2 +o connect to test" >/dev/null 2>&1 && break
+          echo "Waiting for DB2 to be ready... ($i/10)"
+          sleep 15
+        done
 
     - name: Test with Maven
       run: mvn -B verify -DskipUTs=false -DskipITs=false -Dmaven.javadoc.skip=true -Dit.test=OptimusFaces${{matrix.database}}IT -P ${{matrix.server}}

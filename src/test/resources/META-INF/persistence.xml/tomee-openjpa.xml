@@ -25,7 +25,7 @@
         <class>org.omnifaces.persistence.model.BaseEntity</class>
 
         <properties>
-            <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema(foreignKeys=true,schemaAction='add')" />
+            <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create" />
             <property name="openjpa.Log" value="DefaultLevel=WARN, Runtime=INFO, SQL=TRACE" />
         </properties>
     </persistence-unit>

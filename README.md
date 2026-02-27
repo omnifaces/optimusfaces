@@ -153,6 +153,7 @@ Each environment will run the IT on following databases:
 - H2 2.4.240 (embedded database)
 - MySQL latest 8.x (provided by GitHub Actions Ubuntu environment) with JDBC driver 9.6.0
 - PostgreSQL latest 15.x (provided by GitHub Actions Ubuntu environment) with JDBC driver 42.7.10
-- SQL Server latest 2022 (provided by MicroSoft Docker image) with JDBC driver 13.2.1.jre11
+- SQL Server latest 2022 (provided by MicroSoft's Docker image) with JDBC driver 13.2.1.jre11
+- DB2 latest 12 (provided by IBM's Docker image) with JDBC driver 12.1.3.0
 
-Effectively, there are thus 12 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
