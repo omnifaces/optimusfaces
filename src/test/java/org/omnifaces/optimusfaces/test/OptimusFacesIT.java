@@ -560,11 +560,6 @@ public abstract class OptimusFacesIT {
     @Test
     public void testLazyWithDTO() {
         open("LazyWithDTO");
-
-        System.out.println("=========================================================================================");
-        System.out.println(browser.getPageSource());
-        System.out.println("=========================================================================================");
-
         testDTO();
     }
 
