@@ -13,6 +13,7 @@
 package org.omnifaces.optimusfaces.test.service;
 
 import static org.omnifaces.persistence.Database.POSTGRESQL;
+import static org.omnifaces.persistence.Database.SQLSERVER;
 import static org.omnifaces.persistence.JPA.concat;
 import static org.omnifaces.persistence.Provider.HIBERNATE;
 
@@ -68,7 +69,7 @@ public class PersonService extends BaseEntityService<Long, Person> {
                 mapping.put(PersonCard::getAddressString, concat(builder, personAddress.get("street"), " ", personAddress.get("houseNumber"), ", ", personAddress.get("postcode"), " ", personAddress.get("city"), ", ", personAddress.get("country")));
             }
 
-            if (getDatabase() == POSTGRESQL) { // Doesn't hurt on other DBs but makes query unnecessarily bloated.
+            if (getDatabase() == POSTGRESQL || getDatabase() == SQLSERVER) { // Both enforce the SQL standard strictly: every non-aggregated SELECT column must appear in GROUP BY. Other DBs (H2, MySQL) are lenient about this.
                 query.groupBy(personAddress);
             }
 
