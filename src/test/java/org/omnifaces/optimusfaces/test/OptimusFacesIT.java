@@ -56,7 +56,6 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenResolverSystem;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -125,7 +124,7 @@ public abstract class OptimusFacesIT {
             .addAsLibraries(maven.resolve("org.omnifaces:omnifaces:" + getProperty("test.omnifaces.version"), "org.primefaces:primefaces:jar:jakarta:" + getProperty("test.primefaces.version")).withTransitivity().asFile());
 
         addDataSourceConfig(database, archive);
-        addPersistenceConfig(maven, archive);
+        addPersistenceConfig(archive);
         addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
 
         var targetDir = Path.of(System.getProperty("user.dir"), "target");
@@ -142,16 +141,11 @@ public abstract class OptimusFacesIT {
         }
     }
 
-    private static void addPersistenceConfig(MavenResolverSystem maven, WebArchive archive) {
+    private static void addPersistenceConfig(WebArchive archive) {
         var persistenceConfigXml = getProperty("profile.id") + ".xml";
         var persistenceXml = "META-INF/persistence.xml";
 
         archive.addAsResource(persistenceXml + "/" + persistenceConfigXml, persistenceXml);
-
-        if (isGlassFish() && isHibernate()) {
-            // Does not work when placed in glassfish/modules with help of maven-dependency-plugin? TODO: investigate.
-            archive.addAsLibraries(maven.resolve("org.hibernate.orm:hibernate-core:" + getProperty("test.glassfish.hibernate.version"), "dom4j:dom4j:1.6.1").withTransitivity().asFile());
-        }
     }
 
     private static void addResources(File root, String directory, BiConsumer<File, String> archiveConsumer) {
@@ -566,6 +560,11 @@ public abstract class OptimusFacesIT {
     @Test
     public void testLazyWithDTO() {
         open("LazyWithDTO");
+
+        System.out.println("=========================================================================================");
+        System.out.println(browser.getPageSource());
+        System.out.println("=========================================================================================");
+
         testDTO();
     }
 

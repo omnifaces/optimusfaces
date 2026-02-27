@@ -145,14 +145,13 @@ Here's how it looks like with default PrimeFaces 15 UI and all. This example use
 
 The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions):
 - WildFly Preview 39.0.1 with Mojarra 4.1.5 and Hibernate 7.1.11
-- WildFly Preview 39.0.1 with Mojarra 4.1.5 and EclipseLink 5.0.0-B13
 - GlassFish 8.0.0 with Mojarra 4.1.6 and EclipseLink 5.0.0-B13
-- GlassFish 8.0.0 with Mojarra 4.1.6 and Hibernate 7.2.4
 - TomEE 10.1.4 with MyFaces 4.0.3 and OpenJPA 4.1.1
 
 Each environment will run the IT on following databases:
 - H2 2.4.240 (embedded database)
-- MySQL latest 8.x (provided by GitHub Actions) with JDBC driver 9.6.0
-- PostgreSQL latest 15.x (provided by GitHub Actions) with JDBC driver 42.7.10
+- MySQL latest 8.x (provided by GitHub Actions Ubuntu environment) with JDBC driver 9.6.0
+- PostgreSQL latest 15.x (provided by GitHub Actions Ubuntu environment) with JDBC driver 42.7.10
+- SQL Server latest 2022 (provided by MicroSoft Docker image) with JDBC driver 13.2.1.jre11
 
-Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 12 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).

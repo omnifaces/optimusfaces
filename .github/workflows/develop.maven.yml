@@ -1,5 +1,5 @@
 #
-# Copyright 2021 OmniFaces
+# Copyright OmniFaces
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
@@ -26,7 +26,22 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        server: [wildfly-hibernate, wildfly-eclipselink, glassfish-hibernate, glassfish-eclipselink, tomee-openjpa]
+        server: [wildfly-hibernate, glassfish-hibernate, tomee-openjpa]
+        database: [H2, MySQL, PostgreSQL, SQLServer]
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          SA_PASSWORD: "PassW0rd!"
+          ACCEPT_EULA: "Y"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P PassW0rd! -Q 'SELECT 1'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
     - uses: actions/checkout@v4
@@ -36,16 +51,29 @@ jobs:
         java-version: '21'
         distribution: 'adopt'
         cache: maven
-    - name : Set up MySQL
+
+    - name: Set up MySQL (already provided by ubuntu-latest)
+      if: matrix.database == 'MySQL'
       run: |
         sudo /etc/init.d/mysql start
         mysql -u root -proot -e 'CREATE DATABASE test;'
-    - name : Set up PostgreSQL
+
+    - name: Set up PostgreSQL (already provided by ubuntu-latest)
+      if: matrix.database == 'PostgreSQL'
       run: |
         sudo systemctl start postgresql.service
         sudo -u postgres psql postgres -c "CREATE DATABASE test;"
         sudo -u postgres psql postgres -c "CREATE USER test WITH ENCRYPTED PASSWORD 'test';"
         sudo -u postgres psql postgres -c "GRANT ALL PRIVILEGES ON DATABASE test TO test;"
         sudo -u postgres psql postgres -c "\c test postgres" -c "GRANT ALL ON SCHEMA public TO test;"
+
+    - name: Set up SQL Server (provided via services.sqlserver)
+      if: matrix.database == 'SQLServer'
+      run: |
+        sleep 20
+        docker exec ${{job.services.sqlserver.id}} \
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P PassW0rd! \
+          -Q "CREATE DATABASE test; CREATE LOGIN test WITH PASSWORD = 'PassW0rd!'; USE test; CREATE USER test FOR LOGIN test; ALTER ROLE db_owner ADD MEMBER test;"
+
     - name: Test with Maven
-      run: mvn -B verify -Dmaven.javadoc.skip=true -P ${{matrix.server}}
+      run: mvn -B verify -DskipUTs=false -DskipITs=false -Dmaven.javadoc.skip=true -Dit.test=OptimusFaces${{matrix.database}}IT -P ${{matrix.server}}
