@@ -562,7 +562,7 @@
                                             <artifactId>mysql-connector-j</artifactId>
                                             <version>${test.mysql-driver.version}</version>
                                             <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/domains/domain1/lib</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>
@@ -580,7 +580,7 @@
                                             <artifactId>postgresql</artifactId>
                                             <version>${test.postgresql-driver.version}</version>
                                             <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/domains/domain1/lib</outputDirectory>
+                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
                                     </artifactItems>
                                 </configuration>
