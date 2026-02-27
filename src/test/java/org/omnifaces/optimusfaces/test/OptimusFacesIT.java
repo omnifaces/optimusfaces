@@ -931,14 +931,21 @@ public abstract class OptimusFacesIT {
         var document = selectOneMenu.findElement(By.xpath("/*"));
         var panel = document.findElement(By.id(clientId + "_panel"));
         waitUntil(panel::isDisplayed);
-        executeScript("$(arguments[0]).stop(true, true)", panel); // Jump to end of open animation before clicking.
         var selectItem = panel.findElement(By.cssSelector(".ui-selectonemenu-item[data-label='" + itemLabel + "']"));
 
-        if (input.getAttribute("onchange") != null) {
-            guardPrimeFacesAjax(selectItem::click);
-        }
-        else {
-            selectItem.click();
+//        if (input.getAttribute("onchange") != null) {
+//            guardPrimeFacesAjax(selectItem::click);
+//        }
+//        else {
+//            selectItem.click();
+//        }
+
+        selectItem.click();
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
