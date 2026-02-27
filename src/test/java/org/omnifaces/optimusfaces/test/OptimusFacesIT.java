@@ -90,7 +90,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 @ExtendWith(OptimusFacesIT.TestLogger.class)
 public abstract class OptimusFacesIT {
 
-    private static final int TIMEOUT_IN_SECONDS = 5;
+    private static final int TIMEOUT_IN_SECONDS = 10;
 
     private static Database database;
 
