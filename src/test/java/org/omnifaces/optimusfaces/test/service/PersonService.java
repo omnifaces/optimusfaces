@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Subquery;
 
 import org.omnifaces.optimusfaces.test.model.Address;
 import org.omnifaces.optimusfaces.test.model.Person;
@@ -69,8 +70,8 @@ public class PersonService extends BaseEntityService<Long, Person> {
                 mapping.put(PersonCard::getAddressString, concat(builder, personAddress.get("street"), " ", personAddress.get("houseNumber"), ", ", personAddress.get("postcode"), " ", personAddress.get("city"), ", ", personAddress.get("country")));
             }
 
-            if (getDatabase() == POSTGRESQL || getDatabase() == SQLSERVER) { // Both enforce the SQL standard strictly: every non-aggregated SELECT column must appear in GROUP BY. Other DBs (H2, MySQL) are lenient about this.
-                query.groupBy(personAddress);
+            if ((getDatabase() == POSTGRESQL || getDatabase() == SQLSERVER) && !(query instanceof Subquery)) { // Both enforce the SQL standard strictly: every non-aggregated SELECT column must appear in GROUP BY. Other DBs (H2, MySQL) are lenient about this. The count subquery uses EXISTS and doesn't aggregate, so GROUP BY is not needed there.
+                query.groupBy(person.get("id"), person.get("email"), personAddress);
             }
 
             mapping.put(PersonCard::getTotalPhones, builder.count(personPhones));

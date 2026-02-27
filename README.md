@@ -140,6 +140,7 @@ Here's how it looks like with default PrimeFaces 15 UI and all. This example use
 ### Known Issues
 
 - OpenJPA generates broken nested correlated subqueries for `@OneToMany` in count subquery context, this has been work arounded, but the total result count when filtering might be inaccurate there. In case this is undesireable, use a DTO projection instead.
+- OpenJPA and Hibernate+PostgreSQL/SQLServer generate broken nested correlated subqueries for `@ElementCollection` in count subquery context when a `LIKE`-based filter (e.g. global filter) is involved, this has been work arounded, but the total result count may be inaccurate when the search term matches entities exclusively via the element collection field and not via any other field. In case this is undesireable, use a DTO projection instead.
 
 ### Integration Tests
 

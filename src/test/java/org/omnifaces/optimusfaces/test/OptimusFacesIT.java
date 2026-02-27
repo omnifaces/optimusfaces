@@ -930,6 +930,7 @@ public abstract class OptimusFacesIT {
         selectOneMenu.findElement(By.cssSelector(".ui-selectonemenu-trigger")).click(); // Open panel.
         var document = selectOneMenu.findElement(By.xpath("/*"));
         var panel = document.findElement(By.id(clientId + "_panel"));
+        waitUntil(panel::isDisplayed);
         var selectItem = panel.findElement(By.cssSelector(".ui-selectonemenu-item[data-label='" + itemLabel + "']"));
 
         if (input.getAttribute("onchange") != null) {
