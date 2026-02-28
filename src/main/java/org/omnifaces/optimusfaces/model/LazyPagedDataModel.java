@@ -132,6 +132,11 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
     /** The most recently loaded list of results. */
     private PartialResultList<E> list;
 
+    /** Cached {@link SortMeta} derived from {@link #ordering}; recomputed whenever {@link #ordering} changes. */
+    private SortMeta orderingCache;
+    /** Cached view of {@link #filters} as {@link FilterMeta} map; cleared whenever {@link #filters} changes. */
+    private Map<String, FilterMeta> filtersCache;
+
     // op:dataTable properties ----------------------------------------------------------------------------------------
 
     /** The current list of filtered entities. */
@@ -232,7 +237,10 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
         updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
         queryParameterPrefix = parseQueryParameterPrefix(table);
         ordering = processPageAndOrdering(context, table, sortBy);
+        var firstOrdering = ordering.isEmpty() ? null : ordering.entrySet().iterator().next();
+        orderingCache = firstOrdering == null ? null : SortMeta.builder().field(firstOrdering.getKey()).order(firstOrdering.getValue() ? ASCENDING : DESCENDING).build();
         filters = processFilters(context, table, processableColumns, filterBy);
+        filtersCache = null;
         globalFilter = processGlobalFilter(context, table, filterBy);
         selection = processSelectionIfNecessary(context, selection);
 
@@ -657,12 +665,13 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      */
     @Override
     public SortMeta getOrdering() {
-        var context = FacesContext.getCurrentInstance();
-        var table = (DataTable) getCurrentComponent(context);
+        if (ordering == null) {
+            var context = FacesContext.getCurrentInstance();
+            var table = (DataTable) getCurrentComponent(context);
+            return getInitialOrdering(context, table);
+        }
 
-        return ordering == null ? getInitialOrdering(context, table) : ordering.entrySet().stream()
-            .map(entry -> SortMeta.builder().field(entry.getKey()).order(entry.getValue() ? SortOrder.ASCENDING : SortOrder.DESCENDING).build())
-            .findFirst().orElse(null); // TODO: optimize/cache this (and utilize the new multisort feature)
+        return orderingCache;
     }
 
     /**
@@ -671,9 +680,17 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      */
     @Override
     public Map<String, FilterMeta> getFilters() {
-        return filters == null ? emptyMap() : filters.entrySet().stream()
-            .map(entry -> FilterMeta.builder().field(entry.getKey()).filterValue(entry.getValue()).build())
-            .collect(Collectors.toMap(FilterMeta::getField, identity())); // TODO: optimize/cache this
+        if (filters == null) {
+            return emptyMap();
+        }
+
+        if (filtersCache == null) {
+            filtersCache = filters.entrySet().stream()
+                .map(entry -> FilterMeta.builder().field(entry.getKey()).filterValue(entry.getValue()).build())
+                .collect(Collectors.toMap(FilterMeta::getField, identity()));
+        }
+
+        return filtersCache;
     }
 
     /**
@@ -688,6 +705,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
         if (filterMeta == null) {
             filterMeta = FilterMeta.builder().field(field).build();
             this.filters.put(field, filterMeta);
+            this.filtersCache = null;
         }
 
         return filterMeta;
