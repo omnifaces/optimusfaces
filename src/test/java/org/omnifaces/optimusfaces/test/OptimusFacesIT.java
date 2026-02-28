@@ -42,6 +42,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.text.Collator;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -969,8 +970,13 @@ public abstract class OptimusFacesIT {
         clickColumn(address_stringColumn);
         assertPaginatorState(1, 11);
 
-        if (isHibernate() && isPostgreSQL()) {
-            System.out.println("SKIPPING assertSortedState(address.string) for Hibernate+PostgreSQL because it orders 'Street110, Street111, Street11, Street112, ...' instead of 'Street110, Street11, Street111, Street112, ...'."); // TODO: investigate
+        var hibernatePostgreSQL = isHibernate() && isPostgreSQL();
+
+        if (hibernatePostgreSQL) {
+            // Hibernate properly generates ORDER BY on the @Formula expression, but PostgreSQL's glibc en_US.UTF-8 collation (strcoll) treats space differently from Java's ICU4J Collator.
+            // Space sorts between '1' and '2' in glibc but before '0' in ICU4J, so PostgreSQL gives 'Street110, Street111, Street11, Street112' while both Java comparators give 'Street11, Street110, Street111, Street112'.
+            // EclipseLink and OpenJPA are unaffected because they do not support @Formula and return records in default insertion order, which happens to coincide with Java's natural ordering for this test data.
+            System.out.println("SKIPPING assertSortedState(address.string) for Hibernate+PostgreSQL due to glibc vs ICU4J space-character collation difference.");
         }
         else {
             assertSortedState(address_stringColumn, true);
@@ -981,7 +987,7 @@ public abstract class OptimusFacesIT {
         clearColumnFilter(address_houseNumberColumnFilter);
         assertPaginatorState(1, TOTAL_RECORDS);
 
-        if ((!isHibernate() || !isPostgreSQL())) {
+        if (!hibernatePostgreSQL) {
             assertSortedState(address_stringColumn, true);
         }
 
@@ -1265,15 +1271,29 @@ public abstract class OptimusFacesIT {
             expectedValues = actualValues.stream().map(Integer::valueOf).sorted(ascending ? naturalOrder() : reverseOrder()).map(String::valueOf).collect(toList());
         }
         else {
-            expectedValues = actualValues.stream().sorted(ascending ? naturalOrder() : reverseOrder()).collect(toList());
+            // DB collation and Java collation don't necessarily agree (e.g. @ before 0), so accept either natural order or English locale collator order.
+            var collator = Collator.getInstance(Locale.ENGLISH);
+            Comparator<String> natural = ascending ? naturalOrder() : reverseOrder();
+            Comparator<String> english = ascending ? collator::compare : (a, b) -> collator.compare(b, a);
 
-            if (!expectedValues.equals(actualValues)) {
-                var collator = Collator.getInstance(Locale.ENGLISH);
-                expectedValues.sort(ascending ? collator : collator.reversed()); // TODO: find a better way. Problem is, lazy model sorts by DB collation and non-lazy model sorts by Java collation, however they don't necessarily agree on each other (e.g. @ before 0).
+            if (isSortedBy(actualValues, natural) || isSortedBy(actualValues, english)) {
+                expectedValues = actualValues;
+            }
+            else {
+                expectedValues = actualValues.stream().sorted(natural).collect(toList());
             }
         }
 
         assertEquals(expectedValues, actualValues, field + " ordering");
+    }
+
+    private static boolean isSortedBy(List<String> list, Comparator<String> comparator) {
+        for (int i = 0; i < list.size() - 1; i++) {
+            if (comparator.compare(list.get(i), list.get(i + 1)) > 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private String sortIterableIfNecessary(WebElement cell) {
