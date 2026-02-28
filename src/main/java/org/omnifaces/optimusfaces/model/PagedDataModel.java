@@ -232,7 +232,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * In the backend, create a new <code>getPageXxx()</code> method and delegate to one of
  * {@link BaseEntityService#getPage(Page, boolean)} methods which takes a <code>QueryBuilder</code> argument providing the
- * JPA Criteria API objects to build the query with. For example, to get a page of only entities of a specific type.
+ * Jakarta Persistence Criteria API objects to build the query with. For example, to get a page of only entities of a specific type.
  * <pre>
  * &#64;Stateless
  * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
@@ -318,7 +318,7 @@ import org.primefaces.model.Visibility;
  * Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
  * <p>
  * Those <code>searchNameStartsWith</code>, <code>searchStartDate</code> and <code>searchTypes</code> in the above
- * example can in turn be supplied via JSF input components in the same form the usual way. For example:
+ * example can in turn be supplied via Jakarta Faces input components in the same form the usual way. For example:
  * <pre>
  * &lt;o:importConstants type="com.example.model.Type" /&gt;
  *
@@ -626,10 +626,10 @@ import org.primefaces.model.Visibility;
  * <code>&lt;op:dataTable&gt;</code> makes use of PrimeFaces Selectors (PFS) to find components which need to be updated
  * during those events. Below is an overview of all PFS classes recognized by <code>&lt;op:dataTable&gt;</code>.
  * <ul>
- * <li><code>updateOnDataTablePage</code>: any JSF component with this style class will be updated on paging
- * <li><code>updateOnDataTableSort</code>: any JSF component with this style class will be updated on sorting
- * <li><code>updateOnDataTableFilter</code>: any JSF component with this style class will be updated on filtering/searching
- * <li><code>updateOnDataTableSelect</code>: any JSF component with this style class will be updated on selection
+ * <li><code>updateOnDataTablePage</code>: any Jakarta Faces component with this style class will be updated on paging
+ * <li><code>updateOnDataTableSort</code>: any Jakarta Faces component with this style class will be updated on sorting
+ * <li><code>updateOnDataTableFilter</code>: any Jakarta Faces component with this style class will be updated on filtering/searching
+ * <li><code>updateOnDataTableSelect</code>: any Jakarta Faces component with this style class will be updated on selection
  * </ul>
  *
  *
