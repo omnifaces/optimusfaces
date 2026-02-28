@@ -89,7 +89,7 @@ public class YourEntity extends BaseEntity<Long> {
 }
 ```
 
-Then create a `org.omnifaces.optimusfaces.model.PagedDataModel` in your backing bean as below.
+Then create a [`org.omnifaces.optimusfaces.model.PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) in your backing bean as below.
 
 ```Java
 @Named
@@ -177,7 +177,7 @@ Here's how it looks like with default PrimeFaces 15 UI and all. This example use
 </op:dataTable>
 ```
 
-**DTO projections** are also supported by providing an additional `Class<DTO> resultType` and a `QueryBuilder` mapping to the `getPage()` overload in `BaseEntityService`. See `PagedDataModel` javadoc for the full DTO example.
+**DTO projections** are also supported by providing an additional `Class<DTO> resultType` and a `QueryBuilder` mapping to the `getPage()` overload in `BaseEntityService`. See [`PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) javadoc for the full DTO example.
 
 
 ### Non-lazy model
@@ -280,7 +280,8 @@ The default `<ui:insert>` in `<op:dataTable>` passes content directly into the u
 
 ```XML
 <op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}">
-    <f:attribute name="rowStyleClass" value="#{item.deleted ? 'ui-state-error' : null}" />
+    <f:attribute name="draggableRows" value="true" />
+    <p:ajax event="rowReorder" listener="#{yourBackingBean.saveRowOrder}" />
     <op:column field="id" />
     ...
 </op:dataTable>
@@ -387,7 +388,7 @@ For example, to keep a summary panel in sync with the current filter state:
 
 ### Integration Tests
 
-The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions):
+The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions/workflows/maven.yml):
 - WildFly Preview 39.0.1 with Mojarra 4.1.5 and Hibernate 7.1.11
 - GlassFish 8.0.0 with Mojarra 4.1.6 and EclipseLink 5.0.0-B13
 - TomEE 10.1.4 with MyFaces 4.0.3 and OpenJPA 4.1.1
