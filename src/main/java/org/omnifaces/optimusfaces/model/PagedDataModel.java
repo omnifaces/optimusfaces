@@ -207,10 +207,10 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <pre>
  * &#64;Stateless
- * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
+ * public class YourEntityService extends BaseEntityService&lt;Long, YourEntity&gt; {
  *
- *     public void getPageOfYourEntityDTO(Page page, boolean count) {
- *         return getPage(page, count, YourEntityDTO.class (criteriaBuilder, query, root) -&gt; {
+ *     public PartialResultList&lt;YourEntityDTO&gt; getPageOfYourEntityDTO(Page page, boolean count) {
+ *         return getPage(page, count, YourEntityDTO.class, (criteriaBuilder, query, root) -&gt; {
  *             Join&lt;YourEntityDTO, YourChildEntity&gt; child = root.join("child");
  *
  *             LinkedHashMap&lt;Getter&lt;YourEntityDTO&gt;, Expression&lt;?&gt;&gt; mapping = new LinkedHashMap&lt;&gt;();
@@ -237,9 +237,9 @@ import org.primefaces.model.Visibility;
  * &#64;Stateless
  * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
  *
- *     public void getPageOfFooType(Page page, boolean count) {
+ *     public PartialResultList&lt;YourEntity&gt; getPageOfFooType(Page page, boolean count) {
  *         return getPage(page, count, (criteriaBuilder, criteriaQuery, root) -&gt; {
- *             criteriaQuery.where(criteriaBuilder.equals(root.get("type"), Type.FOO));
+ *             criteriaQuery.where(criteriaBuilder.equal(root.get("type"), Type.FOO));
  *         });
  *     }
  *
@@ -392,6 +392,45 @@ import org.primefaces.model.Visibility;
  * <pre>
  * &lt;op:column ... iterable="true" /&gt;
  * </pre>
+ * <p>
+ * You can override the <code>value</code> attribute to display a derived or formatted value while keeping
+ * <code>field</code> for sorting and filtering. A typical case is an enum with a human-readable label property.
+ * <pre>
+ * &lt;op:column field="gender" value="#{item.gender.label}" /&gt;
+ * &lt;op:column field="status" value="#{item.status.label}" head="Status" /&gt;
+ * </pre>
+ * <p>
+ * The default body of <code>&lt;op:column&gt;</code> is a <code>&lt;h:outputText&gt;</code>. Any child content not
+ * wrapped in <code>&lt;ui:define&gt;</code> is placed directly inside that <code>&lt;h:outputText&gt;</code>, allowing
+ * converters to be attached without overriding the cell layout.
+ * <pre>
+ * &lt;op:column field="price"&gt;
+ *     &lt;f:convertNumber type="currency" currencySymbol="$" /&gt;
+ * &lt;/op:column&gt;
+ *
+ * &lt;op:column field="created"&gt;
+ *     &lt;f:convertDateTime type="localDate" pattern="yyyy-MM-dd" /&gt;
+ * &lt;/op:column&gt;
+ * </pre>
+ * <p>
+ * For fully custom cell content, use <code>&lt;ui:define name="cell"&gt;</code>. The <code>exportValue</code>
+ * attribute controls what is written to the export file independently of the custom rendering, since the export
+ * path always uses a separate <code>&lt;h:outputText&gt;</code> with <code>exportValue</code>.
+ * <pre>
+ * &lt;op:column field="name"&gt;
+ *     &lt;ui:define name="cell"&gt;
+ *         &lt;h:link value="#{item.name}" outcome="detail"&gt;
+ *             &lt;f:param name="id" value="#{item.id}" /&gt;
+ *         &lt;/h:link&gt;
+ *     &lt;/ui:define&gt;
+ * &lt;/op:column&gt;
+ *
+ * &lt;op:column field="status" exportValue="#{item.status.label}"&gt;
+ *     &lt;ui:define name="cell"&gt;
+ *         &lt;h:graphicImage value="/images/#{item.status}.png" title="#{item.status.label}" /&gt;
+ *     &lt;/ui:define&gt;
+ * &lt;/op:column&gt;
+ * </pre>
  *
  *
  * <h2 id="pagination"><a href="#pagination">Pagination</a></h2>
@@ -476,7 +515,7 @@ import org.primefaces.model.Visibility;
  * &lt;op:column ... filterable="false" /&gt;
  * </pre>
  * <p>
- * Or if you want to make all columns non-sortable, then set <code>filterable</code> attribute of
+ * Or if you want to make all columns non-filterable, then set <code>filterable</code> attribute of
  * <code>&lt;op:dataTable&gt;</code> to <code>false</code>.
  * <pre>
  * &lt;op:dataTable ... filterable="false" /&gt;
@@ -694,11 +733,13 @@ import org.primefaces.model.Visibility;
  * <h2 id="adding-buttons"><a href="#adding-buttons">Adding custom action buttons</a></h2>
  * <p>
  * When you want more buttons in the <code>.ui-datatable-actions</code> div, then you can use <code>&lt;ui:define name="actions"&gt;</code>
- * for this.
+ * for this. Note that the actions toolbar is only rendered when at least one of <code>searchable</code>,
+ * <code>exportable</code> or <code>actionable</code> is <code>true</code>. Use <code>actionable="true"</code> when you
+ * need the toolbar purely for custom buttons.
  * <pre>
- * &lt;op:dataTable ...&gt;
+ * &lt;op:dataTable ... actionable="true"&gt;
  *     &lt;ui:define name="actions"&gt;
- *         &lt;p:commandButton ... /&gt;
+ *         &lt;p:commandButton value="New" action="#{bean.create}" icon="pi pi-plus" /&gt;
  *     &lt;/ui:define&gt;
  *     ...
  * &lt;/op:dataTable&gt;

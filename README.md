@@ -47,7 +47,16 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
 
 **Minimum supported Java / OmniFaces / PrimeFaces versions**
 
-Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
+Java EE (javax) namespace:
+- 0.1 - 0.12: Java 8 / OmniFaces 2.2 / PrimeFaces 5.2
+- 0.13 - 0.15: Java 8 / OmniFaces 2.2 / PrimeFaces 7.0
+- 0.16: Java 8 / OmniFaces 3.0 / PrimeFaces 10.0.0
+
+Jakarta EE (jakarta) namespace:
+- 0.14.J1 - 0.16.J1: Java 11 / OmniFaces 4.0 / PrimeFaces 10.0.0:jakarta
+- 0.17.J1 - 0.20.J1: Java 17 / OmniFaces 4.0 / PrimeFaces 13.0.0:jakarta
+- 0.21.J1 - 0.22.J1: Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
+- 1.0: Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
 
 
 ### Basic Usage
@@ -132,9 +141,243 @@ Here's how it looks like with default PrimeFaces 15 UI and all. This example use
 ![example of op:dataTable](https://github.com/user-attachments/assets/682ad9d2-4458-4b4f-a866-5e3571394663)
 
 
-### Advanced Usage
+### Relationships
 
-[Check `PagedDataModel` javadoc](http://static.javadoc.io/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html).
+`<op:dataTable>` supports `@OneToOne`, `@ManyToOne`, `@OneToMany` and `@ElementCollection` relationships. The `field` attribute of `<op:column>` takes a dot-notation path, just as you would in EL.
+
+**`@OneToOne` / `@ManyToOne`** — given an `Invoice` with `@OneToOne Order order`, `@ManyToOne User seller` and `@ManyToOne User buyer` on the `Order`:
+
+```XML
+<op:dataTable id="invoicesTable" value="#{shop.invoices}">
+    <op:column field="id" />
+    <op:column field="seller.name" />
+    <op:column field="order.buyer.name" />
+    <op:column field="order.totalPrice" />
+</op:dataTable>
+```
+
+**`@OneToMany`** — given an `Order` with `@OneToMany List<Product> products`. Each element is automatically rendered on a separate line:
+
+```XML
+<op:dataTable id="ordersTable" value="#{shop.orders}">
+    <op:column field="id" />
+    <op:column field="buyer.name" />
+    <op:column field="products.name" />
+    <op:column field="products.price" />
+</op:dataTable>
+```
+
+**`@ElementCollection`** — given a `Product` with `@ElementCollection List<Tag> tags`. Note: sorting on `@ElementCollection` fields is not supported in lazy models.
+
+```XML
+<op:dataTable id="productsTable" value="#{shop.products}">
+    <op:column field="id" />
+    <op:column field="name" />
+    <op:column field="tags" sortable="false" />
+</op:dataTable>
+```
+
+**DTO projections** are also supported by providing an additional `Class<DTO> resultType` and a `QueryBuilder` mapping to the `getPage()` overload in `BaseEntityService`. See `PagedDataModel` javadoc for the full DTO example.
+
+
+### Non-lazy model
+
+For a static in-memory list, use `PagedDataModel.nonLazy(list)`. Unlike the lazy model, entities only need to implement `Identifiable` (not `BaseEntity`), making it convenient for DTOs.
+
+```Java
+@PostConstruct
+public void init() {
+    List<YourEntity> list = createItSomehow();
+    model = PagedDataModel.nonLazy(list).build();
+}
+```
+
+
+### Providing criteria in the backend
+
+To apply fixed query constraints at the service level, create a custom `getPageXxx()` method using the `QueryBuilder` overload of `getPage()`, then wire it up via `PagedDataModel.lazy(service::getPageXxx)`.
+
+```Java
+@Stateless
+public class YourEntityService extends BaseEntityService<Long, YourEntity> {
+
+    public PartialResultList<YourEntity> getPageOfFooType(Page page, boolean count) {
+        return getPage(page, count, (criteriaBuilder, criteriaQuery, root) -> {
+            criteriaQuery.where(criteriaBuilder.equal(root.get("type"), Type.FOO));
+        });
+    }
+
+}
+```
+
+```Java
+@PostConstruct
+public void init() {
+    model = PagedDataModel.lazy(service::getPageOfFooType).build();
+}
+```
+
+
+### Providing criteria in the frontend
+
+To drive filtering from a separate form in the same view, pass a `Map<Getter<E>, Object>` supplier to `.criteria()`. The supplier is called on every page load so changes to the backing bean fields are picked up automatically.
+
+```Java
+@PostConstruct
+public void init() {
+    model = PagedDataModel.lazy(service).criteria(this::getCriteria).build();
+}
+
+private Map<Getter<YourEntity>, Object> getCriteria() {
+    Map<Getter<YourEntity>, Object> criteria = new HashMap<>();
+    criteria.put(YourEntity::getName, Like.startsWith(searchName));
+    criteria.put(YourEntity::getCreated, Order.greaterThanOrEqualTo(searchStartDate));
+    criteria.put(YourEntity::getType, searchTypes);
+    criteria.put(YourEntity::isDeleted, false);
+    return criteria;
+}
+```
+
+Available `Criteria` wrappers: `Like`, `Not`, `Between`, `Order`, `Enumerated`, `Numeric`, `Bool`, `IgnoreCase`. A `null` value produces `IS NULL`; use `Not(null)` for `IS NOT NULL`; omit the key entirely to skip the criterion.
+
+
+### `<op:dataTable>` attributes
+
+| Attribute | Default | Description |
+|---|---|---|
+| `id` | | ID of the underlying `<p:dataTable>` and its `widgetVar`. |
+| `value` | | The `PagedDataModel` instance from the backing bean. |
+| `styleClass` | | Additional CSS class on the `<p:dataTable>`. |
+| `responsive` | `true` | Enables PrimeFaces reflow/responsive mode. |
+| `rendered` | `true` | |
+| `updateQueryString` | `true` | Reflects paging, sorting, filtering and selection state in the browser URL as query parameters, making the table state bookmarkable. |
+| `queryParameterPrefix` | | Prefix for all query parameters; useful when multiple tables share a page to avoid parameter name collisions. |
+| `sortable` | `true` | Enables sorting on all columns; can be overridden per column via `<op:column sortable="false">`. |
+| `filterable` | `true` | Enables filtering on all columns; can be overridden per column via `<op:column filterable="false">`. |
+| `paginable` | `true` | Enables the paginator. |
+| `rows` | `10` | Rows per page. |
+| `rowsPerPage` | `10,25,50` | Comma-separated rows-per-page options shown in the paginator. |
+| `paginatorTemplate` | `{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}` | PrimeFaces paginator template. |
+| `currentPageReportPrefix` | `Showing` | |
+| `currentPageReportTemplate` | `{startRecord} - {endRecord} of {totalRecords}` | |
+| `currentPageReportSuffix` | `records` | |
+| `searchable` | `false` | Adds a global search bar to the table header that searches across all filterable columns. |
+| `searchPlaceholder` | `Search…` | |
+| `searchButtonLabel` | `Search` | |
+| `exportable` | `false` | Adds a column toggler and a CSV export split-button to the table header. |
+| `columnTogglerButtonLabel` | `Columns` | |
+| `exportType` | `csv` | PrimeFaces DataExporter type (`csv`, `pdf`, `xlsx`, …). |
+| `exportButtonLabel` | `CSV` | |
+| `exportVisibleColumnsButtonLabel` | `Visible Columns` | |
+| `exportAllColumnsButtonLabel` | `All Columns` | |
+| `exportFilename` | `<id>-<timestamp>` | Export file name without extension. |
+| `exportPreProcessorMethod` | | Method expression called before export, e.g. `#{bean.onBeforeExport}`. |
+| `exportPostProcessorMethod` | | Method expression called after export, e.g. `#{bean.onAfterExport}`. |
+| `selectable` | `false` | Enables multi-row selection; selected rows are available as `model.selection`. |
+| `actionable` | `false` | Enables the header actions toolbar without requiring `searchable` or `exportable`. |
+
+The default `<ui:insert>` in `<op:dataTable>` passes content directly into the underlying `<p:dataTable>` body. Use this to attach `<f:attribute>` tags or `<p:ajax>` listeners to the underlying `<p:dataTable>`:
+
+```XML
+<op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}">
+    <f:attribute name="rowStyleClass" value="#{item.deleted ? 'ui-state-error' : null}" />
+    <op:column field="id" />
+    ...
+</op:dataTable>
+```
+
+When `searchable`, `exportable` or `actionable` is enabled, a `<ui:insert name="actions">` slot is available inside the header toolbar for custom buttons:
+
+```XML
+<op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}" actionable="true">
+    <ui:define name="actions">
+        <p:commandButton value="New" action="#{yourBackingBean.create}" icon="pi pi-plus" />
+    </ui:define>
+    <op:column field="id" />
+    ...
+</op:dataTable>
+```
+
+
+### `<op:column>` attributes
+
+| Attribute | Default | Description |
+|---|---|---|
+| `field` | | Entity property path; supports dot-notation for nested paths, e.g. `address.street`. |
+| `head` | field name | Column header text. |
+| `value` | `#{item[field]}` | Cell value expression; override to compute or format, e.g. `value="#{item.firstName} #{item.lastName}"`. |
+| `tooltip` | | `title` attribute on the cell wrapper `<span>`. |
+| `styleClass` | | |
+| `rendered` | `true` | |
+| `visible` | `true` | Initial column visibility; user can toggle via the column toggler when `exportable="true"` on the table. |
+| `responsivePriority` | `0` | PrimeFaces responsive priority; higher values are hidden sooner on narrow screens. |
+| `width` | | Column width, e.g. `100px` or `10%`. |
+| `iterable` | auto | When `true`, collection values are rendered one item per line. Auto-detected from the value type. |
+| `emptyValue` | | Text rendered when the value is `null` or empty. |
+| `sortable` | inherits | Overrides the table-level `sortable` setting for this column. |
+| `sortDescending` | `false` | Sets the initial sort direction to descending for this column. |
+| `filterable` | inherits | Overrides the table-level `filterable` setting for this column. |
+| `filterMode` | `contains` | Filter match mode: `startsWith`, `endsWith`, `contains`, `exact`. |
+| `filterOptions` | | When set, renders a `<p:selectOneMenu>` dropdown filter instead of a text input. Accepts a `List` or `Map` of options. |
+| `exportable` | `true` | Whether this column is included in exports. |
+| `exportValue` | same as `value` | Value used during export, e.g. to strip HTML markup from CSV output. |
+
+The `value` attribute overrides what is displayed in the cell while `field` still drives sorting and filtering. This is the right approach for e.g. an enum with a human-readable `label` property:
+
+```XML
+<op:column field="gender" value="#{item.gender.label}" />
+<op:column field="status" value="#{item.status.label}" head="Status" />
+```
+
+The default `<ui:insert>` in `<op:column>` is nested directly inside the cell's `<h:outputText>`, so converters can be attached without overriding the cell layout:
+
+```XML
+<op:column field="price">
+    <f:convertNumber type="currency" currencySymbol="$" />
+</op:column>
+
+<op:column field="created">
+    <f:convertDateTime type="localDate" pattern="yyyy-MM-dd" />
+</op:column>
+```
+
+For fully custom cell content, use `<ui:define name="cell">`. The `exportValue` attribute controls what is written to the export file independently of the custom cell rendering:
+
+```XML
+<op:column field="name">
+    <ui:define name="cell">
+        <h:link value="#{item.name}" outcome="detail">
+            <f:param name="id" value="#{item.id}" />
+        </h:link>
+    </ui:define>
+</op:column>
+
+<op:column field="status" exportValue="#{item.status.label}">
+    <ui:define name="cell">
+        <h:graphicImage value="/images/#{item.status}.png" title="#{item.status.label}" />
+    </ui:define>
+</op:column>
+```
+
+
+### Ajax events
+
+On every paging, sorting, filtering, searching and selection action an Ajax event fires. `<op:dataTable>` uses PrimeFaces Selectors (PFS) to auto-update any component carrying the matching style class:
+
+| Style class | Updated on |
+|---|---|
+| `updateOnDataTablePage` | paging |
+| `updateOnDataTableSort` | sorting |
+| `updateOnDataTableFilter` | filtering / searching |
+| `updateOnDataTableSelect` | row selection |
+
+For example, to keep a summary panel in sync with the current filter state:
+
+```XML
+<p:outputPanel styleClass="updateOnDataTableFilter">
+    ...
+</p:outputPanel>
+```
 
 
 ### Known Issues
