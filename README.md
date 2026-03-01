@@ -40,7 +40,7 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>1.0</version>
+        <version>1.1-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```
