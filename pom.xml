@@ -8,7 +8,7 @@
 
 	<groupId>org.omnifaces</groupId>
 	<artifactId>optimusfaces</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 	<packaging>jar</packaging>
 
     <name>OptimusFaces</name>
@@ -59,7 +59,7 @@
         <!-- Minimum required versions. -->
         <javase.version>17</javase.version>
         <jakartaee.version>10</jakartaee.version>
-        <omnipersistence.version>1.0-M3</omnipersistence.version>
+        <omnipersistence.version>1.0</omnipersistence.version>
 
         <!-- Essential Maven defaults. -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
