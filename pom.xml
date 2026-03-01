@@ -645,24 +645,6 @@
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>configure-glassfish-console-logging</id>
-                                <phase>pre-integration-test</phase>
-                                <goals><goal>run</goal></goals>
-                                <configuration>
-                                    <target>
-                                        <echo file="${project.build.directory}/glassfish8/glassfish/domains/domain1/config/logging.properties" append="true">
-                                            org.glassfish.main.jul.handler.GlassFishLogHandler.redirectStandardStreams=false
-                                        </echo>
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
