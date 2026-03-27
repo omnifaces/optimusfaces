@@ -6,10 +6,10 @@
 >
     <modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.omnifaces</groupId>
-	<artifactId>optimusfaces</artifactId>
-	<version>1.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+    <groupId>org.omnifaces</groupId>
+    <artifactId>optimusfaces</artifactId>
+    <version>1.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <name>OptimusFaces</name>
     <description>Utility library for OmniFaces + PrimeFaces combined</description>
@@ -372,7 +372,7 @@
                     <skipTests>${skipUTs}</skipTests>
                 </configuration>
             </plugin>
-    
+
             <!-- Configure the integration tests (*IT.java). -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

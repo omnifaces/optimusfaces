@@ -19,23 +19,20 @@ import org.primefaces.component.datatable.DataTable;
 
 /**
  * <p>
- * Infrastructure extension of the PrimeFaces {@link DataTable} component, registered as the default
- * <code>&lt;p:dataTable&gt;</code> renderer via the bundled <code>faces-config.xml</code>. Users do not
- * need reference or configure this class directly.
+ * Infrastructure extension of the PrimeFaces {@link DataTable} component, registered as the default <code>&lt;p:dataTable&gt;</code> renderer via the bundled
+ * <code>faces-config.xml</code>. Users do not need reference or configure this class directly.
  *
  * <h2>Why this extension is necessary</h2>
  * <p>
- * PrimeFaces {@link DataTable} calls the <code>decode</code> lifecycle phase on the data table <em>before</em> invoking the
- * lazy model's {@link LazyPagedDataModel#load} method. For <code>@ViewScoped</code> backing beans this is not
- * a problem because the bean instance, and with it the model and its wrapped data, is kept alive in the view map
- * between requests, tracked by identifiers in the Faces view state.
- * However, for <strong>request-scoped beans</strong> and <strong>stateless views</strong>
- * (<code>&lt;f:view transient="true"&gt;</code>), which disable Faces state saving and therefore inherently break
- * <code>@ViewScoped</code>, the model is brand new on every postback and its wrapped data is <code>null</code>
- * at the point decode runs, causing selection, pagination and other postback actions to silently fail.
+ * PrimeFaces {@link DataTable} calls the <code>decode</code> lifecycle phase on the data table <em>before</em> invoking the lazy model's
+ * {@link LazyPagedDataModel#load} method. For <code>@ViewScoped</code> backing beans this is not a problem because the bean instance, and with it the model and
+ * its wrapped data, is kept alive in the view map between requests, tracked by identifiers in the Faces view state. However, for <strong>request-scoped
+ * beans</strong> and <strong>stateless views</strong> (<code>&lt;f:view transient="true"&gt;</code>), which disable Faces state saving and therefore inherently
+ * break <code>@ViewScoped</code>, the model is brand new on every postback and its wrapped data is <code>null</code> at the point decode runs, causing
+ * selection, pagination and other postback actions to silently fail.
  * <p>
- * {@link #preDecode} detects this situation and calls {@link LazyPagedDataModel#preloadPage} to populate the
- * model from the data store before decode proceeds, restoring correct postback behaviour for those bean scopes.
+ * {@link #preDecode} detects this situation and calls {@link LazyPagedDataModel#preloadPage} to populate the model from the data store before decode proceeds,
+ * restoring correct postback behaviour for those bean scopes.
  *
  * @see LazyPagedDataModel#preloadPage
  * @author Bauke Scholtz
@@ -44,9 +41,9 @@ import org.primefaces.component.datatable.DataTable;
 public class ExtendedDataTable extends DataTable {
 
     /**
-     * Preloads the lazy model's first page before PrimeFaces {@link DataTable} runs decode, when the model has no wrapped data
-     * yet. This happens on postbacks against request-scoped beans or stateless views whose model is constructed
-     * fresh on every request and therefore arrives at decode empty.
+     * Preloads the lazy model's first page before PrimeFaces {@link DataTable} runs decode, when the model has no wrapped data yet. This happens on postbacks
+     * against request-scoped beans or stateless views whose model is constructed fresh on every request and therefore arrives at decode empty.
+     * 
      * @param context The current {@link FacesContext}.
      */
     @Override

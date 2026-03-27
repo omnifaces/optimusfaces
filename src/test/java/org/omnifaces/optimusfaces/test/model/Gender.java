@@ -14,9 +14,6 @@ package org.omnifaces.optimusfaces.test.model;
 
 public enum Gender {
 
-    MALE,
-    FEMALE,
-    TRANS,
-    OTHER;
+    MALE, FEMALE, TRANS, OTHER;
 
 }

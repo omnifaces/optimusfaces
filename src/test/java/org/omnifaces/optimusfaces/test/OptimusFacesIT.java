@@ -122,7 +122,12 @@ public abstract class OptimusFacesIT {
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsLibrary(new File(getProperty("optimusfaces.jar")))
             .addAsLibraries(maven.loadPomFromFile("pom.xml").importCompileAndRuntimeDependencies().resolve().withTransitivity().asFile())
-            .addAsLibraries(maven.resolve("org.omnifaces:omnifaces:" + getProperty("test.omnifaces.version"), "org.primefaces:primefaces:jar:jakarta:" + getProperty("test.primefaces.version")).withTransitivity().asFile());
+            .addAsLibraries(
+                maven.resolve(
+                    "org.omnifaces:omnifaces:" + getProperty("test.omnifaces.version"),
+                    "org.primefaces:primefaces:jar:jakarta:" + getProperty("test.primefaces.version")
+                ).withTransitivity().asFile()
+            );
 
         addDataSourceConfig(database, archive);
         addPersistenceConfig(archive);
@@ -166,30 +171,34 @@ public abstract class OptimusFacesIT {
 
         @Override
         public void beforeEach(ExtensionContext context) throws Exception {
-            System.out.println(""
+            System.out.println(
+                ""
                     + "\n"
                     + "\n    ============================================================================================="
                     + "\n    Starting " + context.getTestMethod().get().getName() + " ..."
                     + "\n    ============================================================================================="
                     + "\n"
-                );
+            );
         }
 
         @Override
         public void afterEach(ExtensionContext context) throws Exception {
-            System.out.println(""
+            System.out.println(
+                ""
                     + "\n    ============================================================================================="
                     + "\n    " + context.getTestMethod().get().getName() + " finished!"
                     + "\n    ============================================================================================="
                     + "\n"
                     + "\n"
-                );
+            );
         }
+
     }
 
     @BeforeEach
     public void init() {
-        Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(OFF); // MyFaces triggers for some reason a lot of awkward JS "illegal selector" and CSS "em has to be a px" warnings.
+        Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(OFF); // MyFaces triggers for some reason a lot of awkward JS "illegal selector" and CSS "em
+                                                                         // has to be a px" warnings.
     }
 
     protected void open(String type) {
@@ -281,156 +290,154 @@ public abstract class OptimusFacesIT {
         return browser.getCurrentUrl().contains("OptimusFacesITLazy");
     }
 
-
     // Elements -------------------------------------------------------------------------------------------------------
 
-    @FindBy(id="form")
+    @FindBy(id = "form")
     private WebElement form;
 
-    @FindBy(id="form:table")
+    @FindBy(id = "form:table")
     private WebElement table;
 
-    @FindBy(id="form:table:id")
+    @FindBy(id = "form:table:id")
     private WebElement idColumn;
 
-    @FindBy(id="form:table:email")
+    @FindBy(id = "form:table:email")
     private WebElement emailColumn;
 
-    @FindBy(id="form:table:gender")
+    @FindBy(id = "form:table:gender")
     private WebElement genderColumn;
 
-    @FindBy(id="form:table:dateOfBirth")
+    @FindBy(id = "form:table:dateOfBirth")
     private WebElement dateOfBirthColumn;
 
-    @FindBy(id="form:table:address_houseNumber")
+    @FindBy(id = "form:table:address_houseNumber")
     private WebElement address_houseNumberColumn;
 
-    @FindBy(id="form:table:address_string")
+    @FindBy(id = "form:table:address_string")
     private WebElement address_stringColumn;
 
-    @FindBy(id="form:table:addressString")
+    @FindBy(id = "form:table:addressString")
     private WebElement addressStringColumn;
 
-    @FindBy(id="form:table:totalPhones")
+    @FindBy(id = "form:table:totalPhones")
     private WebElement totalPhonesColumn;
 
-    @FindBy(id="form:table:phones_type")
+    @FindBy(id = "form:table:phones_type")
     private WebElement phones_typeColumn;
 
-    @FindBy(id="form:table:phones_number")
+    @FindBy(id = "form:table:phones_number")
     private WebElement phones_numberColumn;
 
-    @FindBy(id="form:table:groups")
+    @FindBy(id = "form:table:groups")
     private WebElement groupsColumn;
 
-    @FindBy(css="#form\\:table th.ui-state-active")
+    @FindBy(css = "#form\\:table th.ui-state-active")
     private WebElement activeColumn;
 
-    @FindBy(id="form:table:filter")
+    @FindBy(id = "form:table:filter")
     private WebElement globalFilter;
 
-    @FindBy(id="form:table:search")
+    @FindBy(id = "form:table:search")
     private WebElement globalFilterButton;
 
-    @FindBy(id="form:table:id:filter")
+    @FindBy(id = "form:table:id:filter")
     private WebElement idColumnFilter;
 
-    @FindBy(id="form:table:email:filter")
+    @FindBy(id = "form:table:email:filter")
     private WebElement emailColumnFilter;
 
-    @FindBy(id="form:table:gender:filter")
+    @FindBy(id = "form:table:gender:filter")
     private WebElement genderColumnFilter;
 
-    @FindBy(id="form:table:genderFilter")
+    @FindBy(id = "form:table:genderFilter")
     private WebElement genderColumnDropdownFilter;
 
-    @FindBy(id="form:table:dateOfBirth:filter")
+    @FindBy(id = "form:table:dateOfBirth:filter")
     private WebElement dateOfBirthColumnFilter;
 
-    @FindBy(id="form:table:address_houseNumber:filter")
+    @FindBy(id = "form:table:address_houseNumber:filter")
     private WebElement address_houseNumberColumnFilter;
 
-    @FindBy(id="form:table:address_string:filter")
+    @FindBy(id = "form:table:address_string:filter")
     private WebElement address_stringColumnFilter;
 
-    @FindBy(id="form:table:addressString:filter")
+    @FindBy(id = "form:table:addressString:filter")
     private WebElement addressStringColumnFilter;
 
-    @FindBy(id="form:table:totalPhones:filter")
+    @FindBy(id = "form:table:totalPhones:filter")
     private WebElement totalPhonesColumnFilter;
 
-    @FindBy(id="form:table:phones_number:filter")
+    @FindBy(id = "form:table:phones_number:filter")
     private WebElement phones_numberColumnFilter;
 
-    @FindBy(css="#form\\:table_data tr")
+    @FindBy(css = "#form\\:table_data tr")
     private List<WebElement> rows;
 
-    @FindBy(css="#form\\:table_data tr:nth-child(5) td:first-child")
+    @FindBy(css = "#form\\:table_data tr:nth-child(5) td:first-child")
     private WebElement fifthRow;
 
-    @FindBy(css="#form\\:table_data tr.ui-state-highlight")
+    @FindBy(css = "#form\\:table_data tr.ui-state-highlight")
     private WebElement selectedRow;
 
-    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-current")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-current")
     private WebElement pageReport;
 
-    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-first")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-first")
     private WebElement pageFirst;
 
-    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-prev")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-prev")
     private WebElement pagePrevious;
 
-    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-page")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-page")
     private List<WebElement> pages;
 
-    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-page.ui-state-active")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-page.ui-state-active")
     private WebElement pageCurrent;
 
-    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-next")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-next")
     private WebElement pageNext;
 
-    @FindBy(css="#form\\:table_paginator_bottom .ui-paginator-last")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-last")
     private WebElement pageLast;
 
-    @FindBy(id="form:criteria:0")
+    @FindBy(id = "form:criteria:0")
     private WebElement criteriaIdBetween50And150;
 
-    @FindBy(id="form:criteria:1")
+    @FindBy(id = "form:criteria:1")
     private WebElement criteriaEmailLikeName1;
 
-    @FindBy(id="form:criteria:2")
+    @FindBy(id = "form:criteria:2")
     private WebElement criteriaGenderIsFemale;
 
-    @FindBy(id="form:criteria:3")
+    @FindBy(id = "form:criteria:3")
     private WebElement criteriaDateOfBirthBefore1950;
 
-    @FindBy(id="form:phoneTypes:0")
+    @FindBy(id = "form:phoneTypes:0")
     private WebElement criteriaPhoneTypeMOBILE;
 
-    @FindBy(id="form:phoneTypes:1")
+    @FindBy(id = "form:phoneTypes:1")
     private WebElement criteriaPhoneTypeHOME;
 
-    @FindBy(id="form:phoneTypes:2")
+    @FindBy(id = "form:phoneTypes:2")
     private WebElement criteriaPhoneTypeWORK;
 
-    @FindBy(id="form:groups:0")
+    @FindBy(id = "form:groups:0")
     private WebElement criteriaGroupUSER;
 
-    @FindBy(id="form:groups:1")
+    @FindBy(id = "form:groups:1")
     private WebElement criteriaGroupMANAGER;
 
-    @FindBy(id="form:groups:2")
+    @FindBy(id = "form:groups:2")
     private WebElement criteriaGroupADMINISTRATOR;
 
-    @FindBy(id="form:groups:3")
+    @FindBy(id = "form:groups:3")
     private WebElement criteriaGroupDEVELOPER;
 
-    @FindBy(id="rowCount")
+    @FindBy(id = "rowCount")
     private WebElement rowCount;
 
-    @FindBy(id="selection")
+    @FindBy(id = "selection")
     private WebElement selection;
-
 
     // Tests ----------------------------------------------------------------------------------------------------------
 
@@ -617,7 +624,6 @@ public abstract class OptimusFacesIT {
         open("NonLazyWithManyToOne");
         testManyToOne();
     }
-
 
     // Testers --------------------------------------------------------------------------------------------------------
 
@@ -924,7 +930,9 @@ public abstract class OptimusFacesIT {
     }
 
     private void setPrimeFacesSelectOneMenuValue(WebElement selectOneMenu, Serializable value) {
-        executeScript("const menu = PrimeFaces.getWidgetById('" + selectOneMenu.getAttribute("id") + "'); menu.selectValue('" + value + "'); menu.triggerChange();");
+        executeScript(
+            "const menu = PrimeFaces.getWidgetById('" + selectOneMenu.getAttribute("id") + "'); menu.selectValue('" + value + "'); menu.triggerChange();"
+        );
     }
 
     protected void testDTO() {
@@ -973,10 +981,14 @@ public abstract class OptimusFacesIT {
         var hibernatePostgreSQL = isHibernate() && isPostgreSQL();
 
         if (hibernatePostgreSQL) {
-            // Hibernate properly generates ORDER BY on the @Formula expression, but PostgreSQL's glibc en_US.UTF-8 collation (strcoll) treats space differently from Java's ICU4J Collator.
-            // Space sorts between '1' and '2' in glibc but before '0' in ICU4J, so PostgreSQL gives 'Street110, Street111, Street11, Street112' while both Java comparators give 'Street11, Street110, Street111, Street112'.
-            // EclipseLink and OpenJPA are unaffected because they do not support @Formula and return records in default insertion order, which happens to coincide with Java's natural ordering for this test data.
-            System.out.println("SKIPPING assertSortedState(address.string) for Hibernate+PostgreSQL due to glibc vs ICU4J space-character collation difference.");
+            // Hibernate properly generates ORDER BY on the @Formula expression, but PostgreSQL's glibc en_US.UTF-8 collation (strcoll) treats space differently
+            // from Java's ICU4J Collator.
+            // Space sorts between '1' and '2' in glibc but before '0' in ICU4J, so PostgreSQL gives 'Street110, Street111, Street11, Street112' while both Java
+            // comparators give 'Street11, Street110, Street111, Street112'.
+            // EclipseLink and OpenJPA are unaffected because they do not support @Formula and return records in default insertion order, which happens to
+            // coincide with Java's natural ordering for this test data.
+            System.out
+                .println("SKIPPING assertSortedState(address.string) for Hibernate+PostgreSQL due to glibc vs ICU4J space-character collation difference.");
         }
         else {
             assertSortedState(address_stringColumn, true);
@@ -994,7 +1006,9 @@ public abstract class OptimusFacesIT {
         assertNoCartesianProduct();
 
         if (isOpenJPA() || isEclipseLink()) {
-            System.out.println("SKIPPING assertFilteredState(address.string) for OpenJPA and EclipseLink because it doesn't support derived properties like Hibernate @Formula; the intended test is however already covered by testDTO().");
+            System.out.println(
+                "SKIPPING assertFilteredState(address.string) for OpenJPA and EclipseLink because it doesn't support derived properties like Hibernate @Formula; the intended test is however already covered by testDTO()."
+            );
         }
         else {
             guardPrimeFacesAjax(() -> address_stringColumnFilter.sendKeys("11"));
@@ -1047,7 +1061,8 @@ public abstract class OptimusFacesIT {
         assertSortedState(phones_numberColumn, true);
         assertNoCartesianProduct();
 
-        var skipAssertRowCount = isOpenJPA() && isLazy(); // OpenJPA generates broken nested correlated subqueries for @OneToMany in count subquery context, so the count is inaccurate there.
+        var skipAssertRowCount = isOpenJPA() && isLazy(); // OpenJPA generates broken nested correlated subqueries for @OneToMany in count subquery context, so
+                                                          // the count is inaccurate there.
 
         if (skipAssertRowCount) {
             System.out.println("SKIPPING assertRowCount(phones.type) for OpenJPA because count is inaccurate for @OneToMany in count subquery context");
@@ -1226,7 +1241,6 @@ public abstract class OptimusFacesIT {
         assertNoCartesianProduct();
     }
 
-
     // Assertions -----------------------------------------------------------------------------------------------------
 
     protected void assertPaginatorState(int currentPage) {
@@ -1268,7 +1282,8 @@ public abstract class OptimusFacesIT {
         List<String> expectedValues;
 
         if ("id".equals(field)) {
-            expectedValues = actualValues.stream().map(Integer::valueOf).sorted(ascending ? naturalOrder() : reverseOrder()).map(String::valueOf).collect(toList());
+            expectedValues = actualValues.stream().map(Integer::valueOf).sorted(ascending ? naturalOrder() : reverseOrder()).map(String::valueOf)
+                .collect(toList());
         }
         else {
             // DB collation and Java collation don't necessarily agree (e.g. @ before 0), so accept either natural order or English locale collator order.
@@ -1347,7 +1362,9 @@ public abstract class OptimusFacesIT {
     protected void assertCriteriaState(WebElement column, Criteria<?> criteria, Function<String, ?> parser) {
         var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
         List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
-        assertTrue(actualValues.stream().allMatch(value -> criteria.applies(parser.apply(value))), field + " criteria " + actualValues + " matches " + criteria);
+        assertTrue(
+            actualValues.stream().allMatch(value -> criteria.applies(parser.apply(value))), field + " criteria " + actualValues + " matches " + criteria
+        );
     }
 
     protected void assertCriteriaState(WebElement column, String... criteriaValues) {
@@ -1355,12 +1372,15 @@ public abstract class OptimusFacesIT {
         List<String> expectedValues = asList(criteriaValues);
         getCells(column).stream().map(WebElement::getText).forEach(text -> {
             List<String> actualValues = asList(text.split("\n"));
-            assertTrue(actualValues.stream().anyMatch(value -> expectedValues.contains(value)), field + " criteria " + actualValues + " contains any " + expectedValues);
+            assertTrue(
+                actualValues.stream().anyMatch(value -> expectedValues.contains(value)), field + " criteria " + actualValues + " contains any " + expectedValues
+            );
         });
     }
 
     private List<WebElement> getCells(WebElement column) {
-        var columnIndex = column.findElement(By.xpath("..")).findElements(By.tagName("th")).stream().map(WebElement::getText).collect(toList()).indexOf(column.getText()); // Awkward.
+        var columnIndex = column.findElement(By.xpath("..")).findElements(By.tagName("th")).stream().map(WebElement::getText).collect(toList())
+            .indexOf(column.getText()); // Awkward.
         return browser.findElements(By.cssSelector("#form\\:table_data td:nth-child(" + (columnIndex + 1) + ")"));
     }
 

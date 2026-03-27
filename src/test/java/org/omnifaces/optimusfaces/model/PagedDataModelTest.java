@@ -43,6 +43,7 @@ class PagedDataModelTest {
 
     /** Minimal concrete type satisfying the {@code E extends Identifiable<?>} bound. */
     static final class TestEntity implements Identifiable<Long> {
+
         private Long id;
 
         @Override
@@ -54,15 +55,14 @@ class PagedDataModelTest {
         public void setId(Long id) {
             this.id = id;
         }
+
     }
 
     /**
-     * A mock of the interface itself so we can exercise its {@code default} method implementations
-     * without providing a full concrete subclass.
+     * A mock of the interface itself so we can exercise its {@code default} method implementations without providing a full concrete subclass.
      */
     @Mock(answer = Answers.CALLS_REAL_METHODS)
     private PagedDataModel<?> model;
-
 
     // computeColumnId ------------------------------------------------------------------------------------------------
 
@@ -81,7 +81,6 @@ class PagedDataModelTest {
         assertEquals("a_b_c_d", model.computeColumnId("a.b.c.d"));
     }
 
-
     // convertFilterOptionsIfNecessary --------------------------------------------------------------------------------
 
     @Test
@@ -89,10 +88,10 @@ class PagedDataModelTest {
         var si1 = new SelectItem("a", "Apple");
         var si2 = new SelectItem("b", "Banana");
 
-        var result = model.convertFilterOptionsIfNecessary(new SelectItem[]{si1, si2});
+        var result = model.convertFilterOptionsIfNecessary(new SelectItem[] { si1, si2 });
 
         assertEquals(3, result.length);
-        assertEquals("", result[0].getValue());  // empty marker prepended
+        assertEquals("", result[0].getValue()); // empty marker prepended
         // Items must be the original SelectItem instances, not new SelectItem(originalSelectItem).
         assertSame(si1, result[1]);
         assertSame(si2, result[2]);
@@ -108,7 +107,7 @@ class PagedDataModelTest {
 
     @Test
     void convertFilterOptionsIfNecessary_objectArray_eachItemWrappedInSelectItem() {
-        var result = model.convertFilterOptionsIfNecessary(new Object[]{"hello", 42});
+        var result = model.convertFilterOptionsIfNecessary(new Object[] { "hello", 42 });
 
         assertEquals(3, result.length);
         assertEquals("", result[0].getValue());
@@ -170,7 +169,6 @@ class PagedDataModelTest {
         assertThrows(IllegalArgumentException.class, () -> model.convertFilterOptionsIfNecessary("raw string"));
     }
 
-
     // Builder: build() returns the correct concrete type -------------------------------------------------------------
 
     @Test
@@ -187,13 +185,12 @@ class PagedDataModelTest {
         assertInstanceOf(NonLazyPagedDataModel.class, built);
     }
 
-
     // Builder: guard clauses -----------------------------------------------------------------------------------------
 
     @Test
     void builder_predefinedCriteriaCalled_secondCallThrowsIllegalStateException() {
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .criteria(Map.of("deleted", false))
                 .criteria(Map.of("active", true))
         );
@@ -201,8 +198,8 @@ class PagedDataModelTest {
 
     @Test
     void builder_dynamicCriteriaCalled_secondCallThrowsIllegalStateException() {
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .criteria(() -> Map.of())
                 .criteria(() -> Map.of())
         );
@@ -213,8 +210,8 @@ class PagedDataModelTest {
         var ordering = new LinkedHashMap<String, Boolean>();
         ordering.put("name", true);
 
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .ordering(ordering)
                 .ordering(new LinkedHashMap<>())
         );
@@ -222,8 +219,8 @@ class PagedDataModelTest {
 
     @Test
     void builder_orderByCalledBeforeOrdering_orderingThrowsIllegalStateException() {
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .orderBy("name", true)
                 .ordering(new LinkedHashMap<>())
         );
@@ -234,8 +231,8 @@ class PagedDataModelTest {
         var ordering = new LinkedHashMap<String, Boolean>();
         ordering.put("name", true);
 
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .ordering(ordering)
                 .orderBy("email", false)
         );
@@ -245,8 +242,8 @@ class PagedDataModelTest {
 
     @Test
     void builder_orderByCanBeCalledMultipleTimes() {
-        assertDoesNotThrow(() ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertDoesNotThrow(
+            () -> PagedDataModel.lazy((page, estimate) -> null)
                 .orderBy("name", true)
                 .orderBy("email", false)
                 .build()
@@ -255,14 +252,13 @@ class PagedDataModelTest {
 
     @Test
     void builder_predefinedAndDynamicCriteriaCanBeCombined() {
-        assertDoesNotThrow(() ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertDoesNotThrow(
+            () -> PagedDataModel.lazy((page, estimate) -> null)
                 .criteria(Map.of("deleted", false))
                 .criteria(() -> Map.of())
                 .build()
         );
     }
-
 
     // setExportable --------------------------------------------------------------------------------------------------
 

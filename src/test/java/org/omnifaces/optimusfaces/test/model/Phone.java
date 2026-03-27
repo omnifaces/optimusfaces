@@ -27,15 +27,13 @@ public class Phone extends LocalGeneratedIdEntity {
     private static final long serialVersionUID = 1L;
 
     public enum Type {
-        MOBILE,
-        HOME,
-        WORK;
+        MOBILE, HOME, WORK;
     }
 
     private @NotNull @Enumerated(STRING) Type type;
     private @NotNull String number;
 
-    @ManyToOne(optional=false, fetch=FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private @NotNull Person owner;
 
     public Type getType() {

@@ -63,4 +63,3 @@ public class OptimusFacesITNonLazyWithElementCollectionBean implements Serializa
     }
 
 }
-

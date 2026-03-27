@@ -36,11 +36,12 @@ public class OptimusFacesITLazyWithDefaultOrderByBean implements Serializable {
     @PostConstruct
     public void init() {
         lazyPersons = PagedDataModel.lazy(personService)
-                .orderBy(Person::getEmail, false)
-                .build();
+            .orderBy(Person::getEmail, false)
+            .build();
     }
 
     public PagedDataModel<Person> getLazyPersons() {
         return lazyPersons;
     }
+
 }
