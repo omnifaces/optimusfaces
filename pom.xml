@@ -802,6 +802,7 @@
                         <version>0.10.0</version>
                         <extensions>true</extensions>
                         <configuration>
+                            <deploymentName>${project.artifactId}-${project.version}</deploymentName>
                             <autoPublish>true</autoPublish>
                         </configuration>
                     </plugin>
