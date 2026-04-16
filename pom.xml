@@ -96,7 +96,7 @@
         <dependency>
             <groupId>org.omnifaces</groupId>
             <artifactId>omnifaces</artifactId>
-            <version>4.0</version> <!-- minimum required version -->
+            <version>4.7.5</version> <!-- minimum required version -->
             <scope>provided</scope> <!-- by enduser (of course enduser can provide a newer version) -->
         </dependency>
         <dependency>
