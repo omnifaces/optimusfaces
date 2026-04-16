@@ -144,7 +144,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     /**
      * Internal constructor for the lazy paged data model.
-     * 
+     *
      * @param loader The strategy for loading partial result lists.
      * @param defaultOrdering The default sort order.
      * @param predefinedCriteria Fixed criteria to apply.
@@ -171,7 +171,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * Dispatches to {@link #loadPage} for PrimeFaces {@link DataTable} (which applies full sort, filter and query-string processing) or to a simplified
      * offset-based load for {@link DataScroller}.
-     * 
+     *
      * @param offset Zero-based index of the first row to return.
      * @param limit Maximum number of rows to return.
      * @param sortBy Active sort metadata keyed by field name, supplied by PrimeFaces {@link DataTable}.
@@ -201,7 +201,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * PrimeFaces {@link DataTable} calls this once after {@link #load} to update the paginator. The value originates from
      * {@link PartialResultList#getEstimatedTotalNumberOfResults()} and is <code>0</code> when no page has yet been loaded.
-     * 
+     *
      * @param filterBy Active filter metadata; not re-applied here, the count is already embedded in the {@link PartialResultList} retrieved during
      * {@link #load}.
      * @return Estimated total row count; <code>0</code> if {@link #load} has not yet been called.
@@ -217,7 +217,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * Called by {@link ExtendedDataTable#preDecode} when the model's wrapped data is still <code>null</code> at the start of a postback, a situation that
      * arises for request-scoped beans and stateless views that do not retain model state between requests. Pre-loading guarantees that row keys, selection
      * state and pagination information are available when PrimeFaces {@link DataTable} processes the submitted form data during decode.
-     * 
+     *
      * @param context The current {@link FacesContext}.
      * @param table The {@link DataTable} that triggered the postback.
      */
@@ -286,7 +286,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * Template method that forwards the page request to the underlying {@link PagedDataModel.PartialResultListLoader}.
      * <p>
      * {@link NonLazyPagedDataModel} overrides this method to perform in-memory filtering and sorting instead of delegating to the loader.
-     * 
+     *
      * @param page Describes offset, limit, ordering and filter criteria.
      * @param estimateTotalNumberOfResults <code>true</code> when PrimeFaces {@link DataTable} needs the total row count.
      * @return The requested page of entities.
@@ -300,7 +300,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * When PrimeFaces {@link DataTable} renders a paginator or filter widget, the current component is a child of the table rather than the table itself; this
      * method walks up to the enclosing {@link UIData}.
-     * 
+     *
      * @return The enclosing {@link UIData} component; never <code>null</code>.
      */
     protected UIData getDataComponent() {
@@ -320,7 +320,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * A column is considered processable when it has a <code>field</code> attribute and is either individually filterable or the parent table has
      * <code>searchable</code> enabled.
-     * 
+     *
      * @param column The column to test.
      * @return <code>true</code> if the column participates in filter-criteria processing.
      */
@@ -342,7 +342,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * On the very first load this method also reads the <code>page</code> query parameter and advances the table's first-row offset so that a bookmarked page
      * is restored correctly.
-     * 
+     *
      * @param context The current {@link FacesContext}.
      * @param table The surrounding {@link DataTable}.
      * @param sortBy Active sort metadata supplied by PrimeFaces {@link DataTable}.
@@ -381,7 +381,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * Reads the <code>order</code> query parameter to restore a bookmarked sort; falls back to the first entry of the configured default ordering when no valid
      * query parameter is found.
-     * 
+     *
      * @param context The current {@link FacesContext}.
      * @param table The surrounding {@link DataTable}.
      * @return A {@link SortMeta} describing the field and direction to sort by initially.
@@ -416,7 +416,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * For each processable column the filter value is taken first from PrimeFaces {@link DataTable}'s <code>filterBy</code> metadata; when that is empty the
      * corresponding query string parameter is consulted so that bookmarked filters are restored on the initial (non-postback) request.
-     * 
+     *
      * @param context The current {@link FacesContext}.
      * @param table The surrounding {@link DataTable}.
      * @param processableColumns The columns selected by {@link #isProcessableColumn}.
@@ -450,7 +450,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * On postbacks the current selection is left untouched. On initial requests the <code>selection</code> query parameter is read and the corresponding
      * entities are loaded by their IDs so that a bookmarked selection is visible immediately.
-     * 
+     *
      * @param context The current {@link FacesContext}.
      * @param currentSelection The in-memory selection list carried over from previous requests.
      * @return The restored or unchanged selection list; never <code>null</code>.
@@ -469,7 +469,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * The value in <code>filterBy</code> under the key <code>globalFilter</code> takes precedence; when absent or empty the corresponding query string
      * parameter is checked so that a bookmarked search term is applied on the initial (non-postback) request.
-     * 
+     *
      * @param context The current {@link FacesContext}.
      * @param table The surrounding {@link DataTable}.
      * @param filterBy Active filter metadata supplied by PrimeFaces {@link DataTable}.
@@ -514,7 +514,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * Layers criteria in the following priority: predefined criteria configured on the builder, dynamic criteria supplied by the backing bean, and then the
      * active per-column filter values, each applying <code>startsWith</code>, <code>endsWith</code> or <code>contains</code> wrapping when the column's
      * <code>filterMatchMode</code> requests it.
-     * 
+     *
      * @param processableColumns The columns selected by {@link #isProcessableColumn}.
      * @return A map of field path to criteria value representing all required filter conditions.
      */
@@ -570,7 +570,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * When {@link #globalFilter} is set, every processable column field receives a <code>contains</code> criterion so that any row matching the search term in
      * any of those fields is included in the results.
-     * 
+     *
      * @param processableColumns The columns selected by {@link #isProcessableColumn}.
      * @return A map of field path to {@link org.omnifaces.persistence.criteria.Like#contains} criteria for the global filter, or an empty map when no global
      * filter is active.
@@ -595,7 +595,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * <p>
      * Only fires during Ajax requests. Parameters for page, ordering, column filters and selection are only added when they differ from their defaults; the
      * resulting query string is passed to <code>OptimusFaces.Util.updateQueryString</code> on the client.
-     * 
+     *
      * @param context The current {@link FacesContext}.
      */
     protected void updateQueryStringIfNecessary(FacesContext context) {
@@ -645,7 +645,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
     /**
      * Returns the entity's ID as a string row key for PrimeFaces {@link DataTable} selection tracking. Falls back to the entity's identity hash code when the
      * ID is <code>null</code>.
-     * 
+     *
      * @param entity The entity whose row key is required.
      * @return String representation of the entity's ID, or its identity hash code.
      */
@@ -658,7 +658,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * Loads and returns the single entity identified by the given row key.
      * <p>
      * Issues a one-row query filtered by the entity's ID so that PrimeFaces {@link DataTable} can restore selection or row expansion state after a postback.
-     * 
+     *
      * @param rowKey The string row key previously returned by {@link #getRowKey}.
      * @return The corresponding entity.
      */
@@ -669,7 +669,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     /**
      * Returns the active sort as a PrimeFaces {@link SortMeta}, or the initial ordering when no page has been loaded yet.
-     * 
+     *
      * @return The current primary sort descriptor; <code>null</code> when no ordering is defined.
      */
     @Override
@@ -685,7 +685,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     /**
      * Returns the active column filters as a map of field name to {@link FilterMeta}.
-     * 
+     *
      * @return The current active filters; empty map when no filters are active.
      */
     @Override
@@ -705,7 +705,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     /**
      * Returns the {@link FilterMeta} for the given field, creating and registering an empty one when absent.
-     * 
+     *
      * @param field The column field name.
      * @return The {@link FilterMeta} for the field; never <code>null</code>.
      */
@@ -724,7 +724,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     /**
      * Returns the filtered-value list used by PrimeFaces {@link DataTable} for client-side filtering support.
-     * 
+     *
      * @return The filtered-value list; may be <code>null</code>.
      */
     @Override
@@ -734,7 +734,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     /**
      * Sets the filtered-value list used by PrimeFaces {@link DataTable} for client-side filtering support.
-     * 
+     *
      * @param filteredValue The filtered list to store.
      */
     @Override
@@ -744,7 +744,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     /**
      * Returns the currently selected rows.
-     * 
+     *
      * @return The selection list; may be <code>null</code> when selection has not been initialised.
      */
     @Override
@@ -754,7 +754,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     /**
      * Updates the currently selected rows and, when <code>updateQueryString</code> is enabled, reflects the new selection in the browser URL immediately.
-     * 
+     *
      * @param selection The new selection list.
      */
     @Override

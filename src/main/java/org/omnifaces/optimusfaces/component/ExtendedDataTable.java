@@ -43,7 +43,7 @@ public class ExtendedDataTable extends DataTable {
     /**
      * Preloads the lazy model's first page before PrimeFaces {@link DataTable} runs decode, when the model has no wrapped data yet. This happens on postbacks
      * against request-scoped beans or stateless views whose model is constructed fresh on every request and therefore arrives at decode empty.
-     * 
+     *
      * @param context The current {@link FacesContext}.
      */
     @Override

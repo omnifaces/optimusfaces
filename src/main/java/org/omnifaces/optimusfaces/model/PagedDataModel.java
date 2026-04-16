@@ -69,7 +69,7 @@ import org.primefaces.model.Visibility;
  * <h2 id="usage"><a href="#usage">Basic Usage</a></h2>
  * <p>
  * First create your entity service extending {@link BaseEntityService} from OmniPersistence project.
- * 
+ *
  * <pre>
  * &#64;Stateless
  * public class YourEntityService extends BaseEntityService&lt;Long, YourEntity&gt; {
@@ -80,7 +80,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <p>
  * And make sure <code>YourEntity</code> extends {@link BaseEntity} or one of its subclasses from OmniPersistence project.
- * 
+ *
  * <pre>
  *
  * &#64;Entity
@@ -96,7 +96,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <p>
  * Then create a {@link PagedDataModel} in your backing bean as below.
- * 
+ *
  * <pre>
  * &#64;Named
  * &#64;ViewScoped
@@ -121,7 +121,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * Finally use <code>&lt;op:dataTable&gt;</code> to have a semi-dynamic lazy-loaded, pageable, sortable and filterable <code>&lt;p:dataTable&gt;</code> without
  * much hassle.
- * 
+ *
  * <pre>
  * &lt;... xmlns:op="http://omnifaces.org/optimusfaces"&gt;
  *
@@ -150,7 +150,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * Given an <code>Invoice</code> with <code>&#64;OneToOne private Order order</code>, <code>&#64;ManyToOne User seller</code> and
  * <code>&#64;ManyToOne User buyer</code>:
- * 
+ *
  * <pre>
  * &lt;op:dataTable id="invoicesTable" value="#{shop.invoices}"&gt;
  *     &lt;op:column field="id" /&gt;
@@ -163,7 +163,7 @@ import org.primefaces.model.Visibility;
  * <h3>OneToMany</h3>
  * <p>
  * Given a <code>Order</code> with <code>&#64;OneToMany List&lt;Product&gt; products</code>:
- * 
+ *
  * <pre>
  * &lt;op:dataTable id="ordersTable" value="#{shop.orders}"&gt;
  *     &lt;op:column field="id" /&gt;
@@ -177,7 +177,7 @@ import org.primefaces.model.Visibility;
  * <h3>ElementCollection</h3>
  * <p>
  * Given a <code>Product</code> with <code>&#64;ElementCollection List&lt;Tag&gt; tags</code>:
- * 
+ *
  * <pre>
  * &lt;op:dataTable id="productsTable" value="#{shop.products}"&gt;
  *     &lt;op:column field="id" /&gt;
@@ -194,7 +194,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * DTO subclasses of entities are also supported by providing an additional <code>Class&lt;DTO&gt; resultType</code> argument to one of the protected
  * {@link BaseEntityService#getPage(Page, boolean)} methods.
- * 
+ *
  * <pre>
  * public class YourEntityDTO extends YourEntity {
  *
@@ -212,7 +212,7 @@ import org.primefaces.model.Visibility;
  *
  * }
  * </pre>
- * 
+ *
  * <pre>
  * &#64;Stateless
  * public class YourEntityService extends BaseEntityService&lt;Long, YourEntity&gt; {
@@ -232,7 +232,7 @@ import org.primefaces.model.Visibility;
  *
  * }
  * </pre>
- * 
+ *
  * Note that you must return a {@link LinkedHashMap} with {@link Getter} as key and {@link Expression} as value and that the mapping must be in exactly the same
  * order as constructor arguments of your DTO.
  *
@@ -242,7 +242,7 @@ import org.primefaces.model.Visibility;
  * In the backend, create a new <code>getPageXxx()</code> method and delegate to one of {@link BaseEntityService#getPage(Page, boolean)} methods which takes a
  * <code>QueryBuilder</code> argument providing the Jakarta Persistence Criteria API objects to build the query with. For example, to get a page of only
  * entities of a specific type.
- * 
+ *
  * <pre>
  * &#64;Stateless
  * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
@@ -257,7 +257,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <p>
  * And in the frontend, delegate to {@link PagedDataModel#lazy(PartialResultListLoader)}.
- * 
+ *
  * <pre>
  * &#64;Named
  * &#64;ViewScoped
@@ -285,7 +285,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * Specify a method reference to a <code>Map&lt;Getter&lt;E&gt;, Object&gt;</code> supplier in {@link Builder#criteria(Supplier)} This way you can provide
  * criteria from e.g. a separate form with custom filters.
- * 
+ *
  * <pre>
  * &#64;Named
  * &#64;ViewScoped
@@ -330,7 +330,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * Those <code>searchNameStartsWith</code>, <code>searchStartDate</code> and <code>searchTypes</code> in the above example can in turn be supplied via Jakarta
  * Faces input components in the same form the usual way. For example:
- * 
+ *
  * <pre>
  * &lt;o:importConstants type="com.example.model.Type" /&gt;
  *
@@ -345,7 +345,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * If you have a static list and you'd like to use <code>&lt;op:dataTable&gt;</code>, then you can use either {@link PagedDataModel#nonLazy(List)} to create a
  * non-lazy {@link PagedDataModel}.
- * 
+ *
  * <pre>
  * &#64;Named
  * &#64;ViewScoped
@@ -374,25 +374,25 @@ import org.primefaces.model.Visibility;
  * <p>
  * By default, the <code>field</code> attribute is shown as column header text. You can optionally use <code>head</code> attribute of
  * <code>&lt;op:column&gt;</code> to set the header text.
- * 
+ *
  * <pre>
  * &lt;op:column field="id" head="ID" /&gt;
  * </pre>
  * <p>
  * You can optionally use <code>tooltip</code> attribute to set the tooltip of the column value.
- * 
+ *
  * <pre>
  * &lt;op:column field="id" tooltip="The identifier" /&gt;
  * </pre>
  * <p>
  * You can optionally set <code>rendered</code> attribute to <code>false</code> to hide the column in server side.
- * 
+ *
  * <pre>
  * &lt;op:column ... rendered="false" /&gt;
  * </pre>
  * <p>
  * You can optionally set <code>visible</code> attribute to <code>false</code> to hide the column in client side.
- * 
+ *
  * <pre>
  * &lt;op:column ... visible="false" /&gt;
  * </pre>
@@ -400,21 +400,21 @@ import org.primefaces.model.Visibility;
  * The column visibility can be toggled via "Columns" dropdown button when <code>exportable</code> attribute of <code>&lt;op:dataTable&gt;</code> is set to
  * <code>true</code>. The export button provides the options to export only visible columns, or to export all columns including invisible (but not non-rendered)
  * columns.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... exportable="true"&gt;
  * </pre>
  * <p>
  * Any field property which is an instance of {@link Iterable} will automatically be wrapped in an <code>&lt;ui:repeat&gt;</code>. You can always explicitly
  * toggle this via <code>iterable</code> attribute.
- * 
+ *
  * <pre>
  * &lt;op:column ... iterable="true" /&gt;
  * </pre>
  * <p>
  * You can override the <code>value</code> attribute to display a derived or formatted value while keeping <code>field</code> for sorting and filtering. A
  * typical case is an enum with a human-readable label property.
- * 
+ *
  * <pre>
  * &lt;op:column field="gender" value="#{item.gender.label}" /&gt;
  * &lt;op:column field="status" value="#{item.status.label}" head="Status" /&gt;
@@ -422,7 +422,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * The default body of <code>&lt;op:column&gt;</code> is a <code>&lt;h:outputText&gt;</code>. Any child content not wrapped in <code>&lt;ui:define&gt;</code> is
  * placed directly inside that <code>&lt;h:outputText&gt;</code>, allowing converters to be attached without overriding the cell layout.
- * 
+ *
  * <pre>
  * &lt;op:column field="price"&gt;
  *     &lt;f:convertNumber type="currency" currencySymbol="$" /&gt;
@@ -435,7 +435,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * For fully custom cell content, use <code>&lt;ui:define name="cell"&gt;</code>. The <code>exportValue</code> attribute controls what is written to the export
  * file independently of the custom rendering, since the export path always uses a separate <code>&lt;h:outputText&gt;</code> with <code>exportValue</code>.
- * 
+ *
  * <pre>
  * &lt;op:column field="name"&gt;
  *     &lt;ui:define name="cell"&gt;
@@ -456,7 +456,7 @@ import org.primefaces.model.Visibility;
  * <h2 id="pagination"><a href="#pagination">Pagination</a></h2>
  * <p>
  * By default, the table is paginable on 10 rows which is overrideable via <code>rows</code> attribute.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... rows="20"&gt;
  * </pre>
@@ -481,9 +481,9 @@ import org.primefaces.model.Visibility;
  * <p>
  * By default, the model is sorted by {@link BaseEntity#getId()} in descending order. You can override this by {@link Builder#orderBy(Getter, boolean)} passing
  * the getter method reference and whether you want to sort ascending or not.
- * 
+ *
  * <pre>
- * 
+ *
  * &#64;PostConstruct
  * public void init() {
  *     model = PagedDataModel.lazy(service).orderBy(YourEntity::getName, true).build();
@@ -491,9 +491,9 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <p>
  * You can specify the <code>orderBy</code> multiple times.
- * 
+ *
  * <pre>
- * 
+ *
  * &#64;PostConstruct
  * public void init() {
  *     model = PagedDataModel.lazy(service).orderBy(YourEntity::getType, true).orderBy(YourEntity::getId, false).build();
@@ -504,19 +504,19 @@ import org.primefaces.model.Visibility;
  * <p>
  * By default, every column is sortable. You can optionally set <code>sortable</code> attribute of <code>&lt;op:column&gt;</code> to <code>false</code> to make
  * a column non-sortable.
- * 
+ *
  * <pre>
  * &lt;op:column ... sortable="false" /&gt;
  * </pre>
  * <p>
  * Or if you want to make all columns non-sortable, then set <code>sortable</code> attribute of <code>&lt;op:dataTable&gt;</code> to <code>false</code>.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... sortable="false" /&gt;
  * </pre>
  * <p>
  * This is still overrideable on specific columns by explicitly setting <code>sortable</code> attribute of <code>&lt;op:column&gt;</code> to <code>true</code>.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... sortable="false" /&gt;
  *     &lt;op:column ... /&gt;
@@ -527,7 +527,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * By default, every first sorting action on a column will sort the column ascending. You can optionally set <code>sortDescending</code> attribute of
  * <code>&lt;op:column&gt;</code> to <code>true</code> to start descending.
- * 
+ *
  * <pre>
  * &lt;op:column ... sortDescending="true" /&gt;
  * </pre>
@@ -537,20 +537,20 @@ import org.primefaces.model.Visibility;
  * <p>
  * By default, every column is filterable. In the frontend you can optionally set <code>filterable</code> attribute of <code>&lt;op:column&gt;</code> to
  * <code>false</code> to make a column non-filterable.
- * 
+ *
  * <pre>
  * &lt;op:column ... filterable="false" /&gt;
  * </pre>
  * <p>
  * Or if you want to make all columns non-filterable, then set <code>filterable</code> attribute of <code>&lt;op:dataTable&gt;</code> to <code>false</code>.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... filterable="false" /&gt;
  * </pre>
  * <p>
  * This is still overrideable on specific columns by explicitly setting <code>filterable</code> attribute of <code>&lt;op:column&gt;</code> to
  * <code>true</code>.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... filterable="false" /&gt;
  *     &lt;op:column ... /&gt;
@@ -564,7 +564,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * By default, every column is filterable in "contains" mode. In the frontend you can optionally set <code>filterMode</code> attribute of
  * <code>&lt;op:column&gt;</code> to <code>startsWith</code>, <code>endsWith</code>, <code>contains</code> or <code>exact</code> to set the desired filter mode.
- * 
+ *
  * <pre>
  * &lt;op:column ... filterMode="startsWith" /&gt;
  * </pre>
@@ -572,7 +572,7 @@ import org.primefaces.model.Visibility;
  * By default, the filter input is represented by a free text input field. In the frontend you can optionally provide a fixed set of filter options via
  * <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code>. This will be presented as a dropdown. Supported types are <code>Object[]</code>,
  * <code>Collection&lt;V&gt;</code> and <code>Map&lt;V, L&gt;</code>.
- * 
+ *
  * <pre>
  * &lt;o:importConstants type="com.example.model.Type" /&gt;
  * ...
@@ -581,7 +581,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * Note that this will change the default value of <code>filterMode</code> from "contains" to "exact". You can still override this by explicitly specifying the
  * <code>filterMode</code> attribute.
- * 
+ *
  * <pre>
  * &lt;op:column field="type" filterOptions="#{Type}" filterMode="contains" /&gt;
  * </pre>
@@ -590,7 +590,7 @@ import org.primefaces.model.Visibility;
  * <h2 id="global-search"><a href="#global-search">Global search</a></h2>
  * <p>
  * You can optionally turn on "global search" by setting <code>searchable</code> attribute of <code>&lt;op:dataTable&gt;</code> to <code>true</code>.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... searchable="true"&gt;
  * </pre>
@@ -612,7 +612,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * You can optionally show column toggler and CSV export buttons by setting <code>exportable</code> attribute of <code>&lt;op:dataTable&gt;</code> to
  * <code>true</code>.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... exportable="true"&gt;
  * </pre>
@@ -634,7 +634,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * By default, every column is exportable. In the frontend you can optionally set <code>exportable</code> attribute of <code>&lt;op:column&gt;</code> to
  * <code>false</code> to make a column non-exportable, irrespective of its visibility.
- * 
+ *
  * <pre>
  * &lt;op:column ... exportable="false" /&gt;
  * </pre>
@@ -643,14 +643,14 @@ import org.primefaces.model.Visibility;
  * <h2 id="selection"><a href="#selection">Selection</a></h2>
  * <p>
  * You can optionally make the rows selectable by setting <code>selectable</code> attribute of <code>&lt;op:dataTable&gt;</code> to <code>true</code>.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... selectable="true"&gt;
  * </pre>
  * <p>
  * The selection is available as a {@link List} by {@link PagedDataModel#getSelection()}. The row select and unselect events will automatically update
  * components matching PrimeFaces Selector <code>@(.updateOnDataTableSelect)</code>. So you could automatically show the selection as below:
- * 
+ *
  * <pre>
  * &lt;h:form id="yourEntitiesForm"&gt;
  *     &lt;op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}" selectable="true"&gt;
@@ -674,16 +674,16 @@ import org.primefaces.model.Visibility;
  * however keep using <code>&lt;op:column&gt;</code> the usual way as long as you use <code>var="item"</code> as shown above.
  * <p>
  * You can obtain the current selection in backing bean as below:
- * 
+ *
  * <pre>
- * 
+ *
  * List&lt;YourEntity&gt; selection = model.getSelection();
  * </pre>
  * <p>
  * Alternatively, you can obtain all records matching the current filtering and ordering as below:
- * 
+ *
  * <pre>
- * 
+ *
  * List&lt;YourEntity&gt; filtered = yourEntityService.getPage(model.getPage().all(), false);
  * </pre>
  *
@@ -712,14 +712,14 @@ import org.primefaces.model.Visibility;
  * <p>
  * You can optionally disable this behavior altogether by setting <code>updateQueryString</code> attribute of <code>&lt;op:dataTable&gt;</code> to
  * <code>false</code>.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... updateQueryString="false"&gt;
  * </pre>
  * <p>
  * In case you have multiple tables in same page (poor UI, but that aside), then you can optionally prefix the query parameter name with a table-specific prefix
  * via the <code>queryParameterPrefix</code> attribute, so that they don't clash each other.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... queryParameterPrefix="t1"&gt;
  *     ...
@@ -762,7 +762,7 @@ import org.primefaces.model.Visibility;
  * When you want more buttons in the <code>.ui-datatable-actions</code> div, then you can use <code>&lt;ui:define name="actions"&gt;</code> for this. Note that
  * the actions toolbar is only rendered when at least one of <code>searchable</code>, <code>exportable</code> or <code>actionable</code> is <code>true</code>.
  * Use <code>actionable="true"</code> when you need the toolbar purely for custom buttons.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ... actionable="true"&gt;
  *     &lt;ui:define name="actions"&gt;
@@ -779,7 +779,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * In case you'd like to finetune the underlying <code>&lt;p:dataTable&gt;</code> further with additional attributes which are in turn not supported by
  * <code>&lt;op:dataTable&gt;</code>, then you could always use <code>&lt;f:attribute&gt;</code> for that.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ...&gt;
  *     &lt;f:attribute name="caseSensitiveSort" value="#{true}" /&gt;
@@ -789,7 +789,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <p>
  * Note that you can also just nest any <code>&lt;p:ajax&gt;</code> and even a plain <code>&lt;p:column&gt;</code> the usual way.
- * 
+ *
  * <pre>
  * &lt;op:dataTable ...&gt;
  *     &lt;p:ajax event="page" ... /&gt;
@@ -803,7 +803,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * In case you'd like to change the defaults of <code>&lt;op:dataTable&gt;</code>, then you can always extend it into your own tagfile like below with desired
  * defaults supplied via <code>&lt;ui:param&gt;</code>. The below example extends it to always turn on global search and turn off column filtering.
- * 
+ *
  * <pre>
  * &lt;ui:composition template="/optimusfaces/tags/dataTable.xhtml" xmlns:ui="http://xmlns.jcp.org/jsf/facelets"&gt;
  *     &lt;!-- Override default attribute values of op:dataTable. --&gt;
@@ -814,7 +814,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * The below example shows elaborately how you could add a new <code>type</code> attribute to the <code>&lt;op:column&gt;</code> which allows fine grained
  * control over default formatting of cell content.
- * 
+ *
  * <pre>
  * &lt;ui:composition template="/optimusfaces/tags/column.xhtml"
  *     xmlns="http://www.w3.org/1999/xhtml"
@@ -854,7 +854,7 @@ import org.primefaces.model.Visibility;
  * </pre>
  * <p>
  * With both tagfiles in place, you could use them like below:
- * 
+ *
  * <pre>
  * &lt;x:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}"&gt;
  *     &lt;x:column field="id" type="custom"&gt;&lt;a href="edit/#{item.id}" title="Edit this item"&gt;#{item.id}&lt;/a&gt;&lt;/x:column&gt;
@@ -869,7 +869,7 @@ import org.primefaces.model.Visibility;
  * <p>
  * Also note that the <code>type</code> attribute is in above example set as a style class, so you could for example define a CSS rule to always right-align the
  * "number" and "currency" columns.
- * 
+ *
  * <pre>
  * .ui-datatable th.number, .ui-datatable th.currency {
  *     text-align: right;
@@ -906,7 +906,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
     /**
      * Invoked when default <code>id</code> attribute of <code>&lt;op:column&gt;</code> is to be set. This is by default based on the <code>field</code> and the
      * ID attribute does not support periods.
-     * 
+     *
      * @param field The column field.
      * @return The column ID based on given field.
      */
@@ -917,7 +917,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
     /**
      * Invoked when <code>filterOptions</code> attribute of <code>&lt;op:column&gt;</code> is provided. Problem is, the underlying <code>&lt;p:column&gt;</code>
      * only supports <code>SelectItem[]</code> or <code>List&lt;SelectItem&gt;</code>.
-     * 
+     *
      * @param filterOptions The filter options.
      * @return The filter options converted to <code>SelectItem[]</code>.
      */
@@ -945,7 +945,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Invoked when "Columns" is adjusted.
-     * 
+     *
      * @param event Toggle event.
      */
     default void toggleColumn(ToggleEvent event) {
@@ -956,7 +956,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Invoked when "Export Visible Columns" is chosen.
-     * 
+     *
      * @param tableId Table ID.
      */
     default void prepareExportVisible(String tableId) {
@@ -966,7 +966,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Invoked when "Export All Columns" is chosen.
-     * 
+     *
      * @param tableId Table ID.
      */
     default void prepareExportAll(String tableId) {
@@ -976,7 +976,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Remembers original value of "exportable" attribute in case it's been explicitly set.
-     * 
+     *
      * @param column The column.
      * @param exportable Whether it should be set exportable if not already explicitly disabled.
      */
@@ -990,7 +990,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Returns {@code true} if the given value is an instance of {@link Iterable}.
-     * 
+     *
      * @param value The value to check.
      * @return {@code true} if the given value is an instance of {@link Iterable}.
      */
@@ -1002,7 +1002,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Returns the current Page.
-     * 
+     *
      * @return The current Page.
      */
     Page getPage();
@@ -1011,21 +1011,21 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Returns the primary active sort as a PrimeFaces {@link SortMeta}.
-     * 
+     *
      * @return The current sort descriptor; <code>null</code> when no ordering is defined.
      */
     SortMeta getOrdering(); // TODO: support new multisort feature
 
     /**
      * Returns the active column filters as a map of field name to {@link FilterMeta}.
-     * 
+     *
      * @return The current active filters; empty map when none are active.
      */
     Map<String, FilterMeta> getFilters();
 
     /**
      * Returns the {@link FilterMeta} for the given field.
-     * 
+     *
      * @param field The column field name.
      * @return The {@link FilterMeta} for the field; never <code>null</code>.
      */
@@ -1033,28 +1033,28 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Returns the filtered-value list used by PrimeFaces {@link DataTable} for client-side filtering support.
-     * 
+     *
      * @return The filtered-value list; may be <code>null</code>.
      */
     List<E> getFilteredValue();
 
     /**
      * Sets the filtered-value list used by PrimeFaces {@link DataTable} for client-side filtering support.
-     * 
+     *
      * @param filteredValue The filtered list to store.
      */
     void setFilteredValue(List<E> filteredValue);
 
     /**
      * Returns the currently selected rows.
-     * 
+     *
      * @return The selection list; may be <code>null</code> when selection has not been initialised.
      */
     List<E> getSelection();
 
     /**
      * Updates the currently selected rows.
-     * 
+     *
      * @param selection The new selection list.
      */
     void setSelection(List<E> selection);
@@ -1066,7 +1066,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
      * <p>
      * The loader is typically a method reference to a {@link BaseEntityService#getPage(Page, boolean)} implementation. Implement this interface when you need
      * to supply a custom query builder.
-     * 
+     *
      * @param <E> The entity type, which must extend {@link Identifiable}.
      */
     @FunctionalInterface
@@ -1074,7 +1074,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
         /**
          * Loads and returns one page of results.
-         * 
+         *
          * @param page Describes offset, limit, ordering and filter criteria for the query.
          * @param estimateTotalNumberOfResults <code>true</code> when the total row count is needed to update the paginator; <code>false</code> when only the
          * rows themselves are required.
@@ -1086,7 +1086,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Use this if you want to build a lazy paged data model using a {@link BaseEntityService}.
-     * 
+     *
      * @param <I> The generic ID type.
      * @param <E> The generic base entity type.
      * @param entityService The entity service.
@@ -1098,7 +1098,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Use this if you want to build a lazy paged data model using a custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
-     * 
+     *
      * @param <E> The generic base entity type.
      * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
      * @return A new paged data model builder.
@@ -1109,7 +1109,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
     /**
      * Use this if you want to build a non-lazy paged data model based on given list.
-     * 
+     *
      * @param <E> The generic base entity type.
      * @param allData List of all data.
      * @return A new paged data model builder.
@@ -1233,7 +1233,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
          * <p>
          * Set the predefined ordering. The map key represents the property path. The map value represents whether to sort ascending.
          * </p>
-         * 
+         *
          * @param predefinedOrdering The predefined ordering.
          * @return This builder.
          * @throws IllegalStateException When predefined ordering is previously already set in this builder or when custom ordering is already set on this

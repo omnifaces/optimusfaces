@@ -14,6 +14,9 @@ package org.omnifaces.optimusfaces.test.model;
 
 public enum Group {
 
-    USER, MANAGER, ADMINISTRATOR, DEVELOPER;
+    USER,
+    MANAGER,
+    ADMINISTRATOR,
+    DEVELOPER;
 
 }

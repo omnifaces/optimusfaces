@@ -80,7 +80,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
     /**
      * Constructs a new non-lazy paged data model.
-     * 
+     *
      * @param allData The full list of data to be paged in-memory.
      * @param defaultOrdering The default sort order.
      * @param predefinedCriteria Fixed criteria to apply.
@@ -100,7 +100,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
      * <p>
      * The full list is first filtered according to the required and optional criteria in the given {@link Page}, then sorted using a locale-aware, null-safe
      * comparator, and finally sliced to the requested offset and limit. The total count is always exact.
-     * 
+     *
      * @param page Describes offset, limit, ordering and filter criteria.
      * @param estimateTotalNumberOfResults Unused; the total is always computed from the filtered list.
      * @return A {@link PartialResultList} containing the requested slice and the total filtered count.

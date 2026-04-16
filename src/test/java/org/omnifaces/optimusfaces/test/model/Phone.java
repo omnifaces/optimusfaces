@@ -27,7 +27,9 @@ public class Phone extends LocalGeneratedIdEntity {
     private static final long serialVersionUID = 1L;
 
     public enum Type {
-        MOBILE, HOME, WORK;
+        MOBILE,
+        HOME,
+        WORK;
     }
 
     private @NotNull @Enumerated(STRING) Type type;

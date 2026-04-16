@@ -48,7 +48,7 @@ public class NestedBaseEntityELResolver extends ELResolver {
 
     /**
      * Returns <code>null</code>; this resolver does not advertise a common property type.
-     * 
+     *
      * @param context The EL context.
      * @param base The base object.
      * @return <code>null</code>.
@@ -60,7 +60,7 @@ public class NestedBaseEntityELResolver extends ELResolver {
 
     /**
      * Returns <code>null</code>; type information is delegated to downstream resolvers.
-     * 
+     *
      * @param context The EL context.
      * @param base The base object.
      * @param property The property name.
@@ -81,7 +81,7 @@ public class NestedBaseEntityELResolver extends ELResolver {
      * Otherwise the path is split on <code>'.'</code> and each segment is resolved via {@link ELContext#getELResolver()}. Intermediate
      * {@link java.util.Collection} values are expanded by mapping the remaining path over every element. After full resolution,
      * {@link ELContext#setPropertyResolved(boolean) context.setPropertyResolved(true)} is called.
-     * 
+     *
      * @param context The EL context.
      * @param base The base object; only {@link BaseEntity} instances are handled.
      * @param property The property name; must contain at least one dot to activate this resolver.
@@ -117,7 +117,7 @@ public class NestedBaseEntityELResolver extends ELResolver {
 
     /**
      * No-op; properties resolved through this resolver are read-only.
-     * 
+     *
      * @param context The EL context.
      * @param base The base object.
      * @param property The property name.
@@ -130,7 +130,7 @@ public class NestedBaseEntityELResolver extends ELResolver {
 
     /**
      * Returns <code>true</code>; all properties resolved through this resolver are read-only.
-     * 
+     *
      * @param context The EL context.
      * @param base The base object.
      * @param property The property name.
@@ -143,7 +143,7 @@ public class NestedBaseEntityELResolver extends ELResolver {
 
     /**
      * Returns <code>null</code>; this resolver does not enumerate feature descriptors.
-     * 
+     *
      * @param context The EL context.
      * @param base The base object.
      * @return <code>null</code>.
