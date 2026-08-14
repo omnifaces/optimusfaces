@@ -59,7 +59,7 @@
         <!-- Minimum required versions. -->
         <javase.version>17</javase.version>
         <jakartaee.version>10</jakartaee.version>
-        <omnipersistence.version>1.0</omnipersistence.version>
+        <omnipersistence.version>1.1-SNAPSHOT</omnipersistence.version>
 
         <!-- Essential Maven defaults. -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -37,13 +37,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 import org.omnifaces.persistence.criteria.Criteria;
 import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
-import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.component.datatable.feature.FilterFeature;
 import org.primefaces.component.datatable.feature.SortFeature;
@@ -88,7 +86,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
      */
     NonLazyPagedDataModel(
         List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria,
-        Supplier<Map<Getter<?>, Object>> dynamicCriteria
+        DynamicCriteria<?> dynamicCriteria
     )
     {
         super(null, defaultOrdering, predefinedCriteria, dynamicCriteria);

@@ -283,8 +283,8 @@ import org.primefaces.model.Visibility;
  *
  * <h2 id="criteria-frontend"><a href="#criteria-frontend">Providing specific criteria in frontend</a></h2>
  * <p>
- * Specify a method reference to a <code>Map&lt;Getter&lt;E&gt;, Object&gt;</code> supplier in {@link Builder#criteria(Supplier)} This way you can provide
- * criteria from e.g. a separate form with custom filters.
+ * Specify a method reference to a <code>Map&lt;Getter&lt;E&gt;, Object&gt;</code> supplier in {@link Builder#criteria(DynamicCriteria)} This way you can
+ * provide criteria from e.g. a separate form with custom filters.
  *
  * <pre>
  * &#64;Named
@@ -1066,11 +1066,14 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
      * <p>
      * The loader is typically a method reference to a {@link BaseEntityService#getPage(Page, boolean)} implementation. Implement this interface when you need
      * to supply a custom query builder.
+     * <p>
+     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
+     * may be passivated or replicated.
      *
      * @param <E> The entity type, which must extend {@link Identifiable}.
      */
     @FunctionalInterface
-    public interface PartialResultListLoader<E extends Identifiable<?>> {
+    public interface PartialResultListLoader<E extends Identifiable<?>> extends Serializable {
 
         /**
          * Loads and returns one page of results.
@@ -1081,6 +1084,21 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
          * @return A {@link PartialResultList} containing the requested rows and an estimated total count.
          */
         PartialResultList<E> getPage(Page page, boolean estimateTotalNumberOfResults);
+
+    }
+
+    /**
+     * Functional interface that supplies the criteria which may change during the view lifecycle, keyed by entity getter.
+     * <p>
+     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
+     * may be passivated or replicated.
+     *
+     * @param <E> The entity type, which must extend {@link Identifiable}.
+     */
+    @FunctionalInterface
+    public interface DynamicCriteria<E extends Identifiable<?>> extends Supplier<Map<Getter<E>, Object>>, Serializable {
+
+        // NOOP.
 
     }
 
@@ -1133,7 +1151,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
         private LinkedHashMap<String, Boolean> predefinedOrdering;
         private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
         private Map<String, Object> predefinedCriteria;
-        private Supplier<Map<Getter<E>, Object>> dynamicCriteria;
+        private DynamicCriteria<E> dynamicCriteria;
 
         private Builder(List<E> allData) {
             this.allData = allData;
@@ -1220,7 +1238,7 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
          * @throws IllegalStateException When dynamic criteria is previously already set in this builder.
          * @see Criteria
          */
-        public Builder<E> criteria(Supplier<Map<Getter<E>, Object>> dynamicCriteria) {
+        public Builder<E> criteria(DynamicCriteria<E> dynamicCriteria) {
             if (this.dynamicCriteria != null) {
                 throw new IllegalStateException("Dynamic criteria is already set");
             }
@@ -1293,20 +1311,18 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
          *
          * @return The built paged data model.
          */
-        @SuppressWarnings({ "rawtypes", "unchecked" })
         public PagedDataModel<E> build() {
             if (predefinedOrdering != null) {
                 ordering = predefinedOrdering;
             }
 
             ordering.putIfAbsent(ID, false);
-            Supplier rawDynamicCriteria = dynamicCriteria;
 
             if (loader != null) {
-                return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, rawDynamicCriteria);
+                return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, dynamicCriteria);
             }
             else if (allData != null) {
-                return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, rawDynamicCriteria);
+                return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, dynamicCriteria);
             }
             else {
                 throw new IllegalStateException("You must provide non-null loader or allData.");

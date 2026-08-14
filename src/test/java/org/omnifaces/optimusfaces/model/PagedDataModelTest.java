@@ -15,6 +15,7 @@ package org.omnifaces.optimusfaces.model;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -35,7 +42,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.omnifaces.optimusfaces.model.PagedDataModel.DynamicCriteria;
+import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
+import org.omnifaces.persistence.criteria.Like;
 import org.omnifaces.persistence.model.Identifiable;
+import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.column.Column;
 
 @ExtendWith(MockitoExtension.class)
@@ -300,6 +312,68 @@ class PagedDataModelTest {
 
         verify(column).setExportable(false);
         verify(column).setExportable(true);
+    }
+
+    // Serialization --------------------------------------------------------------------------------------------------
+
+    /** Mimics the view scoped bean holding the model, as that is what gets passivated or replicated. */
+    static final class TestBean implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        private final PagedDataModel<TestEntity> model = PagedDataModel.<TestEntity>lazy((page, estimateTotalNumberOfResults) -> null)
+            .criteria(Map.of("name", Like.contains("test")))
+            .criteria(this::getCriteria)
+            .build();
+
+        Map<Getter<TestEntity>, Object> getCriteria() {
+            return Map.of(TestEntity::getId, 1L);
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T serializeAndDeserialize(T object) throws IOException, ClassNotFoundException {
+        var bytes = new ByteArrayOutputStream();
+
+        try (var output = new ObjectOutputStream(bytes)) {
+            output.writeObject(object);
+        }
+
+        try (var input = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            return (T) input.readObject();
+        }
+    }
+
+    @Test
+    void model_heldByViewScopedBean_survivesSerialization() throws Exception {
+        var entity = new TestEntity();
+        entity.setId(42L);
+        var bean = new TestBean();
+        bean.model.setFilteredValue(List.of(entity));
+        bean.model.setSelection(List.of(entity));
+
+        var model = serializeAndDeserialize(bean).model;
+
+        assertEquals(42L, model.getFilteredValue().get(0).getId());
+        assertEquals(42L, model.getSelection().get(0).getId());
+    }
+
+    @Test
+    void dynamicCriteria_methodReferenceToViewScopedBean_survivesSerialization() throws Exception {
+        DynamicCriteria<TestEntity> dynamicCriteria = new TestBean()::getCriteria;
+
+        var criteria = serializeAndDeserialize(dynamicCriteria).get();
+
+        assertEquals(1, criteria.size());
+        assertEquals("id", criteria.keySet().iterator().next().getPropertyName());
+    }
+
+    @Test
+    void partialResultListLoader_methodReferenceToEntityService_survivesSerialization() throws Exception {
+        PartialResultListLoader<TestEntity> loader = (page, estimateTotalNumberOfResults) -> null;
+
+        assertNull(serializeAndDeserialize(loader).getPage(Page.ALL, false));
     }
 
 }

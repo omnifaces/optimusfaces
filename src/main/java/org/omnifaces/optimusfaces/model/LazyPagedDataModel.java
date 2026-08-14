@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -110,7 +109,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
     /** Predefined criteria that are always applied to every query. */
     private final Map<String, Object> predefinedCriteria;
     /** Supplier for dynamic criteria that may change during the view lifecycle. */
-    private final Supplier<Map<Getter<?>, Object>> dynamicCriteria;
+    private final DynamicCriteria<?> dynamicCriteria;
 
     /** Flag indicating whether the browser query string should be updated via Ajax. */
     protected boolean updateQueryString;
@@ -152,7 +151,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      */
     LazyPagedDataModel(
         PartialResultListLoader<E> loader, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria,
-        Supplier<Map<Getter<?>, Object>> dynamicCriteria
+        DynamicCriteria<?> dynamicCriteria
     )
     {
         this.loader = loader;
