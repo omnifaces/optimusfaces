@@ -22,7 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(ArquillianExtension.class)
 public class OptimusFacesH2IT extends OptimusFacesIT {
 
-    @Deployment(testable=false)
+    @Deployment(testable = false)
     public static WebArchive createDeployment() {
         return createArchive(OptimusFacesH2IT.class, H2);
     }

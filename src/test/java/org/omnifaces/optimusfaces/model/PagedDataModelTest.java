@@ -15,6 +15,7 @@ package org.omnifaces.optimusfaces.model;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -22,6 +23,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -35,7 +42,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.omnifaces.optimusfaces.model.PagedDataModel.DynamicCriteria;
+import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
+import org.omnifaces.persistence.criteria.Like;
 import org.omnifaces.persistence.model.Identifiable;
+import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.column.Column;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,6 +55,7 @@ class PagedDataModelTest {
 
     /** Minimal concrete type satisfying the {@code E extends Identifiable<?>} bound. */
     static final class TestEntity implements Identifiable<Long> {
+
         private Long id;
 
         @Override
@@ -54,15 +67,14 @@ class PagedDataModelTest {
         public void setId(Long id) {
             this.id = id;
         }
+
     }
 
     /**
-     * A mock of the interface itself so we can exercise its {@code default} method implementations
-     * without providing a full concrete subclass.
+     * A mock of the interface itself so we can exercise its {@code default} method implementations without providing a full concrete subclass.
      */
     @Mock(answer = Answers.CALLS_REAL_METHODS)
     private PagedDataModel<?> model;
-
 
     // computeColumnId ------------------------------------------------------------------------------------------------
 
@@ -81,7 +93,6 @@ class PagedDataModelTest {
         assertEquals("a_b_c_d", model.computeColumnId("a.b.c.d"));
     }
 
-
     // convertFilterOptionsIfNecessary --------------------------------------------------------------------------------
 
     @Test
@@ -89,10 +100,10 @@ class PagedDataModelTest {
         var si1 = new SelectItem("a", "Apple");
         var si2 = new SelectItem("b", "Banana");
 
-        var result = model.convertFilterOptionsIfNecessary(new SelectItem[]{si1, si2});
+        var result = model.convertFilterOptionsIfNecessary(new SelectItem[] { si1, si2 });
 
         assertEquals(3, result.length);
-        assertEquals("", result[0].getValue());  // empty marker prepended
+        assertEquals("", result[0].getValue()); // empty marker prepended
         // Items must be the original SelectItem instances, not new SelectItem(originalSelectItem).
         assertSame(si1, result[1]);
         assertSame(si2, result[2]);
@@ -108,7 +119,7 @@ class PagedDataModelTest {
 
     @Test
     void convertFilterOptionsIfNecessary_objectArray_eachItemWrappedInSelectItem() {
-        var result = model.convertFilterOptionsIfNecessary(new Object[]{"hello", 42});
+        var result = model.convertFilterOptionsIfNecessary(new Object[] { "hello", 42 });
 
         assertEquals(3, result.length);
         assertEquals("", result[0].getValue());
@@ -170,7 +181,6 @@ class PagedDataModelTest {
         assertThrows(IllegalArgumentException.class, () -> model.convertFilterOptionsIfNecessary("raw string"));
     }
 
-
     // Builder: build() returns the correct concrete type -------------------------------------------------------------
 
     @Test
@@ -187,13 +197,12 @@ class PagedDataModelTest {
         assertInstanceOf(NonLazyPagedDataModel.class, built);
     }
 
-
     // Builder: guard clauses -----------------------------------------------------------------------------------------
 
     @Test
     void builder_predefinedCriteriaCalled_secondCallThrowsIllegalStateException() {
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .criteria(Map.of("deleted", false))
                 .criteria(Map.of("active", true))
         );
@@ -201,8 +210,8 @@ class PagedDataModelTest {
 
     @Test
     void builder_dynamicCriteriaCalled_secondCallThrowsIllegalStateException() {
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .criteria(() -> Map.of())
                 .criteria(() -> Map.of())
         );
@@ -213,8 +222,8 @@ class PagedDataModelTest {
         var ordering = new LinkedHashMap<String, Boolean>();
         ordering.put("name", true);
 
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .ordering(ordering)
                 .ordering(new LinkedHashMap<>())
         );
@@ -222,8 +231,8 @@ class PagedDataModelTest {
 
     @Test
     void builder_orderByCalledBeforeOrdering_orderingThrowsIllegalStateException() {
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .orderBy("name", true)
                 .ordering(new LinkedHashMap<>())
         );
@@ -234,8 +243,8 @@ class PagedDataModelTest {
         var ordering = new LinkedHashMap<String, Boolean>();
         ordering.put("name", true);
 
-        assertThrows(IllegalStateException.class, () ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertThrows(
+            IllegalStateException.class, () -> PagedDataModel.lazy((page, estimate) -> null)
                 .ordering(ordering)
                 .orderBy("email", false)
         );
@@ -245,8 +254,8 @@ class PagedDataModelTest {
 
     @Test
     void builder_orderByCanBeCalledMultipleTimes() {
-        assertDoesNotThrow(() ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertDoesNotThrow(
+            () -> PagedDataModel.lazy((page, estimate) -> null)
                 .orderBy("name", true)
                 .orderBy("email", false)
                 .build()
@@ -255,14 +264,13 @@ class PagedDataModelTest {
 
     @Test
     void builder_predefinedAndDynamicCriteriaCanBeCombined() {
-        assertDoesNotThrow(() ->
-            PagedDataModel.lazy((page, estimate) -> null)
+        assertDoesNotThrow(
+            () -> PagedDataModel.lazy((page, estimate) -> null)
                 .criteria(Map.of("deleted", false))
                 .criteria(() -> Map.of())
                 .build()
         );
     }
-
 
     // setExportable --------------------------------------------------------------------------------------------------
 
@@ -304,6 +312,68 @@ class PagedDataModelTest {
 
         verify(column).setExportable(false);
         verify(column).setExportable(true);
+    }
+
+    // Serialization --------------------------------------------------------------------------------------------------
+
+    /** Mimics the view scoped bean holding the model, as that is what gets passivated or replicated. */
+    static final class TestBean implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        private final PagedDataModel<TestEntity> model = PagedDataModel.<TestEntity>lazy((page, estimateTotalNumberOfResults) -> null)
+            .criteria(Map.of("name", Like.contains("test")))
+            .criteria(this::getCriteria)
+            .build();
+
+        Map<Getter<TestEntity>, Object> getCriteria() {
+            return Map.of(TestEntity::getId, 1L);
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T serializeAndDeserialize(T object) throws IOException, ClassNotFoundException {
+        var bytes = new ByteArrayOutputStream();
+
+        try (var output = new ObjectOutputStream(bytes)) {
+            output.writeObject(object);
+        }
+
+        try (var input = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            return (T) input.readObject();
+        }
+    }
+
+    @Test
+    void model_heldByViewScopedBean_survivesSerialization() throws Exception {
+        var entity = new TestEntity();
+        entity.setId(42L);
+        var bean = new TestBean();
+        bean.model.setFilteredValue(List.of(entity));
+        bean.model.setSelection(List.of(entity));
+
+        var model = serializeAndDeserialize(bean).model;
+
+        assertEquals(42L, model.getFilteredValue().get(0).getId());
+        assertEquals(42L, model.getSelection().get(0).getId());
+    }
+
+    @Test
+    void dynamicCriteria_methodReferenceToViewScopedBean_survivesSerialization() throws Exception {
+        DynamicCriteria<TestEntity> dynamicCriteria = new TestBean()::getCriteria;
+
+        var criteria = serializeAndDeserialize(dynamicCriteria).get();
+
+        assertEquals(1, criteria.size());
+        assertEquals("id", criteria.keySet().iterator().next().getPropertyName());
+    }
+
+    @Test
+    void partialResultListLoader_methodReferenceToEntityService_survivesSerialization() throws Exception {
+        PartialResultListLoader<TestEntity> loader = (page, estimateTotalNumberOfResults) -> null;
+
+        assertNull(serializeAndDeserialize(loader).getPage(Page.ALL, false));
     }
 
 }

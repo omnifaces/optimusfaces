@@ -44,10 +44,11 @@ class NestedBaseEntityELResolverTest {
     private ELResolver elResolver;
 
     /**
-     * Minimal concrete BaseEntity subclass for verifying the {@code base instanceof BaseEntity} guard.
-     * No JPA annotations needed — we are testing EL resolution logic only.
+     * Minimal concrete BaseEntity subclass for verifying the {@code base instanceof BaseEntity} guard. No JPA annotations needed — we are testing EL resolution
+     * logic only.
      */
     static final class TestEntity extends BaseEntity<Long> {
+
         private static final long serialVersionUID = 1L;
         private Long id;
 
@@ -60,8 +61,8 @@ class NestedBaseEntityELResolverTest {
         public void setId(Long id) {
             this.id = id;
         }
-    }
 
+    }
 
     // ELResolver contract methods ------------------------------------------------------------------------------------
 
@@ -90,7 +91,6 @@ class NestedBaseEntityELResolverTest {
         assertDoesNotThrow(() -> resolver.setValue(context, new Object(), "property", "value"));
     }
 
-
     // getValue: early-return guards ----------------------------------------------------------------------------------
 
     @Test
@@ -108,7 +108,6 @@ class NestedBaseEntityELResolverTest {
         assertNull(result);
         verify(context, never()).setPropertyResolved(anyBoolean());
     }
-
 
     // getValue: nested property resolution ---------------------------------------------------------------------------
 
@@ -163,7 +162,7 @@ class NestedBaseEntityELResolverTest {
         when(context.getELResolver()).thenReturn(elResolver);
 
         var entity = new TestEntity();
-        var plainObject = new Object();  // not a BaseEntity
+        var plainObject = new Object(); // not a BaseEntity
         when(elResolver.getValue(context, entity, "wrapper")).thenReturn(plainObject);
         when(elResolver.getValue(context, plainObject, "value")).thenReturn("result");
 
@@ -171,7 +170,6 @@ class NestedBaseEntityELResolverTest {
 
         assertEquals("result", result);
     }
-
 
     // getValue: collection in the property chain ---------------------------------------------------------------------
 

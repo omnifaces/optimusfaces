@@ -37,13 +37,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 import org.omnifaces.persistence.criteria.Criteria;
 import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
-import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.component.datatable.feature.FilterFeature;
 import org.primefaces.component.datatable.feature.SortFeature;
@@ -51,12 +49,11 @@ import org.primefaces.model.SortMeta;
 
 /**
  * <p>
- * In-memory {@link PagedDataModel} implementation that applies filtering, sorting and pagination entirely in Java
- * on a pre-loaded list of entities, without touching the data store on every page request.
+ * In-memory {@link PagedDataModel} implementation that applies filtering, sorting and pagination entirely in Java on a pre-loaded list of entities, without
+ * touching the data store on every page request.
  * <p>
- * Filtering supports {@link org.omnifaces.persistence.criteria.Criteria}-based predicates as well as plain
- * equality and case-insensitive string comparison. Sorting uses a {@link java.util.Comparator} that handles
- * nested properties, {@link java.util.Collection}-valued paths, <code>null</code>-ordering and
+ * Filtering supports {@link org.omnifaces.persistence.criteria.Criteria}-based predicates as well as plain equality and case-insensitive string comparison.
+ * Sorting uses a {@link java.util.Comparator} that handles nested properties, {@link java.util.Collection}-valued paths, <code>null</code>-ordering and
  * locale-aware string comparison.
  * <p>
  * Construct via {@link PagedDataModel#nonLazy(List)}.
@@ -72,23 +69,26 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
     private static final long serialVersionUID = 1L;
 
-
     // Internal properties --------------------------------------------------------------------------------------------
 
     /** The full, un-paged list of entities used as the source for in-memory operations. */
     private List<E> allData;
 
-
     // Constructors ---------------------------------------------------------------------------------------------------
 
     /**
      * Constructs a new non-lazy paged data model.
+     *
      * @param allData The full list of data to be paged in-memory.
      * @param defaultOrdering The default sort order.
      * @param predefinedCriteria Fixed criteria to apply.
      * @param dynamicCriteria Dynamic criteria supplier.
      */
-    NonLazyPagedDataModel(List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria, Supplier<Map<Getter<?>, Object>> dynamicCriteria) {
+    NonLazyPagedDataModel(
+        List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria,
+        DynamicCriteria<?> dynamicCriteria
+    )
+    {
         super(null, defaultOrdering, predefinedCriteria, dynamicCriteria);
         this.allData = unmodifiableList(allData);
     }
@@ -96,9 +96,9 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
     /**
      * Applies in-memory filtering, sorting and pagination on the full data list.
      * <p>
-     * The full list is first filtered according to the required and optional criteria in the given {@link Page},
-     * then sorted using a locale-aware, null-safe comparator, and finally sliced to the requested offset and
-     * limit. The total count is always exact.
+     * The full list is first filtered according to the required and optional criteria in the given {@link Page}, then sorted using a locale-aware, null-safe
+     * comparator, and finally sliced to the requested offset and limit. The total count is always exact.
+     *
      * @param page Describes offset, limit, ordering and filter criteria.
      * @param estimateTotalNumberOfResults Unused; the total is always computed from the filtered list.
      * @return A {@link PartialResultList} containing the requested slice and the total filtered count.
@@ -141,7 +141,10 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
         private final Map<List<Method>, Entry<String, Object>> requiredCriteria;
         private final Map<List<Method>, Entry<String, Object>> optionalCriteria;
 
-        public BeanPropertyFilter(DataTable table, Map<List<Method>, Entry<String, Object>> requiredCriteria, Map<List<Method>, Entry<String, Object>> optionalCriteria) {
+        public BeanPropertyFilter(
+            DataTable table, Map<List<Method>, Entry<String, Object>> requiredCriteria, Map<List<Method>, Entry<String, Object>> optionalCriteria
+        )
+        {
             this.locale = table.resolveDataLocale();
             this.requiredCriteria = requiredCriteria;
             this.optionalCriteria = optionalCriteria;
@@ -175,11 +178,14 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
                 return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
             }
             else {
-                return stream(criteriaValue).anyMatch(value -> ((value instanceof Criteria && ((Criteria<?>) value).applies(propertyValue))
+                return stream(criteriaValue).anyMatch(
+                    value -> ((value instanceof Criteria && ((Criteria<?>) value).applies(propertyValue))
                         || (Objects.equals(propertyValue, value))
-                        || (Objects.equals(lower(propertyValue, locale), lower(value, locale)))));
+                        || (Objects.equals(lower(propertyValue, locale), lower(value, locale))))
+                );
             }
         }
+
     }
 
     /**
@@ -248,8 +254,8 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
                 return compareProperties(left.toString(), right.toString(), sortMeta);
             }
         }
-    }
 
+    }
 
     // Helpers --------------------------------------------------------------------------------------------------------
 
@@ -301,7 +307,8 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
                 List<Method> remainingMethods = methods.subList(i, methods.size());
 
                 if (!remainingMethods.isEmpty() && comparator != null && ((List<?>) result).size() > 1) {
-                    ((List) result).sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, new AbstractMap.SimpleEntry<>(null, ascending))));
+                    ((List) result)
+                        .sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, new AbstractMap.SimpleEntry<>(null, ascending))));
                 }
 
                 return stream(result).map(item -> invokeMethods(item, remainingMethods, comparator, ascending)).collect(toList());

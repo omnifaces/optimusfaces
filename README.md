@@ -40,7 +40,7 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
     </dependency>
 </dependencies>
 ```
@@ -89,7 +89,7 @@ public class YourEntity extends BaseEntity<Long> {
 }
 ```
 
-Then create a [`org.omnifaces.optimusfaces.model.PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) in your backing bean as below.
+Then create a [`org.omnifaces.optimusfaces.model.PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) in your backing bean as below. Noted should be that `@ViewScoped` is used here for basic usage, but `@RequestScoped` works equally fine thanks to the built-in bookmarkability support explained further below.
 
 ```Java
 @Named
@@ -250,7 +250,7 @@ Available `Criteria` wrappers: `Like`, `Not`, `Between`, `Order`, `Enumerated`, 
 | `styleClass` | | Additional CSS class on the `<p:dataTable>`. |
 | `responsive` | `true` | Enables PrimeFaces reflow/responsive mode. |
 | `rendered` | `true` | |
-| `updateQueryString` | `true` | Reflects paging, sorting, filtering and selection state in the browser URL as query parameters, making the table state bookmarkable. |
+| `updateQueryString` | `true` | Reflects paging, sorting, filtering and selection state in the browser URL as query parameters, making the table state bookmarkable and enabling `@RequestScoped` backing beans and stateless views. |
 | `queryParameterPrefix` | | Prefix for all query parameters; useful when multiple tables share a page to avoid parameter name collisions. |
 | `sortable` | `true` | Enables sorting on all columns; can be overridden per column via `<op:column sortable="false">`. |
 | `filterable` | `true` | Enables filtering on all columns; can be overridden per column via `<op:column filterable="false">`. |
@@ -378,6 +378,41 @@ For example, to keep a summary panel in sync with the current filter state:
 <p:outputPanel styleClass="updateOnDataTableFilter">
     ...
 </p:outputPanel>
+```
+
+
+### Bookmarkability and request scope support
+
+In plain PrimeFaces, a lazy `<p:dataTable>` requires a `@ViewScoped` backing bean. The reason is that the model instance needs to survive across postbacks, including its wrapped data. `@ViewScoped` achieves this by keeping the bean instance alive in the view map between requests, tracked by identifiers in the Faces view state. When the bean is `@RequestScoped` the model is brand new on every request, its wrapped data is `null` at the point decode runs, and pagination, sorting and selection postbacks silently fail.
+
+This also means that stateless JSF views (`<f:view transient="true">`), which disable Faces state saving entirely and therefore inherently break `@ViewScoped` beans and require `@RequestScoped` beans, are simply not an option in plain PrimeFaces when you need a lazy data table.
+
+OptimusFaces solves this differently. After every page load, `LazyPagedDataModel` collects the current table state and emits a JavaScript callback to `OptimusFaces.Util.updateQueryString()` in `optimusfaces.js`. That function calls `window.history.replaceState()` to update the browser URL without a page reload and also updates the JSF ViewState in all forms on the page. The URL now always reflects the exact current table state: page number, sort column, sort direction, active column filters and row selection.
+
+On the next request, whether it is a postback, a browser refresh or a bookmarked URL, `ExtendedDataTable` takes over. It overrides `preDecode()` and detects that the lazy model has no wrapped data yet. Instead of letting decode fail, it calls `LazyPagedDataModel#preloadPage()`, which reads the table state back from the URL query string parameters and loads the correct page from the data store before decode proceeds. Faces state is never needed for this. The query string is the state.
+
+The practical consequence is that `<op:dataTable>` works fully with `@RequestScoped` backing beans and stateless JSF views (`<f:view transient="true">`), and the table is fully bookmarkable and shareable at the same time.
+
+```Java
+@Named
+@RequestScoped // Works fine with both regular and stateless (<f:view transient="true">) views.
+public class YourBackingBean {
+
+    private PagedDataModel<YourEntity> model;
+
+    @Inject
+    private YourEntityService service;
+
+    @PostConstruct
+    public void init() {
+        model = PagedDataModel.lazy(service).build();
+    }
+
+    public PagedDataModel<YourEntity> getModel() {
+        return model;
+    }
+
+}
 ```
 
 

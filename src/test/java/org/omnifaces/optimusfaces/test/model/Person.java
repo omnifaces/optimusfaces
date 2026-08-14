@@ -39,14 +39,14 @@ public class Person extends LocalGeneratedIdEntity {
     private @NotNull @Enumerated Gender gender;
     private @NotNull LocalDate dateOfBirth;
 
-    @OneToOne(cascade=PERSIST, fetch=LAZY)
+    @OneToOne(cascade = PERSIST, fetch = LAZY)
     private @NotNull Address address;
 
-    @OneToMany(cascade=PERSIST)
+    @OneToMany(cascade = PERSIST)
     private @NotNull List<Phone> phones = new ArrayList<>();
 
     @ElementCollection
-    @Column(name="\"groups\"") // "groups" has become a new reserved word since MySQL 8.0.2, so we need to quote it.
+    @Column(name = "\"groups\"") // "groups" has become a new reserved word since MySQL 8.0.2, so we need to quote it.
     private @Enumerated(STRING) Set<Group> groups = new HashSet<>();
 
     public String getEmail() {

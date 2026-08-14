@@ -33,7 +33,7 @@
                 <op:column field="gender" />
                 <op:column field="dateOfBirth" />
             </op:dataTable>
-    
+
             <h:selectManyCheckbox id="criteria" value="#{optimusFacesITLazyWithCriteriaBean.selectedCriteria}" converter="omnifaces.SelectItemsIndexConverter">
                 <f:selectItems value="#{optimusFacesITLazyWithCriteriaBean.availableCriteria}" />
                 <f:ajax render="table :rowCount" />

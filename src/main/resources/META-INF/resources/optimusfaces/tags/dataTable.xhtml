@@ -111,7 +111,7 @@
                                     preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
                                 </p:dataExporter>
                                 <f:param name="$export" value="visible" />
-                                <p:menuitem id="#{id}_exportVisible" value="#{exportVisibleColumnsButtonLabel}" styleClass="visible" 
+                                <p:menuitem id="#{id}_exportVisible" value="#{exportVisibleColumnsButtonLabel}" styleClass="visible"
                                     actionListener="#{value.prepareExportVisible(id)}" ajax="false">
                                     <p:dataExporter target="#{id}" type="#{exportType}" fileName="#{exportFilename}"
                                         preProcessor="#{exportPreProcessorMethod}" postProcessor="#{exportPostProcessorMethod}">
@@ -133,7 +133,7 @@
                             </span>
                         </span>
                     </c:if>
-                    
+
                     <ui:insert name="actions" />
                 </div>
             </f:facet>

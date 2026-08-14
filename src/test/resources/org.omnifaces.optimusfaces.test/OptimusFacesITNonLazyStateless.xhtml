@@ -25,7 +25,7 @@
         <h:head>
             <title>OptimusFacesIT - non-lazy stateless</title>
         </h:head>
-    
+
         <h:body>
             <o:form id="form">
                 <op:dataTable id="table" value="#{optimusFacesITNonLazyStatelessBean.nonLazyPersons}" searchable="true" selectable="true">
@@ -35,7 +35,7 @@
                     <op:column field="dateOfBirth" />
                 </op:dataTable>
             </o:form>
-    
+
             <h:outputText id="rowCount" value="#{optimusFacesITNonLazyStatelessBean.nonLazyPersons.rowCount}" styleClass="updateOnDataTableFilter" />
             <h:outputText id="selection" value="#{optimusFacesITNonLazyStatelessBean.nonLazyPersons.selection}" styleClass="updateOnDataTableSelect" />
         </h:body>

@@ -25,9 +25,12 @@ class OptimusFacesJsTest {
 
     @BeforeAll
     static void loadScript() throws Exception {
-        jsScript = new String(OptimusFacesJsTest.class
-            .getResourceAsStream("/META-INF/resources/optimusfaces/scripts/optimusfaces.js")
-            .readAllBytes(), StandardCharsets.UTF_8);
+        jsScript = new String(
+            OptimusFacesJsTest.class
+                .getResourceAsStream("/META-INF/resources/optimusfaces/scripts/optimusfaces.js")
+                .readAllBytes(),
+            StandardCharsets.UTF_8
+        );
     }
 
     static String updateQueryStringParameter(String url, String name, String value) {
@@ -136,4 +139,5 @@ class OptimusFacesJsTest {
     void paramNamesAreCaseSensitive() {
         assertEquals("http://example.com/page?FOO=old&foo=new", updateQueryStringParameter("http://example.com/page?FOO=old", "foo", "new"));
     }
+
 }

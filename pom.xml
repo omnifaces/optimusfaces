@@ -6,10 +6,10 @@
 >
     <modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.omnifaces</groupId>
-	<artifactId>optimusfaces</artifactId>
-	<version>1.0</version>
-	<packaging>jar</packaging>
+    <groupId>org.omnifaces</groupId>
+    <artifactId>optimusfaces</artifactId>
+    <version>1.1</version>
+    <packaging>jar</packaging>
 
     <name>OptimusFaces</name>
     <description>Utility library for OmniFaces + PrimeFaces combined</description>
@@ -59,7 +59,7 @@
         <!-- Minimum required versions. -->
         <javase.version>17</javase.version>
         <jakartaee.version>10</jakartaee.version>
-        <omnipersistence.version>1.0</omnipersistence.version>
+        <omnipersistence.version>1.1</omnipersistence.version>
 
         <!-- Essential Maven defaults. -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -215,7 +215,7 @@
                         <configuration>
                             <licenseSets>
                                 <licenseSet>
-                                    <header>license.txt</header>
+                                    <header>LICENSE.txt</header>
                                     <excludes>
                                        <exclude>*.*</exclude> <!-- excludes files in root folder -->
                                     </excludes>
@@ -260,6 +260,44 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.15.0</version>
+            </plugin>
+
+            <!-- Apply code formatting (Java via Eclipse JDT). -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <java>
+                        <eclipse>
+                            <file>${project.basedir}/src/main/eclipse-formatter.xml</file>
+                        </eclipse>
+                        <trimTrailingWhitespace />
+                    </java>
+                    <formats>
+                        <format>
+                            <includes>
+                                <include>pom.xml</include>
+                                <include>src/**/*.xml</include>
+                                <include>src/**/*.xhtml</include>
+                            </includes>
+                            <trimTrailingWhitespace />
+                            <endWithNewline />
+                            <indent>
+                                <spaces>true</spaces>
+                                <spacesPerTab>4</spacesPerTab>
+                            </indent>
+                        </format>
+                    </formats>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Configure the jar with the binaries. -->
@@ -335,7 +373,7 @@
                     <skipTests>${skipUTs}</skipTests>
                 </configuration>
             </plugin>
-    
+
             <!-- Configure the integration tests (*IT.java). -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -645,24 +683,6 @@
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>configure-glassfish-console-logging</id>
-                                <phase>pre-integration-test</phase>
-                                <goals><goal>run</goal></goals>
-                                <configuration>
-                                    <target>
-                                        <echo file="${project.build.directory}/glassfish8/glassfish/domains/domain1/config/logging.properties" append="true">
-                                            org.glassfish.main.jul.handler.GlassFishLogHandler.redirectStandardStreams=false
-                                        </echo>
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
@@ -820,6 +840,7 @@
                         <version>0.10.0</version>
                         <extensions>true</extensions>
                         <configuration>
+                            <deploymentName>${project.artifactId}-${project.version}</deploymentName>
                             <autoPublish>true</autoPublish>
                         </configuration>
                     </plugin>
