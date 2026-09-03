@@ -12,15 +12,16 @@
  */
 package org.omnifaces.optimusfaces.test.view;
 
-import org.omnifaces.cdi.ViewScoped;
-import org.omnifaces.optimusfaces.model.PagedDataModel;
-import org.omnifaces.optimusfaces.test.model.Person;
-import org.omnifaces.optimusfaces.test.service.PersonService;
+import java.io.Serializable;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import java.io.Serializable;
+
+import org.omnifaces.cdi.ViewScoped;
+import org.omnifaces.optimusfaces.model.PagedDataModel;
+import org.omnifaces.optimusfaces.test.model.Person;
+import org.omnifaces.optimusfaces.test.service.PersonService;
 
 @Named
 @ViewScoped
