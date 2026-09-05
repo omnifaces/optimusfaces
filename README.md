@@ -436,3 +436,7 @@ Each environment will run the IT on following databases:
 - DB2 latest 12 (provided by IBM's Docker image) with JDBC driver 12.1.3.0
 
 Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
+
+### Commercial support
+
+OptimusFaces is maintained by [BalusC BV](https://balusc.org). For commercial support, Jakarta Faces consulting or migration work, mail <bauke@balusc.org>.
