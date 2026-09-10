@@ -57,6 +57,7 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -199,6 +200,14 @@ public abstract class OptimusFacesIT {
     public void init() {
         Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(OFF); // MyFaces triggers for some reason a lot of awkward JS "illegal selector" and CSS "em
                                                                          // has to be a px" warnings.
+    }
+
+    @AfterAll
+    public void teardown() {
+        if (browser != null) {
+            browser.quit();
+            browser = null;
+        }
     }
 
     protected void open(String type) {
