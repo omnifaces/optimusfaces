@@ -38,6 +38,10 @@ public class StartupService {
     public static final int TOTAL_RECORDS = 200;
     public static final int ROWS_PER_PAGE = 10;
 
+    private static final LocalDate CRITERIA_DATE_OF_BIRTH_THRESHOLD = LocalDate.of(1950, 1, 1);
+    private static final int CRITERIA_MATCHING_INDEX = 100;
+    private static final int CRITERIA_MISMATCHING_INDEX = 101;
+
     @Inject
     private PersonService personService;
 
@@ -57,6 +61,15 @@ public class StartupService {
             person.setEmail("name" + i + "@example.com");
             person.setGender(genders[random.nextInt(genders.length)]);
             person.setDateOfBirth(LocalDate.ofEpochDay(random.nextLong(LocalDate.of(1900, 1, 1).toEpochDay(), LocalDate.of(2000, 1, 1).toEpochDay())));
+
+            if (i == CRITERIA_MATCHING_INDEX) { // So that testCriteria() always finds at least one person matching all four criteria.
+                person.setGender(Gender.FEMALE);
+                person.setDateOfBirth(CRITERIA_DATE_OF_BIRTH_THRESHOLD.minusDays(1));
+            }
+            else if (i == CRITERIA_MISMATCHING_INDEX) { // So that testCriteria() always sees the dateOfBirth criterion filter at least one person out.
+                person.setGender(Gender.FEMALE);
+                person.setDateOfBirth(CRITERIA_DATE_OF_BIRTH_THRESHOLD);
+            }
 
             Address address = new Address();
             address.setStreet("Street" + i);
