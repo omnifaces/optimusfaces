@@ -1,0 +1,23 @@
+name: Retarget PRs to develop
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  retarget:
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          gh pr edit "$PR" --repo "$REPO" --base develop
+          gh pr comment "$PR" --repo "$REPO" --body "Hi @$AUTHOR, thanks for the PR! I've retargeted it from \`main\` to \`develop\`. \`main\` only receives release merges from maintainers. No action needed on your end."
