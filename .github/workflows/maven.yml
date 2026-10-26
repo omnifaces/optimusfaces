@@ -38,11 +38,19 @@ jobs:
         distribution: 'adopt'
         cache: maven
 
-    - name: Set up MySQL (already provided by ubuntu-latest)
+    - name: Set up MySQL (via Oracle's Docker image)
       if: matrix.database == 'MySQL'
       run: |
-        sudo /etc/init.d/mysql start
-        mysql -u root -proot -e 'CREATE DATABASE test;'
+        docker run -d --name mysql \
+          -e MYSQL_ROOT_PASSWORD=root \
+          -e MYSQL_DATABASE=test \
+          -p 3306:3306 \
+          mysql:8.4
+        for i in {1..30}; do
+          docker exec mysql mysql -uroot -proot -h127.0.0.1 -e "SELECT 1" test && break
+          echo "Waiting for MySQL to be ready... ($i/30)"
+          sleep 2
+        done
 
     - name: Set up PostgreSQL (already provided by ubuntu-latest)
       if: matrix.database == 'PostgreSQL'
