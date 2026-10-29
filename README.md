@@ -72,7 +72,7 @@ public class YourEntityService extends BaseEntityService<Long, YourEntity> {
 }
 ```
 
-And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity`, `TimestampedBaseEntity`, `VersionedEntity` or `VersionedBaseEntity`.
+And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity`, `TimestampedBaseEntity`, `VersionedEntity`, `VersionedBaseEntity`, `LockedEntity` or `LockedBaseEntity`.
 
 ```Java
 @Entity

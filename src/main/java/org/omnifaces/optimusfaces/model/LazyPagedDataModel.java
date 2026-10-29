@@ -262,9 +262,18 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
             && ordering.equals(page.getOrdering());
         var previousPageOfSameCriteria = nextOrPreviousPageOfSameCriteria && offset < page.getOffset();
         var rowCountNeedsUpdate = getRowCount() <= 0 || !pageOfSameCriteria;
-        var last = nextOrPreviousPageOfSameCriteria ? list.get(previousPageOfSameCriteria ? 0 : list.size() - 1) : null;
+        var builder = orderedPage().allMatch(requiredCriteria).anyMatch(optionalCriteria);
 
-        page = new Page(offset, limit, last, previousPageOfSameCriteria, ordering, requiredCriteria, optionalCriteria);
+        if (nextOrPreviousPageOfSameCriteria) {
+            var last = list.get(previousPageOfSameCriteria ? 0 : list.size() - 1);
+            var lastOrderingValues = orderedPage().range(last, limit, previousPageOfSameCriteria).build().getLastOrderingValues();
+            builder.range(offset, limit, lastOrderingValues, previousPageOfSameCriteria);
+        }
+        else {
+            builder.range(offset, limit);
+        }
+
+        page = builder.build();
         list = load(page, rowCountNeedsUpdate);
         var count = list.getEstimatedTotalNumberOfResults();
 
@@ -273,12 +282,18 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
                                                                  // results.
                 var offsetOfLastPage = offset - ((offset - count) / data.getRows() + 1) * data.getRows();
                 data.setFirst(offsetOfLastPage);
-                page = new Page(offsetOfLastPage, limit, ordering, requiredCriteria, optionalCriteria);
+                page = orderedPage().range(offsetOfLastPage, limit).allMatch(requiredCriteria).anyMatch(optionalCriteria).build();
                 list = load(page, false);
             }
 
             setRowCount(count);
         }
+    }
+
+    private Page.Builder orderedPage() {
+        var builder = Page.with();
+        ordering.forEach(builder::orderBy);
+        return builder;
     }
 
     /**
@@ -460,7 +475,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
         }
 
         var selection = getTrimmedQueryParameters(context, queryParameterPrefix + QUERY_PARAMETER_SELECTION);
-        return selection.isEmpty() ? emptyList() : new ArrayList<>(load(new Page(0, selection.size(), null, singletonMap(ID, selection), null), false));
+        return selection.isEmpty()
+            ? emptyList()
+            : new ArrayList<>(load(Page.with().range(0, selection.size()).allMatch(singletonMap(ID, selection)).build(), false));
     }
 
     /**
@@ -663,7 +680,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      */
     @Override
     public E getRowData(String rowKey) {
-        return load(new Page(0, 1, null, singletonMap(ID, rowKey), null), false).get(0);
+        return load(Page.with().range(0, 1).allMatch(singletonMap(ID, rowKey)).build(), false).get(0);
     }
 
     /**
