@@ -186,6 +186,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
             loadPage(context, (DataTable) data, sortBy, filterBy);
         }
         else if (data instanceof DataScroller) {
+            ordering = defaultOrdering;
             loadPage(data, offset, limit, emptyMap(), emptyMap());
         }
         else {
