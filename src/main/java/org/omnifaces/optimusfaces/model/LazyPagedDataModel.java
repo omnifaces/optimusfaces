@@ -14,7 +14,6 @@ package org.omnifaces.optimusfaces.model;
 
 import static jakarta.faces.component.UIComponent.getCurrentComponent;
 import static java.lang.Boolean.parseBoolean;
-import static java.lang.Math.abs;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -45,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -99,6 +99,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     private static final long serialVersionUID = 1L;
     private static final String GLOBAL_FILTER = "globalFilter";
+    /** Maximum amount of rows of which the ordering values are cached for value based paging. */
+    static final int MAX_CACHED_ORDERING_VALUES = 100;
 
     // Internal properties --------------------------------------------------------------------------------------------
 
@@ -126,6 +128,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
     private Page page;
     /** The most recently loaded list of results. */
     private PartialResultList<E> list;
+    /** Ordering values of the first and last row of each loaded page, keyed by row index; valid for {@link #page} criteria and ordering only. */
+    private final TreeMap<Integer, Map<String, Object>> orderingValuesByRowIndex = new TreeMap<>();
 
     /** Cached {@link SortMeta} derived from {@link #ordering}; recomputed whenever {@link #ordering} changes. */
     private SortMeta orderingCache;
@@ -168,8 +172,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
     /**
      * Called by PrimeFaces {@link DataTable} on every page render to supply data for the component.
      * <p>
-     * Dispatches to {@link #loadPage} for PrimeFaces {@link DataTable} (which applies full sort, filter and query-string processing) or to a simplified
-     * offset-based load for {@link DataScroller}.
+     * Dispatches to {@link #loadPage} for PrimeFaces {@link DataTable} (which applies full sort, filter and query-string processing) or to a load with the
+     * default ordering and no criteria for {@link DataScroller}.
      *
      * @param offset Zero-based index of the first row to return.
      * @param limit Maximum number of rows to return.
@@ -186,6 +190,7 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
             loadPage(context, (DataTable) data, sortBy, filterBy);
         }
         else if (data instanceof DataScroller) {
+            ordering = defaultOrdering;
             loadPage(data, offset, limit, emptyMap(), emptyMap());
         }
         else {
@@ -256,24 +261,15 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
         return coalesce((String) table.getAttributes().get("queryParameterPrefix"), "");
     }
 
-    private void loadPage(UIData data, int offset, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
+    void loadPage(UIData data, int offset, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
         var pageOfSameCriteria = requiredCriteria.equals(page.getRequiredCriteria()) && optionalCriteria.equals(page.getOptionalCriteria());
-        var nextOrPreviousPageOfSameCriteria = pageOfSameCriteria && !isEmpty(list) && abs(offset - page.getOffset()) == limit
-            && ordering.equals(page.getOrdering());
-        var previousPageOfSameCriteria = nextOrPreviousPageOfSameCriteria && offset < page.getOffset();
         var rowCountNeedsUpdate = getRowCount() <= 0 || !pageOfSameCriteria;
-        var builder = orderedPage().allMatch(requiredCriteria).anyMatch(optionalCriteria);
 
-        if (nextOrPreviousPageOfSameCriteria) {
-            var last = list.get(previousPageOfSameCriteria ? 0 : list.size() - 1);
-            var lastOrderingValues = orderedPage().range(last, limit, previousPageOfSameCriteria).build().getLastOrderingValues();
-            builder.range(offset, limit, lastOrderingValues, previousPageOfSameCriteria);
-        }
-        else {
-            builder.range(offset, limit);
+        if (!pageOfSameCriteria || !isSameOrdering(ordering, page.getOrdering())) {
+            orderingValuesByRowIndex.clear();
         }
 
-        page = builder.build();
+        page = buildPage(offset, limit, requiredCriteria, optionalCriteria);
         list = load(page, rowCountNeedsUpdate);
         var count = list.getEstimatedTotalNumberOfResults();
 
@@ -282,11 +278,60 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
                                                                  // results.
                 var offsetOfLastPage = offset - ((offset - count) / data.getRows() + 1) * data.getRows();
                 data.setFirst(offsetOfLastPage);
-                page = orderedPage().range(offsetOfLastPage, limit).allMatch(requiredCriteria).anyMatch(optionalCriteria).build();
+                page = buildPage(offsetOfLastPage, limit, requiredCriteria, optionalCriteria);
                 list = load(page, false);
             }
 
             setRowCount(count);
+        }
+
+        cacheOrderingValues();
+    }
+
+    private static boolean isSameOrdering(Map<String, Boolean> ordering, Map<String, Boolean> otherOrdering) {
+        return List.copyOf(ordering.entrySet()).equals(List.copyOf(otherOrdering.entrySet()));
+    }
+
+    private Page buildPage(int offset, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
+        var builder = orderedPage().allMatch(requiredCriteria).anyMatch(optionalCriteria);
+        var orderingValuesOfPreviousRow = orderingValuesByRowIndex.get(offset - 1);
+        var orderingValuesOfNextRow = orderingValuesByRowIndex.get(offset + limit);
+
+        if (orderingValuesOfPreviousRow != null) {
+            builder.range(offset, limit, orderingValuesOfPreviousRow, false);
+        }
+        else if (orderingValuesOfNextRow != null) {
+            builder.range(offset, limit, orderingValuesOfNextRow, true);
+        }
+        else {
+            builder.range(offset, limit);
+        }
+
+        return builder.build();
+    }
+
+    private void cacheOrderingValues() {
+        if (list.isEmpty()) {
+            return;
+        }
+
+        var offset = page.getOffset();
+        cacheOrderingValuesOfRow(offset, list.get(0));
+        cacheOrderingValuesOfRow(offset + list.size() - 1, list.get(list.size() - 1));
+
+        while (orderingValuesByRowIndex.size() > MAX_CACHED_ORDERING_VALUES) {
+            var first = orderingValuesByRowIndex.firstKey();
+            var last = orderingValuesByRowIndex.lastKey();
+            orderingValuesByRowIndex.remove(offset - first > last - offset ? first : last);
+        }
+    }
+
+    private void cacheOrderingValuesOfRow(int rowIndex, E row) {
+        try {
+            orderingValuesByRowIndex.put(rowIndex, orderedPage().range(row, 1, false).build().getLastOrderingValues());
+        }
+        catch (IllegalStateException ignore) {
+            //
         }
     }
 
