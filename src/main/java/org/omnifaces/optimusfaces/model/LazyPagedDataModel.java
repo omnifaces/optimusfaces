@@ -14,6 +14,7 @@ package org.omnifaces.optimusfaces.model;
 
 import static jakarta.faces.component.UIComponent.getCurrentComponent;
 import static java.lang.Boolean.parseBoolean;
+import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -294,14 +295,16 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
 
     private Page buildPage(int offset, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
         var builder = orderedPage().allMatch(requiredCriteria).anyMatch(optionalCriteria);
-        var orderingValuesOfPreviousRow = orderingValuesByRowIndex.get(offset - 1);
-        var orderingValuesOfNextRow = orderingValuesByRowIndex.get(offset + limit);
+        var boundaryBefore = orderingValuesByRowIndex.floorEntry(offset - 1);
+        var boundaryAfter = limit <= MAX_VALUE - offset ? orderingValuesByRowIndex.ceilingEntry(offset + limit) : null;
+        var residualOffsetBefore = boundaryBefore != null ? offset - 1 - boundaryBefore.getKey() : MAX_VALUE;
+        var residualOffsetAfter = boundaryAfter != null ? boundaryAfter.getKey() - offset - limit : MAX_VALUE;
 
-        if (orderingValuesOfPreviousRow != null) {
-            builder.range(offset, limit, orderingValuesOfPreviousRow, false);
+        if (boundaryBefore != null && residualOffsetBefore <= residualOffsetAfter) {
+            builder.range(offset, limit, boundaryBefore.getValue(), residualOffsetBefore, false);
         }
-        else if (orderingValuesOfNextRow != null) {
-            builder.range(offset, limit, orderingValuesOfNextRow, true);
+        else if (residualOffsetAfter < offset) {
+            builder.range(offset, limit, boundaryAfter.getValue(), residualOffsetAfter, true);
         }
         else {
             builder.range(offset, limit);

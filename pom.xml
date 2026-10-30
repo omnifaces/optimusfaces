@@ -59,7 +59,7 @@
         <!-- Minimum required versions. -->
         <javase.version>17</javase.version>
         <jakartaee.version>10</jakartaee.version>
-        <omnipersistence.version>1.2</omnipersistence.version>
+        <omnipersistence.version>1.2.1-SNAPSHOT</omnipersistence.version>
 
         <!-- Essential Maven defaults. -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -81,6 +81,19 @@
         <test.omnifaces.version>5.0-M6</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
         <test.primefaces.version>15.0.13</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
     </properties>
+
+    <repositories>
+        <repository>
+            <id>central-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
 
