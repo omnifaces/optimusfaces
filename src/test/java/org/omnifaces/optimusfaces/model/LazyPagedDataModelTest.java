@@ -148,6 +148,7 @@ class LazyPagedDataModelTest {
 
         assertEquals(PAGE_SIZE, page.getOffset());
         assertEquals(orderingValuesOfRow(PAGE_SIZE - 1), page.getLastOrderingValues());
+        assertEquals(0, page.getResidualOffset());
         assertFalse(page.isReversed());
     }
 
@@ -158,6 +159,7 @@ class LazyPagedDataModelTest {
 
         assertEquals(4 * PAGE_SIZE, page.getOffset());
         assertEquals(orderingValuesOfRow(5 * PAGE_SIZE), page.getLastOrderingValues());
+        assertEquals(0, page.getResidualOffset());
         assertTrue(page.isReversed());
     }
 
@@ -172,12 +174,84 @@ class LazyPagedDataModelTest {
     }
 
     @Test
-    void load_pageNotNextToAnyVisitedPage_isOffsetBased() {
+    void load_pageAfterVisitedPage_isValueBasedWithResidualOffsetFromLastRowOfThatPage() {
         load(0);
         var page = load(50 * PAGE_SIZE);
 
         assertEquals(50 * PAGE_SIZE, page.getOffset());
+        assertEquals(orderingValuesOfRow(PAGE_SIZE - 1), page.getLastOrderingValues());
+        assertEquals(49 * PAGE_SIZE, page.getResidualOffset());
+        assertFalse(page.isReversed());
+    }
+
+    @Test
+    void load_pageBeforeVisitedPage_isReversedValueBasedWithResidualOffsetFromFirstRowOfThatPage() {
+        load(50 * PAGE_SIZE);
+        var page = load(40 * PAGE_SIZE);
+
+        assertEquals(40 * PAGE_SIZE, page.getOffset());
+        assertEquals(orderingValuesOfRow(50 * PAGE_SIZE), page.getLastOrderingValues());
+        assertEquals(9 * PAGE_SIZE, page.getResidualOffset());
+        assertTrue(page.isReversed());
+    }
+
+    @Test
+    void load_pageBeforeVisitedPage_residualOffsetNotLessThanOffset_isOffsetBased() {
+        load(50 * PAGE_SIZE);
+        var page = load(PAGE_SIZE);
+
+        assertEquals(PAGE_SIZE, page.getOffset());
         assertTrue(page.getLastOrderingValues().isEmpty());
+    }
+
+    @Test
+    void load_pageBeforeVisitedPage_residualOffsetEqualToOffset_isOffsetBased() {
+        load(20 * PAGE_SIZE);
+        var page = load(9 * PAGE_SIZE, 2 * PAGE_SIZE);
+
+        assertEquals(9 * PAGE_SIZE, page.getOffset());
+        assertTrue(page.getLastOrderingValues().isEmpty());
+    }
+
+    @Test
+    void load_pageBeforeVisitedPage_limitChanged_isReversedValueBasedWithResidualOffsetFromFirstRowOfThatPage() {
+        load(50 * PAGE_SIZE);
+        var page = load(40 * PAGE_SIZE, 2 * PAGE_SIZE);
+
+        assertEquals(orderingValuesOfRow(50 * PAGE_SIZE), page.getLastOrderingValues());
+        assertEquals(8 * PAGE_SIZE, page.getResidualOffset());
+        assertTrue(page.isReversed());
+    }
+
+    @Test
+    void load_pageHalfwayBetweenVisitedPages_prefersForward() {
+        load(0);
+        load(20 * PAGE_SIZE);
+        var page = load(10 * PAGE_SIZE);
+
+        assertEquals(orderingValuesOfRow(PAGE_SIZE - 1), page.getLastOrderingValues());
+        assertEquals(9 * PAGE_SIZE, page.getResidualOffset());
+        assertFalse(page.isReversed());
+    }
+
+    @Test
+    void load_limitOverflowingRowIndex_isOffsetBased() {
+        load(50 * PAGE_SIZE);
+        var page = load(1, Integer.MAX_VALUE);
+
+        assertEquals(1, page.getOffset());
+        assertTrue(page.getLastOrderingValues().isEmpty());
+    }
+
+    @Test
+    void load_pageBetweenVisitedPages_isValueBasedOnNearestRow() {
+        load(0);
+        load(50 * PAGE_SIZE);
+        var page = load(45 * PAGE_SIZE);
+
+        assertEquals(orderingValuesOfRow(50 * PAGE_SIZE), page.getLastOrderingValues());
+        assertEquals(4 * PAGE_SIZE, page.getResidualOffset());
+        assertTrue(page.isReversed());
     }
 
     @Test
