@@ -22,6 +22,7 @@ import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
+import static java.util.logging.Level.WARNING;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.omnifaces.persistence.model.dto.Page.ID;
@@ -39,6 +40,8 @@ import static org.omnifaces.utils.stream.Streams.stream;
 import static org.primefaces.model.SortOrder.ASCENDING;
 import static org.primefaces.model.SortOrder.DESCENDING;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -48,6 +51,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -88,6 +92,11 @@ import org.primefaces.model.SortOrder;
  * When <code>updateQueryString</code> is set on the <code>&lt;op:dataTable&gt;</code>, every paging, sorting, filtering and selection change is reflected back
  * into the browser URL as query parameters via an Ajax <code>oncomplete</code> callback, making the table state bookmarkable.
  * <p>
+ * When serialized, e.g. as part of a passivated or replicated view scoped bean, the model serializes a copy of itself without the entities of the loaded page
+ * and of the selection; the model itself keeps them. After deserialization, the page is loaded again on the next postback or render, and the selection is
+ * resolved again from its row keys, see {@link #getSelection()}. The entities of the page and of the selection therefore do not need to be
+ * {@link Serializable}; the criteria and the ordering values are serialized as they are.
+ * <p>
  * Construct via {@link PagedDataModel#lazy(BaseEntityService)}, {@link PagedDataModel#lazy(EntityRepository)} or
  * {@link PagedDataModel#lazy(PagedDataModel.PartialResultListLoader)}.
  *
@@ -97,13 +106,18 @@ import org.primefaces.model.SortOrder;
  * @author Bauke Scholtz
  * @since 1.0
  */
-public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedDataModel<E> {
+public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedDataModel<E>, Cloneable {
 
     // Constants ------------------------------------------------------------------------------------------------------
 
     private static final long serialVersionUID = 1L;
     private static final String GLOBAL_FILTER = "globalFilter";
-    private static final String ERROR_ROW_DATA_NOT_LOADED = "Row key %s is not in the currently loaded data; set its row data via PagedDataModel.Builder#rowData()";
+    private static final Logger logger = Logger.getLogger(LazyPagedDataModel.class.getName());
+
+    private static final String ERROR_ROW_DATA_NOT_LOADED = "Row key %s is not in the currently loaded data; set its row data loader via"
+        + " PagedDataModel.Builder#rowData()";
+    private static final String LOG_WARNING_SELECTION_PARTIALLY_RESTORED = "%d of %d selected rows could not be restored after deserialization, because they are"
+        + " not in the loaded page; set their row data loader via PagedDataModel.Builder#rowData() to restore all selected rows";
     /** Maximum amount of rows of which the ordering values are cached for value based paging. */
     static final int MAX_CACHED_ORDERING_VALUES = 100;
 
@@ -133,8 +147,10 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
 
     /** The current page of data. */
     private Page page;
-    /** The most recently loaded list of results. */
-    private PartialResultList<E> list;
+    /** The most recently loaded list of results; not serialized, it is loaded again on the next render or postback. */
+    private transient PartialResultList<E> list;
+    /** Whether a page has been loaded at least once; serialized, so that a deserialized model does not read the page number from the query string again. */
+    private boolean loaded;
     /** Ordering values of the first and last row of each loaded page, keyed by row index; valid for {@link #page} criteria and ordering only. */
     private final TreeMap<Integer, Map<String, Object>> orderingValuesByRowIndex = new TreeMap<>();
 
@@ -145,10 +161,17 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
 
     // op:dataTable properties ----------------------------------------------------------------------------------------
 
-    /** The current list of filtered entities. */
-    private List<E> filteredValue;
-    /** The current selection of entities. */
-    private List<E> selection;
+    /** The current list of filtered entities; PrimeFaces only fills it on non-lazy tables. */
+    private transient List<E> filteredValue;
+    /** The current selection of entities; not serialized, it is resolved again from {@link #selectionRowKeys}. */
+    private transient List<E> selection;
+    /** The row keys of the selection which is yet to be resolved after deserialization, else <code>null</code>. */
+    private List<String> selectionRowKeys;
+    /**
+     * Whether this model is deserialized; it is only set on the copy which is serialized instead of this model. It stays set, because the client keeps
+     * submitting the row keys of selected rows on other pages until the table is rendered again.
+     */
+    private boolean deserialized;
 
     // Constructors ---------------------------------------------------------------------------------------------------
 
@@ -228,17 +251,24 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
      * Eagerly loads and caches the first page of data without waiting for PrimeFaces {@link DataTable}'s normal {@link #load} invocation.
      * <p>
      * Called by {@link ExtendedDataTable#preDecode} when the model's wrapped data is still <code>null</code> at the start of a postback, a situation that
-     * arises for request-scoped beans and stateless views that do not retain model state between requests. Pre-loading guarantees that row keys, selection
-     * state and pagination information are available when PrimeFaces {@link DataTable} processes the submitted form data during decode.
+     * arises for request-scoped beans and stateless views that do not retain model state between requests, and for a view scoped model after deserialization,
+     * which does not retain its loaded page. Pre-loading guarantees that row keys, selection state and pagination information are available when PrimeFaces
+     * {@link DataTable} processes the submitted form data during decode. A model which has been loaded before loads its last page again, with the same offset,
+     * ordering and criteria, so that the rows are the ones which were rendered.
      *
      * @param context The current {@link FacesContext}.
      * @param table The {@link DataTable} that triggered the postback.
      */
     public void preloadPage(FacesContext context, DataTable table) {
-        var sortBy = getInitialOrdering(context, table);
-        loadPage(context, table, singletonMap(sortBy.getField(), sortBy), emptyMap());
+        if (loaded) {
+            list = load(page, false);
+        }
+        else {
+            var sortBy = getInitialOrdering(context, table);
+            loadPage(context, table, singletonMap(sortBy.getField(), sortBy), emptyMap());
+        }
+
         setWrappedData(list);
-        setRowCount(list.getEstimatedTotalNumberOfResults());
         setPageSize(table.getRows());
     }
 
@@ -255,7 +285,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
         filters = processFilters(context, table, processableColumns, filterBy);
         filtersCache = null;
         globalFilter = processGlobalFilter(context, table, filterBy);
-        selection = processSelectionIfNecessary(context, selection);
+        selection = processSelectionIfNecessary(context, getSelection());
 
         var offset = table.getFirst();
         var limit = table.getRows();
@@ -280,6 +310,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
 
         page = buildPage(offset, limit, requiredCriteria, optionalCriteria);
         list = load(page, rowCountNeedsUpdate);
+        loaded = true;
         var count = list.getEstimatedTotalNumberOfResults();
 
         if (count != -1 && count != getRowCount()) {
@@ -425,7 +456,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
         var tableSortField = tableSortMeta.getField();
         var tableSortOrder = tableSortMeta.getOrder();
 
-        if (list == null) {
+        if (!loaded) {
             var page = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_PAGE);
 
             if (!isEmpty(page)) {
@@ -491,7 +522,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
      * @param table The surrounding {@link DataTable}.
      * @param processableColumns The columns selected by {@link #isProcessableColumn}.
      * @param filterBy Active filter metadata supplied by PrimeFaces {@link DataTable}.
-     * @return An ordered map of field name to normalised filter value for all active column filters.
+     * @return An ordered map of field name to normalized filter value for all active column filters.
      */
     protected LinkedHashMap<String, Object> processFilters(
         FacesContext context, DataTable table, List<UIColumn> processableColumns, Map<String, FilterMeta> filterBy
@@ -518,29 +549,45 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
     /**
      * Restores row selection from the query string on the initial (non-postback) request.
      * <p>
-     * On postbacks the current selection is left untouched. On initial requests the <code>selection</code> query parameter is read and the corresponding
-     * entities are restored so that a bookmarked selection is visible immediately: each via
-     * {@link PagedDataModel.Builder#rowData(PagedDataModel.RowDataLoader)} when specified, else all at once via the criteria <code>id</code> when the row key
-     * is the ID. Else the selection is not restored.
+     * The current selection is left untouched when there is one, and on postbacks. On initial requests the <code>selection</code> query parameter is read so
+     * that a bookmarked selection is visible immediately, its row keys are resolved like in {@link #getSelection()}.
      *
      * @param context The current {@link FacesContext}.
      * @param currentSelection The in-memory selection list carried over from previous requests.
-     * @return The restored or unchanged selection list; never <code>null</code>.
+     * @return The restored or unchanged selection list; <code>null</code> on a postback without any selection.
      */
     protected List<E> processSelectionIfNecessary(FacesContext context, List<E> currentSelection) {
         if (currentSelection != null || context.isPostback()) {
             return currentSelection;
         }
 
-        var selection = getTrimmedQueryParameters(context, queryParameterPrefix + QUERY_PARAMETER_SELECTION);
+        return coalesce(resolveSelection(getTrimmedQueryParameters(context, queryParameterPrefix + QUERY_PARAMETER_SELECTION)), new ArrayList<>());
+    }
 
-        if (selection.isEmpty() || !isSelectionRestorable()) {
-            return emptyList();
+    /**
+     * Returns the entities of the given row keys: each via {@link PagedDataModel.Builder#rowData(PagedDataModel.RowDataLoader)} when specified, else all at
+     * once via the criteria <code>id</code> when the row key is the ID, else from the currently loaded data, see {@link #getLoadedData()}. A row key which is
+     * not found is skipped.
+     *
+     * @param rowKeys The row keys.
+     * @return The entities of the given row keys, or <code>null</code> when they can only be found in the loaded data and nothing is loaded yet.
+     */
+    private List<E> resolveSelection(List<String> rowKeys) {
+        if (rowKeys.isEmpty()) {
+            return new ArrayList<>();
         }
-
-        return rows.data() != null
-            ? selection.stream().map(rows.data()).filter(Objects::nonNull).collect(toList())
-            : new ArrayList<>(load(Page.with().range(0, selection.size()).allMatch(singletonMap(ID, selection)).build(), false));
+        else if (rows.data() != null) {
+            return rowKeys.stream().map(rows.data()).filter(Objects::nonNull).collect(toList());
+        }
+        else if (rows.keyIsId() && !isLoadedDataComplete()) {
+            return new ArrayList<>(load(Page.with().range(0, rowKeys.size()).allMatch(singletonMap(ID, rowKeys)).build(), false));
+        }
+        else if (getLoadedData() != null) {
+            return rowKeys.stream().map(this::findLoadedRowData).flatMap(Optional::stream).collect(toList());
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -706,8 +753,8 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
                     .forEach(value -> params.add(new SimpleParam<>(queryParameterPrefix + entry.getKey(), value)))
             );
 
-        if (selection != null && isSelectionRestorable()) {
-            selection.stream().map(this::getRowKey).sorted()
+        if (getSelection() != null && isSelectionRestorable()) {
+            getSelection().stream().map(this::getRowKey).sorted()
                 .forEach(rowKey -> params.add(new SimpleParam<>(queryParameterPrefix + QUERY_PARAMETER_SELECTION, rowKey)));
         }
 
@@ -744,8 +791,9 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
      * the ID, else from the currently loaded data.
      *
      * @param rowKey The string row key previously returned by {@link #getRowKey}.
-     * @return The corresponding entity.
-     * @throws IllegalStateException When the row key is not the ID and the entity is not in the currently loaded data.
+     * @return The corresponding entity, or <code>null</code> when the row key is not the ID and the entity is not in the currently loaded data of a
+     * deserialized model, whose selection may hold rows which were on another page.
+     * @throws IllegalStateException When the row key is not the ID and the entity is not in the currently loaded data of a model which is not deserialized.
      */
     @Override
     public E getRowData(String rowKey) {
@@ -756,7 +804,13 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
             return load(Page.with().range(0, 1).allMatch(singletonMap(ID, rowKey)).build(), false).get(0);
         }
         else {
-            return findLoadedRowData(rowKey).orElseThrow(() -> new IllegalStateException(format(ERROR_ROW_DATA_NOT_LOADED, rowKey)));
+            var rowData = findLoadedRowData(rowKey);
+
+            if (rowData.isEmpty() && !deserialized) {
+                throw new IllegalStateException(format(ERROR_ROW_DATA_NOT_LOADED, rowKey));
+            }
+
+            return rowData.orElse(null);
         }
     }
 
@@ -782,6 +836,15 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
      */
     protected List<E> getLoadedData() {
         return list;
+    }
+
+    /**
+     * Returns whether {@link #getLoadedData()} holds all data, so that an entity of a row key can always be looked up in it.
+     *
+     * @return Whether the loaded data holds all data.
+     */
+    boolean isLoadedDataComplete() {
+        return false;
     }
 
     private boolean isSelectionRestorable() {
@@ -865,11 +928,29 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
 
     /**
      * Returns the currently selected rows.
+     * <p>
+     * After deserialization, the selection is resolved once from its row keys: each via {@link PagedDataModel.Builder#rowData(PagedDataModel.RowDataLoader)}
+     * when specified, else via the criteria <code>id</code> when the row key is the ID, else from the loaded page, which restores only the selected rows on
+     * that page.
      *
-     * @return The selection list; may be <code>null</code> when selection has not been initialised.
+     * @return The selection list; may be <code>null</code> when selection has not been initialized.
      */
     @Override
     public List<E> getSelection() {
+        if (selection == null && selectionRowKeys != null) {
+            selection = resolveSelection(selectionRowKeys);
+
+            if (selection != null) {
+                if (selection.size() < selectionRowKeys.size() && rows.data() == null && !rows.keyIsId()) {
+                    var total = selectionRowKeys.size();
+                    var restored = selection.size();
+                    logger.log(WARNING, () -> format(LOG_WARNING_SELECTION_PARTIALLY_RESTORED, total - restored, total));
+                }
+
+                selectionRowKeys = null;
+            }
+        }
+
         return selection;
     }
 
@@ -882,7 +963,36 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
     public void setSelection(List<E> selection) {
         if (!Objects.equals(selection, this.selection)) {
             this.selection = selection;
+            selectionRowKeys = null;
             updateQueryStringIfNecessary(getContext());
+        }
+    }
+
+    // Serialization --------------------------------------------------------------------------------------------------
+
+    /**
+     * Returns the copy of this model which is serialized instead: without the wrapped data, so that the entities of the current page are not serialized, and
+     * with the row keys of the selection instead of its entities. This model itself keeps both. After deserialization, the page is loaded again on the next
+     * postback by {@link ExtendedDataTable}, or on the next render, because the wrapped data is then absent.
+     *
+     * @return The copy of this model which is serialized instead.
+     */
+    @Serial
+    @SuppressWarnings("unchecked")
+    Object writeReplace() {
+        try {
+            var copy = (LazyPagedDataModel<E>) clone();
+            copy.setWrappedData(null);
+            copy.deserialized = true;
+
+            if (selection != null) {
+                copy.selectionRowKeys = selection.stream().map(this::getRowKey).collect(toList());
+            }
+
+            return copy;
+        }
+        catch (CloneNotSupportedException e) {
+            throw new IllegalStateException(e);
         }
     }
 

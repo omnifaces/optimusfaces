@@ -1154,8 +1154,8 @@ public interface PagedDataModel<E> extends Serializable {
     }
 
     /**
-     * Use this if you want to build a lazy paged data model using an {@link EntityRepository}. The entity need not extend {@link BaseEntity}: the row key is
-     * the ID as returned by {@link EntityRepository#getId(Object)}.
+     * Use this if you want to build a lazy paged data model using an {@link EntityRepository}. The entity does not need to extend {@link BaseEntity}: the row
+     * key is the ID as returned by {@link EntityRepository#getId(Object)}.
      *
      * @param <I> The generic ID type.
      * @param <E> The generic entity type.
@@ -1207,7 +1207,7 @@ public interface PagedDataModel<E> extends Serializable {
 
         private static final String ERROR_NO_ROW_KEY = "%s does not extend " + BaseEntity.class.getName()
             + ", so build the model via PagedDataModel.lazy(EntityRepository), or set its row key via PagedDataModel.Builder#rowKey(), and preferably also"
-            + " its row data via PagedDataModel.Builder#rowData()";
+            + " its row data loader via PagedDataModel.Builder#rowData()";
 
         private List<E> allData;
         private PartialResultListLoader<E> loader;
