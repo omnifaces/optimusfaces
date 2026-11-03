@@ -19,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -296,6 +298,16 @@ class PagedDataModelTest {
     }
 
     @Test
+    void getRowKey_entityRepositoryAndLoader_isIdOfRepository() {
+        @SuppressWarnings("unchecked")
+        EntityRepository<Long, TestEntity> repository = mock(EntityRepository.class);
+        var entity = entity(null, "a");
+        when(repository.getId(entity)).thenReturn(42L);
+
+        assertEquals("42", built(PagedDataModel.lazy(repository, (page, count) -> null)).getRowKey(entity));
+    }
+
+    @Test
     void getRowKey_rowKeyGetter_isUsed() {
         var model = built(PagedDataModel.nonLazy(new ArrayList<TestEntity>()).rowKey(TestEntity::getReference));
 
@@ -362,6 +374,23 @@ class PagedDataModelTest {
 
         assertEquals(1, selection.size());
         assertEquals(Map.of(Page.ID, List.of("1", "2")), loadedPages.get(0).getRequiredCriteria());
+    }
+
+    @Test
+    void processSelectionIfNecessary_entityRepositoryAndLoader_isLoadedViaIdCriteriaOfLoader() {
+        @SuppressWarnings("unchecked")
+        EntityRepository<Long, TestEntity> repository = mock(EntityRepository.class);
+        var loadedPages = new ArrayList<Page>();
+        var model = built(PagedDataModel.lazy(repository, (page, count) -> {
+            loadedPages.add(page);
+            return new PartialResultList<>(List.of(entity(1L, "a")), 0, -1);
+        }));
+
+        var selection = model.processSelectionIfNecessary(initialRequestWithSelection(model, "1", "2"), null);
+
+        assertEquals(1, selection.size());
+        assertEquals(Map.of(Page.ID, List.of("1", "2")), loadedPages.get(0).getRequiredCriteria());
+        verify(repository, never()).getPage(any(), anyBoolean());
     }
 
     private static FacesContext initialRequestWithSelection(LazyPagedDataModel<?> model, String... rowKeys) {
