@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -35,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.faces.context.FacesContext;
 import jakarta.faces.model.SelectItem;
 
 import org.junit.jupiter.api.Test;
@@ -44,17 +46,48 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.omnifaces.optimusfaces.model.PagedDataModel.DynamicCriteria;
 import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
+import org.omnifaces.optimusfaces.model.PagedDataModel.RowKeyGetter;
 import org.omnifaces.persistence.criteria.Like;
+import org.omnifaces.persistence.model.BaseEntity;
 import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.persistence.service.BaseEntityService;
+import org.omnifaces.persistence.service.EntityRepository;
+import org.omnifaces.utils.collection.PartialResultList;
 import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.column.Column;
 
 @ExtendWith(MockitoExtension.class)
 class PagedDataModelTest {
 
-    /** Minimal concrete type satisfying the {@code E extends Identifiable<?>} bound. */
-    static final class TestEntity implements Identifiable<Long> {
+    /** Entity which neither extends {@link BaseEntity} nor implements {@link Identifiable}. */
+    static final class TestEntity implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        private Long id;
+        private String reference;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public String getReference() {
+            return reference;
+        }
+
+        public void setReference(String reference) {
+            this.reference = reference;
+        }
+
+    }
+
+    @SuppressWarnings("removal")
+    static final class IdentifiableEntity implements Identifiable<Long> {
 
         private Long id;
 
@@ -68,6 +101,40 @@ class PagedDataModelTest {
             this.id = id;
         }
 
+    }
+
+    static final class TestBaseEntity extends BaseEntity<Long> {
+
+        private static final long serialVersionUID = 1L;
+
+        private Long id;
+
+        @Override
+        public Long getId() {
+            return id;
+        }
+
+        @Override
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+    }
+
+    /** Type without an <code>id</code> property. */
+    public static final class ReferenceOnly {
+
+        public String getReference() {
+            return null;
+        }
+
+    }
+
+    private static TestEntity entity(Long id, String reference) {
+        var entity = new TestEntity();
+        entity.setId(id);
+        entity.setReference(reference);
+        return entity;
     }
 
     /**
@@ -195,6 +262,150 @@ class PagedDataModelTest {
         PagedDataModel<TestEntity> built = PagedDataModel.nonLazy(new ArrayList<TestEntity>()).build();
 
         assertInstanceOf(NonLazyPagedDataModel.class, built);
+    }
+
+    // Row key and row data -------------------------------------------------------------------------------------------
+
+    @SuppressWarnings("unchecked")
+    private static <E> LazyPagedDataModel<E> built(PagedDataModel.Builder<E> builder) {
+        return (LazyPagedDataModel<E>) builder.build();
+    }
+
+    @Test
+    void getRowKey_entityWithoutKnownIdAndNoRowKey_throwsIllegalStateExceptionNamingRowKey() {
+        var model = built(PagedDataModel.nonLazy(new ArrayList<TestEntity>()));
+
+        var exception = assertThrows(IllegalStateException.class, () -> model.getRowKey(entity(1L, "a")));
+        assertTrue(exception.getMessage().contains("rowKey()"), exception.getMessage());
+    }
+
+    @Test
+    void getRowKey_baseEntityViaEntityService_isId() {
+        @SuppressWarnings("unchecked")
+        BaseEntityService<Long, TestBaseEntity> service = mock(BaseEntityService.class);
+        var entity = new TestBaseEntity();
+        entity.setId(42L);
+
+        assertEquals("42", built(PagedDataModel.lazy(service)).getRowKey(entity));
+    }
+
+    @Test
+    void getRowKey_identifiableEntity_isId() {
+        var entity = new IdentifiableEntity();
+        entity.setId(42L);
+
+        assertEquals("42", built(PagedDataModel.nonLazy(new ArrayList<IdentifiableEntity>())).getRowKey(entity));
+    }
+
+    @Test
+    void getRowKey_entityRepository_isIdOfRepository() {
+        @SuppressWarnings("unchecked")
+        EntityRepository<Long, TestEntity> repository = mock(EntityRepository.class);
+        var entity = entity(null, "a");
+        when(repository.getId(entity)).thenReturn(42L);
+
+        assertEquals("42", built(PagedDataModel.lazy(repository)).getRowKey(entity));
+    }
+
+    @Test
+    void getRowKey_rowKeyGetter_isUsed() {
+        var model = built(PagedDataModel.nonLazy(new ArrayList<TestEntity>()).rowKey(TestEntity::getReference));
+
+        assertEquals("a", model.getRowKey(entity(1L, "a")));
+    }
+
+    @Test
+    void getRowKey_rowKeyIsNull_fallsBackToHashCode() {
+        var model = built(PagedDataModel.nonLazy(new ArrayList<TestEntity>()).rowKey(TestEntity::getReference));
+        var entity = entity(1L, null);
+
+        assertEquals(String.valueOf(entity.hashCode()), model.getRowKey(entity));
+    }
+
+    @Test
+    void getRowData_rowDataLoader_isUsed() {
+        var entity = entity(1L, "a");
+        var model = built(PagedDataModel.nonLazy(new ArrayList<TestEntity>()).rowKey(TestEntity::getReference).rowData(rowKey -> entity));
+
+        assertSame(entity, model.getRowData("a"));
+    }
+
+    @Test
+    void getRowData_nonLazyWithRowKeyGetterAndNoRowDataLoader_isFoundInAllData() {
+        var entity = entity(1L, "a");
+        var model = built(PagedDataModel.nonLazy(List.of(entity(2L, "b"), entity)).rowKey(TestEntity::getReference));
+
+        assertSame(entity, model.getRowData("a"));
+    }
+
+    @Test
+    void getRowData_lazyWithRowKeyGetterAndNoRowDataLoader_notLoaded_throwsIllegalStateExceptionNamingRowData() {
+        var model = built(PagedDataModel.<TestEntity>lazy((page, estimate) -> null).rowKey(TestEntity::getReference));
+
+        var exception = assertThrows(IllegalStateException.class, () -> model.getRowData("a"));
+        assertTrue(exception.getMessage().contains("rowData()"), exception.getMessage());
+    }
+
+    @Test
+    void processSelectionIfNecessary_rowDataLoader_isInvokedPerSelectedRowKey() {
+        var model = built(PagedDataModel.<TestEntity>lazy((page, estimate) -> null).rowKey(TestEntity::getReference).rowData(rowKey -> entity(null, rowKey)));
+
+        var selection = model.processSelectionIfNecessary(initialRequestWithSelection(model, "a", "b"), null);
+
+        assertEquals(List.of("a", "b"), selection.stream().map(TestEntity::getReference).toList());
+    }
+
+    @Test
+    void processSelectionIfNecessary_rowKeyGetterWithoutRowDataLoader_isNotRestored() {
+        var model = built(PagedDataModel.<TestEntity>lazy((page, estimate) -> null).rowKey(TestEntity::getReference));
+
+        assertTrue(model.processSelectionIfNecessary(initialRequestWithSelection(model, "a"), null).isEmpty());
+    }
+
+    @Test
+    void processSelectionIfNecessary_rowKeyIsId_isLoadedViaIdCriteria() {
+        var loadedPages = new ArrayList<Page>();
+        var model = built(PagedDataModel.<IdentifiableEntity>lazy((page, estimate) -> {
+            loadedPages.add(page);
+            return new PartialResultList<>(List.of(new IdentifiableEntity()), 0, -1);
+        }));
+
+        var selection = model.processSelectionIfNecessary(initialRequestWithSelection(model, "1", "2"), null);
+
+        assertEquals(1, selection.size());
+        assertEquals(Map.of(Page.ID, List.of("1", "2")), loadedPages.get(0).getRequiredCriteria());
+    }
+
+    private static FacesContext initialRequestWithSelection(LazyPagedDataModel<?> model, String... rowKeys) {
+        model.queryParameterPrefix = "";
+        var context = mock(FacesContext.class, Answers.RETURNS_DEEP_STUBS);
+        when(context.isPostback()).thenReturn(false);
+        when(context.getExternalContext().getRequestParameterValuesMap()).thenReturn(Map.of(PagedDataModel.QUERY_PARAMETER_SELECTION, rowKeys));
+        return context;
+    }
+
+    @Test
+    void withoutUnknownId_typeWithoutIdProperty_removesIdFromOrdering() {
+        var ordering = new LinkedHashMap<String, Boolean>();
+        ordering.put("reference", true);
+        ordering.put(Page.ID, false);
+
+        assertEquals(Map.of("reference", true), NonLazyPagedDataModel.withoutUnknownId(ReferenceOnly.class, ordering));
+        assertEquals(ordering, NonLazyPagedDataModel.withoutUnknownId(TestEntity.class, ordering));
+    }
+
+    @Test
+    void model_lazyEntityRepository_survivesSerialization() throws Exception {
+        var repository = new EntityRepository<Long, TestEntity>(() -> null, Long.class, TestEntity.class);
+
+        assertInstanceOf(LazyPagedDataModel.class, serializeAndDeserialize(PagedDataModel.lazy(repository).build()));
+    }
+
+    @Test
+    void rowKeyGetter_methodReference_survivesSerialization() throws Exception {
+        RowKeyGetter<TestEntity> rowKey = TestEntity::getReference;
+
+        assertEquals("a", serializeAndDeserialize(rowKey).apply(entity(1L, "a")));
     }
 
     // Builder: guard clauses -----------------------------------------------------------------------------------------

@@ -28,7 +28,7 @@
     </ordering>
 
     <application>
-        <el-resolver>org.omnifaces.optimusfaces.el.NestedBaseEntityELResolver</el-resolver>
+        <el-resolver>org.omnifaces.optimusfaces.el.NestedEntityELResolver</el-resolver>
     </application>
 
     <component>

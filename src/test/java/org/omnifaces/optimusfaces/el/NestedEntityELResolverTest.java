@@ -22,9 +22,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.el.ELContext;
 import jakarta.el.ELResolver;
+import jakarta.persistence.Entity;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,9 +35,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.omnifaces.persistence.model.BaseEntity;
 
 @ExtendWith(MockitoExtension.class)
-class NestedBaseEntityELResolverTest {
+class NestedEntityELResolverTest {
 
-    private final NestedBaseEntityELResolver resolver = new NestedBaseEntityELResolver();
+    private final NestedEntityELResolver resolver = new NestedEntityELResolver();
 
     @Mock
     private ELContext context;
@@ -61,6 +63,19 @@ class NestedBaseEntityELResolverTest {
         public void setId(Long id) {
             this.id = id;
         }
+
+    }
+
+    @Entity
+    static class PlainEntity {
+
+        // NOOP.
+
+    }
+
+    static final class PlainEntityDTO extends PlainEntity {
+
+        // NOOP.
 
     }
 
@@ -99,6 +114,36 @@ class NestedBaseEntityELResolverTest {
 
         assertNull(result);
         verify(context, never()).setPropertyResolved(anyBoolean());
+    }
+
+    @Test
+    void getValue_mapWithDottedKey_returnsNullWithoutResolvingProperty() {
+        var result = resolver.getValue(context, Map.of("some.property", "value"), "some.property");
+
+        assertNull(result);
+        verify(context, never()).setPropertyResolved(anyBoolean());
+    }
+
+    @Test
+    void getValue_entityAnnotatedClassNotExtendingBaseEntity_resolvesNestedProperty() {
+        when(context.getELResolver()).thenReturn(elResolver);
+        var entity = new PlainEntity();
+        var address = new Object();
+        when(elResolver.getValue(context, entity, "address")).thenReturn(address);
+        when(elResolver.getValue(context, address, "street")).thenReturn("Baker Street");
+
+        assertEquals("Baker Street", resolver.getValue(context, entity, "address.street"));
+    }
+
+    @Test
+    void getValue_subclassOfEntityAnnotatedClass_resolvesNestedProperty() {
+        when(context.getELResolver()).thenReturn(elResolver);
+        var dto = new PlainEntityDTO();
+        var address = new Object();
+        when(elResolver.getValue(context, dto, "address")).thenReturn(address);
+        when(elResolver.getValue(context, address, "street")).thenReturn("Baker Street");
+
+        assertEquals("Baker Street", resolver.getValue(context, dto, "address.street"));
     }
 
     @Test

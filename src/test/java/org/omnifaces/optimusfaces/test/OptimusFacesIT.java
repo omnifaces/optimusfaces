@@ -529,6 +529,17 @@ public abstract class OptimusFacesIT {
     }
 
     @Test
+    public void testLazyWithEntityRepositoryPagingSortingFilteringAndSelection() {
+        open("LazyWithEntityRepository");
+        testPagingSortingFilteringAndSelection();
+    }
+
+    @Test
+    public void testLazyWithEntityRepositoryQueryStringLoading() {
+        testQueryStringLoading("LazyWithEntityRepository");
+    }
+
+    @Test
     public void testLazyStatelessPagingSortingFilteringAndSelection() {
         open("LazyStateless");
         testPagingSortingFilteringAndSelection();

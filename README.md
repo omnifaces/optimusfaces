@@ -182,7 +182,7 @@ Here's how it looks like with default PrimeFaces 15 UI and all. This example use
 
 ### Non-lazy model
 
-For a static in-memory list, use `PagedDataModel.nonLazy(list)`. Unlike the lazy model, entities only need to implement `Identifiable` (not `BaseEntity`), making it convenient for DTOs.
+For a static in-memory list, use `PagedDataModel.nonLazy(list)`. Unlike `PagedDataModel.lazy(BaseEntityService)`, the entities can be of any type, making it convenient for DTOs. When the entity has no `BaseEntity#getId()`, specify its row key via `rowKey(...)` on the builder.
 
 ```Java
 @PostConstruct

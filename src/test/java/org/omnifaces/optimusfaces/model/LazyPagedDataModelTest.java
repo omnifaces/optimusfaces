@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.omnifaces.optimusfaces.model.LazyPagedDataModel.MAX_CACHED_ORDERING_VALUES;
-import static org.omnifaces.persistence.model.Identifiable.ID;
+import static org.omnifaces.persistence.model.dto.Page.ID;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -31,7 +31,6 @@ import jakarta.faces.component.UIData;
 
 import org.junit.jupiter.api.Test;
 import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
-import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.primefaces.component.datascroller.DataScroller;
@@ -45,22 +44,16 @@ class LazyPagedDataModelTest {
     private static final int PAGE_SIZE = 10;
     private static final int TOTAL_ROWS = MAX_CACHED_ORDERING_VALUES * PAGE_SIZE;
 
-    static final class TestEntity implements Identifiable<Long> {
+    static final class TestEntity {
 
-        private Long id;
+        private final Long id;
 
         TestEntity(long id) {
             this.id = id;
         }
 
-        @Override
         public Long getId() {
             return id;
-        }
-
-        @Override
-        public void setId(Long id) {
-            this.id = id;
         }
 
         public boolean isEven() {
@@ -73,6 +66,10 @@ class LazyPagedDataModelTest {
     private final LazyPagedDataModel<TestEntity> model = createModel(new LinkedHashMap<>(singletonMap(ID, false)));
 
     private LazyPagedDataModel<TestEntity> createModel(LinkedHashMap<String, Boolean> defaultOrdering) {
+        return createModel(defaultOrdering, Rows.ofId(TestEntity::getId, null));
+    }
+
+    private LazyPagedDataModel<TestEntity> createModel(LinkedHashMap<String, Boolean> defaultOrdering, Rows<TestEntity> rowIdentification) {
         var scroller = mock(DataScroller.class);
         PartialResultListLoader<TestEntity> loader = (page, count) -> {
             loadedPages.add(page);
@@ -85,7 +82,7 @@ class LazyPagedDataModelTest {
             return new PartialResultList<>(rows, page.getOffset(), count ? TOTAL_ROWS : -1);
         };
 
-        return new LazyPagedDataModel<>(loader, defaultOrdering, emptyMap(), null) {
+        return new LazyPagedDataModel<>(loader, defaultOrdering, emptyMap(), null, rowIdentification) {
 
             private static final long serialVersionUID = 1L;
 
@@ -120,6 +117,16 @@ class LazyPagedDataModelTest {
 
     private static Map<String, Object> orderingValuesOfRow(int rowIndex) {
         return singletonMap(ID, (long) (TOTAL_ROWS - rowIndex));
+    }
+
+    // Row data -------------------------------------------------------------------------------------------------------
+
+    @Test
+    void getRowData_rowKeyGetterWithoutRowDataLoader_isFoundInLoadedPage() {
+        var referencedModel = createModel(new LinkedHashMap<>(singletonMap(ID, false)), Rows.of(entity -> "row" + entity.getId(), null));
+        referencedModel.load(0, PAGE_SIZE, emptyMap(), emptyMap());
+
+        assertEquals(TOTAL_ROWS - 1, referencedModel.getRowData("row" + (TOTAL_ROWS - 1)).getId());
     }
 
     // DataScroller ---------------------------------------------------------------------------------------------------

@@ -32,13 +32,20 @@ import org.primefaces.component.datatable.DataTable;
  * selection, pagination and other postback actions to silently fail.
  * <p>
  * {@link #preDecode} detects this situation and calls {@link LazyPagedDataModel#preloadPage} to populate the model from the data store before decode proceeds,
- * restoring correct postback behaviour for those bean scopes.
+ * restoring correct postback behavior for those bean scopes.
  *
  * @see LazyPagedDataModel#preloadPage
  * @author Bauke Scholtz
  * @since 1.0
  */
 public class ExtendedDataTable extends DataTable {
+
+    /**
+     * Creates the component; this is done by the Faces runtime via the bundled <code>faces-config.xml</code>.
+     */
+    public ExtendedDataTable() {
+        // NOOP.
+    }
 
     /**
      * Preloads the lazy model's first page before PrimeFaces {@link DataTable} runs decode, when the model has no wrapped data yet. This happens on postbacks

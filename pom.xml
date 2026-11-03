@@ -365,6 +365,7 @@
                     <notimestamp>true</notimestamp>
                     <splitindex>true</splitindex>
                     <doclint>all</doclint>
+                    <failOnWarnings>true</failOnWarnings>
                     <doctitle>OptimusFaces API documentation</doctitle>
                     <links>
                         <link>https://docs.oracle.com/en/java/javase/${javase.version}/docs/api/</link>

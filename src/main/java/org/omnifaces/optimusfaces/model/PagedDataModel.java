@@ -12,7 +12,7 @@
  */
 package org.omnifaces.optimusfaces.model;
 
-import static org.omnifaces.persistence.model.Identifiable.ID;
+import static org.omnifaces.persistence.model.dto.Page.ID;
 import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.omnifaces.utils.stream.Streams.stream;
 
@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -44,9 +45,9 @@ import org.omnifaces.persistence.criteria.Not;
 import org.omnifaces.persistence.criteria.Numeric;
 import org.omnifaces.persistence.criteria.Order;
 import org.omnifaces.persistence.model.BaseEntity;
-import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
+import org.omnifaces.persistence.service.EntityRepository;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.omnifaces.utils.reflect.Getter;
 import org.primefaces.component.column.Column;
@@ -366,8 +367,9 @@ import org.primefaces.model.Visibility;
  * }
  * </pre>
  * <p>
- * On contrary to lazy loading, which requires the entities to be of type {@link BaseEntity}, you can here provide entities just of type {@link Identifiable}
- * which is easier to apply on DTOs.
+ * On contrary to lazy loading via {@link #lazy(BaseEntityService)}, which requires the entities to be of type {@link BaseEntity}, you can here provide entities
+ * of any type, which is easier to apply on DTOs. The default ordering is by the <code>id</code> property when the entity has it, so an entity without it needs
+ * {@link Builder#orderBy(String, boolean)} for a defined order, and an entity without {@link BaseEntity#getId()} needs {@link Builder#rowKey(RowKeyGetter)}.
  *
  *
  * <h2 id="presentation"><a href="#presentation">Presentation</a></h2>
@@ -876,14 +878,14 @@ import org.primefaces.model.Visibility;
  * }
  * </pre>
  *
- *
+ * @param <E> The entity type.
  * @author Bauke Scholtz
  * @since 1.0
  * @see BaseEntityService
  * @see Page
  * @see Criteria
  */
-public interface PagedDataModel<E extends Identifiable<?>> extends Serializable {
+public interface PagedDataModel<E> extends Serializable {
 
     // Constants ------------------------------------------------------------------------------------------------------
 
@@ -1070,10 +1072,10 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
      * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
      * may be passivated or replicated.
      *
-     * @param <E> The entity type, which must extend {@link Identifiable}.
+     * @param <E> The entity type.
      */
     @FunctionalInterface
-    public interface PartialResultListLoader<E extends Identifiable<?>> extends Serializable {
+    public interface PartialResultListLoader<E> extends Serializable {
 
         /**
          * Loads and returns one page of results.
@@ -1093,17 +1095,51 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
      * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
      * may be passivated or replicated.
      *
-     * @param <E> The entity type, which must extend {@link Identifiable}.
+     * @param <E> The entity type.
      */
     @FunctionalInterface
-    public interface DynamicCriteria<E extends Identifiable<?>> extends Supplier<Map<Getter<E>, Object>>, Serializable {
+    public interface DynamicCriteria<E> extends Supplier<Map<Getter<E>, Object>>, Serializable {
 
         // NOOP.
 
     }
 
     /**
-     * Use this if you want to build a lazy paged data model using a {@link BaseEntityService}.
+     * Functional interface that returns the row key of an entity, which identifies the entity in the PrimeFaces {@link DataTable} and in the selection query
+     * string parameter. Its string representation is used as the actual row key.
+     * <p>
+     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
+     * may be passivated or replicated.
+     *
+     * @param <E> The entity type.
+     * @see Builder#rowKey(RowKeyGetter)
+     */
+    @FunctionalInterface
+    public interface RowKeyGetter<E> extends Function<E, Object>, Serializable {
+
+        // NOOP.
+
+    }
+
+    /**
+     * Functional interface that returns the entity of a row key as returned by {@link RowKeyGetter}, for selection, row expansion and row editing.
+     * <p>
+     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
+     * may be passivated or replicated.
+     *
+     * @param <E> The entity type.
+     * @see Builder#rowData(RowDataLoader)
+     */
+    @FunctionalInterface
+    public interface RowDataLoader<E> extends Function<String, E>, Serializable {
+
+        // NOOP.
+
+    }
+
+    /**
+     * Use this if you want to build a lazy paged data model using a {@link BaseEntityService} of an entity extending {@link BaseEntity}. For an entity which
+     * does not extend {@link BaseEntity}, use {@link #lazy(EntityRepository)} instead.
      *
      * @param <I> The generic ID type.
      * @param <E> The generic base entity type.
@@ -1111,42 +1147,65 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
      * @return A new paged data model builder.
      */
     static <I extends Comparable<I> & Serializable, E extends BaseEntity<I>> Builder<E> lazy(BaseEntityService<I, E> entityService) {
-        return new Builder<>(entityService::getPage);
+        return new Builder<E>(entityService::getPage).idGetter(BaseEntity::getId);
+    }
+
+    /**
+     * Use this if you want to build a lazy paged data model using an {@link EntityRepository}. The entity need not extend {@link BaseEntity}: the row key is
+     * the ID as returned by {@link EntityRepository#getId(Object)}.
+     *
+     * @param <I> The generic ID type.
+     * @param <E> The generic entity type.
+     * @param entityRepository The entity repository.
+     * @return A new paged data model builder.
+     */
+    static <I extends Comparable<I> & Serializable, E> Builder<E> lazy(EntityRepository<I, E> entityRepository) {
+        return new Builder<E>(entityRepository::getPage).idGetter(entityRepository::getId);
     }
 
     /**
      * Use this if you want to build a lazy paged data model using a custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
      *
-     * @param <E> The generic base entity type.
+     * <p>
+     * The row key is the ID when the entity extends {@link BaseEntity}, else it must be specified via {@link Builder#rowKey(RowKeyGetter)}. For an entity which
+     * does not extend {@link BaseEntity} and is loaded via OmniPersistence, consider {@link #lazy(EntityRepository)} instead.
+     *
+     * @param <E> The generic entity type.
      * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
      * @return A new paged data model builder.
      */
-    static <E extends Identifiable<?>> Builder<E> lazy(PartialResultListLoader<E> loader) {
+    static <E> Builder<E> lazy(PartialResultListLoader<E> loader) {
         return new Builder<>(loader);
     }
 
     /**
      * Use this if you want to build a non-lazy paged data model based on given list.
      *
-     * @param <E> The generic base entity type.
+     * <p>
+     * The row key is the ID when the entity extends {@link BaseEntity}, else it must be specified via {@link Builder#rowKey(RowKeyGetter)}.
+     *
+     * @param <E> The generic entity type.
      * @param allData List of all data.
      * @return A new paged data model builder.
      */
-    static <E extends Identifiable<?>> Builder<E> nonLazy(List<E> allData) {
+    static <E> Builder<E> nonLazy(List<E> allData) {
         return new Builder<>(allData);
     }
 
     /**
      * The paged data model builder.
      *
-     * @param <E> The generic base entity type.
+     * @param <E> The generic entity type.
      * @author Bauke Scholtz
      * @since 1.0
      */
-    public static class Builder<E extends Identifiable<?>> {
+    public static class Builder<E> {
 
         private List<E> allData;
         private PartialResultListLoader<E> loader;
+        private RowKeyGetter<E> idGetter;
+        private RowKeyGetter<E> rowKey;
+        private RowDataLoader<E> rowData;
 
         private LinkedHashMap<String, Boolean> predefinedOrdering;
         private LinkedHashMap<String, Boolean> ordering = new LinkedHashMap<>(2);
@@ -1159,6 +1218,48 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
 
         private Builder(PartialResultListLoader<E> loader) {
             this.loader = loader;
+        }
+
+        private Builder<E> idGetter(RowKeyGetter<E> idGetter) {
+            this.idGetter = idGetter;
+            return this;
+        }
+
+        /**
+         * <p>
+         * Set the row key of an entity, which identifies the entity in the PrimeFaces {@link DataTable} and in the selection query string parameter. Use this
+         * when the entity has no ID which is known to the model, or when you want to identify it by something else than its ID, e.g.
+         * <code>.rowKey(YourEntity::getReference)</code>.
+         * <p>
+         * When not set, the row key is the ID: as returned by {@link EntityRepository#getId(Object)} when built via
+         * {@link PagedDataModel#lazy(EntityRepository)}, else as returned by {@link BaseEntity#getId()}. The model then throws {@link IllegalStateException}
+         * for an entity which has no ID known to the model.
+         *
+         * @param rowKey The row key of an entity.
+         * @return This builder.
+         * @see #rowData(RowDataLoader)
+         */
+        public Builder<E> rowKey(RowKeyGetter<E> rowKey) {
+            this.rowKey = rowKey;
+            return this;
+        }
+
+        /**
+         * <p>
+         * Set the entity of a row key, for selection, row expansion and row editing, e.g.
+         * <code>.rowData(reference -&gt; service.getByReference(reference))</code>.
+         * <p>
+         * When not set and the row key is the ID, the entity is loaded via the criteria <code>id</code> on the row key. When not set and the row key is set via
+         * {@link #rowKey(RowKeyGetter)}, the entity is looked up in the currently loaded data, and the selection is not restored from the query string. When
+         * set, it is invoked once per selected row key when the selection is restored from the query string.
+         *
+         * @param rowData The entity of a row key.
+         * @return This builder.
+         * @see #rowKey(RowKeyGetter)
+         */
+        public Builder<E> rowData(RowDataLoader<E> rowData) {
+            this.rowData = rowData;
+            return this;
         }
 
         /**
@@ -1317,12 +1418,14 @@ public interface PagedDataModel<E extends Identifiable<?>> extends Serializable 
             }
 
             ordering.putIfAbsent(ID, false);
+            RowKeyGetter<E> id = idGetter != null ? idGetter : Rows::getId;
+            var rows = rowKey != null ? Rows.of(rowKey, rowData) : Rows.ofId(id, rowData);
 
             if (loader != null) {
-                return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, dynamicCriteria);
+                return new LazyPagedDataModel<>(loader, ordering, predefinedCriteria, dynamicCriteria, rows);
             }
             else if (allData != null) {
-                return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, dynamicCriteria);
+                return new NonLazyPagedDataModel<>(allData, ordering, predefinedCriteria, dynamicCriteria, rows);
             }
             else {
                 throw new IllegalStateException("You must provide non-null loader or allData.");
