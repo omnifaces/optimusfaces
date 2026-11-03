@@ -49,7 +49,6 @@ import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
 import org.omnifaces.optimusfaces.model.PagedDataModel.RowKeyGetter;
 import org.omnifaces.persistence.criteria.Like;
 import org.omnifaces.persistence.model.BaseEntity;
-import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
 import org.omnifaces.persistence.service.EntityRepository;
@@ -60,7 +59,7 @@ import org.primefaces.component.column.Column;
 @ExtendWith(MockitoExtension.class)
 class PagedDataModelTest {
 
-    /** Entity which neither extends {@link BaseEntity} nor implements {@link Identifiable}. */
+    /** Entity which does not extend {@link BaseEntity}. */
     static final class TestEntity implements Serializable {
 
         private static final long serialVersionUID = 1L;
@@ -82,23 +81,6 @@ class PagedDataModelTest {
 
         public void setReference(String reference) {
             this.reference = reference;
-        }
-
-    }
-
-    @SuppressWarnings("removal")
-    static final class IdentifiableEntity implements Identifiable<Long> {
-
-        private Long id;
-
-        @Override
-        public Long getId() {
-            return id;
-        }
-
-        @Override
-        public void setId(Long id) {
-            this.id = id;
         }
 
     }
@@ -266,7 +248,6 @@ class PagedDataModelTest {
 
     // Row key and row data -------------------------------------------------------------------------------------------
 
-    @SuppressWarnings("unchecked")
     private static <E> LazyPagedDataModel<E> built(PagedDataModel.Builder<E> builder) {
         return (LazyPagedDataModel<E>) builder.build();
     }
@@ -290,11 +271,18 @@ class PagedDataModelTest {
     }
 
     @Test
-    void getRowKey_identifiableEntity_isId() {
-        var entity = new IdentifiableEntity();
+    void getRowKey_baseEntityInNonLazyModel_isId() {
+        var entity = new TestBaseEntity();
         entity.setId(42L);
 
-        assertEquals("42", built(PagedDataModel.nonLazy(new ArrayList<IdentifiableEntity>())).getRowKey(entity));
+        assertEquals("42", built(PagedDataModel.nonLazy(new ArrayList<TestBaseEntity>())).getRowKey(entity));
+    }
+
+    @Test
+    void getRowKey_baseEntityWithoutId_fallsBackToHashCode() {
+        var entity = new TestBaseEntity();
+
+        assertEquals(String.valueOf(entity.hashCode()), built(PagedDataModel.nonLazy(new ArrayList<TestBaseEntity>())).getRowKey(entity));
     }
 
     @Test
@@ -365,9 +353,9 @@ class PagedDataModelTest {
     @Test
     void processSelectionIfNecessary_rowKeyIsId_isLoadedViaIdCriteria() {
         var loadedPages = new ArrayList<Page>();
-        var model = built(PagedDataModel.<IdentifiableEntity>lazy((page, estimate) -> {
+        var model = built(PagedDataModel.<TestBaseEntity>lazy((page, estimate) -> {
             loadedPages.add(page);
-            return new PartialResultList<>(List.of(new IdentifiableEntity()), 0, -1);
+            return new PartialResultList<>(List.of(new TestBaseEntity()), 0, -1);
         }));
 
         var selection = model.processSelectionIfNecessary(initialRequestWithSelection(model, "1", "2"), null);

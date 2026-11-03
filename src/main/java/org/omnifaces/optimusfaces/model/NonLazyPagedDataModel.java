@@ -99,6 +99,7 @@ public final class NonLazyPagedDataModel<E> extends LazyPagedDataModel<E> {
      * Returns all data.
      *
      * @return All data.
+     * @since 2.0
      */
     @Override
     protected List<E> getLoadedData() {

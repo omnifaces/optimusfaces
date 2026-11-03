@@ -44,7 +44,7 @@ import org.omnifaces.persistence.model.BaseEntity;
  *
  * @see BaseEntity
  * @author Bauke Scholtz
- * @since 1.2
+ * @since 2.0
  */
 public class NestedEntityELResolver extends ELResolver {
 
