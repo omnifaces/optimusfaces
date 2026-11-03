@@ -15,6 +15,7 @@ package org.omnifaces.optimusfaces.model;
 import static jakarta.faces.component.UIComponent.getCurrentComponent;
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.MAX_VALUE;
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -23,7 +24,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.omnifaces.persistence.model.Identifiable.ID;
+import static org.omnifaces.persistence.model.dto.Page.ID;
 import static org.omnifaces.util.Ajax.oncomplete;
 import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.omnifaces.util.Faces.getContext;
@@ -44,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -59,9 +61,9 @@ import org.omnifaces.component.SimpleParam;
 import org.omnifaces.optimusfaces.component.ExtendedDataTable;
 import org.omnifaces.persistence.criteria.Criteria;
 import org.omnifaces.persistence.criteria.Like;
-import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
+import org.omnifaces.persistence.service.EntityRepository;
 import org.omnifaces.util.Servlets;
 import org.omnifaces.utils.Lang;
 import org.omnifaces.utils.collection.PartialResultList;
@@ -86,20 +88,22 @@ import org.primefaces.model.SortOrder;
  * When <code>updateQueryString</code> is set on the <code>&lt;op:dataTable&gt;</code>, every paging, sorting, filtering and selection change is reflected back
  * into the browser URL as query parameters via an Ajax <code>oncomplete</code> callback, making the table state bookmarkable.
  * <p>
- * Construct via {@link PagedDataModel#lazy(BaseEntityService)} or {@link PagedDataModel#lazy(PagedDataModel.PartialResultListLoader)}.
+ * Construct via {@link PagedDataModel#lazy(BaseEntityService)}, {@link PagedDataModel#lazy(EntityRepository)} or
+ * {@link PagedDataModel#lazy(PagedDataModel.PartialResultListLoader)}.
  *
- * @param <E> The entity type, which must extend {@link Identifiable}.
+ * @param <E> The entity type.
  * @see PagedDataModel
  * @see NonLazyPagedDataModel
  * @author Bauke Scholtz
  * @since 1.0
  */
-public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel<E> implements PagedDataModel<E> {
+public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedDataModel<E> {
 
     // Constants ------------------------------------------------------------------------------------------------------
 
     private static final long serialVersionUID = 1L;
     private static final String GLOBAL_FILTER = "globalFilter";
+    private static final String ERROR_ROW_DATA_NOT_LOADED = "Row key %s is not in the currently loaded data; set its row data via PagedDataModel.Builder#rowData()";
     /** Maximum amount of rows of which the ordering values are cached for value based paging. */
     static final int MAX_CACHED_ORDERING_VALUES = 100;
 
@@ -113,6 +117,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
     private final Map<String, Object> predefinedCriteria;
     /** Supplier for dynamic criteria that may change during the view lifecycle. */
     private final DynamicCriteria<?> dynamicCriteria;
+    /** How the rows are identified. */
+    private final Rows<E> rows;
 
     /** Flag indicating whether the browser query string should be updated via Ajax. */
     protected boolean updateQueryString;
@@ -153,16 +159,18 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * @param defaultOrdering The default sort order.
      * @param predefinedCriteria Fixed criteria to apply.
      * @param dynamicCriteria Dynamic criteria supplier.
+     * @param rows How the rows are identified.
      */
     LazyPagedDataModel(
         PartialResultListLoader<E> loader, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria,
-        DynamicCriteria<?> dynamicCriteria
+        DynamicCriteria<?> dynamicCriteria, Rows<E> rows
     )
     {
         this.loader = loader;
         this.defaultOrdering = defaultOrdering;
         this.predefinedCriteria = predefinedCriteria;
         this.dynamicCriteria = dynamicCriteria;
+        this.rows = rows;
         filters = new LinkedHashMap<>();
         page = Page.ALL;
         setRowCount(-1);
@@ -511,7 +519,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * Restores row selection from the query string on the initial (non-postback) request.
      * <p>
      * On postbacks the current selection is left untouched. On initial requests the <code>selection</code> query parameter is read and the corresponding
-     * entities are loaded by their IDs so that a bookmarked selection is visible immediately.
+     * entities are restored so that a bookmarked selection is visible immediately: each via
+     * {@link PagedDataModel.Builder#rowData(PagedDataModel.RowDataLoader)} when specified, else all at once via the criteria <code>id</code> when the row key
+     * is the ID. Else the selection is not restored.
      *
      * @param context The current {@link FacesContext}.
      * @param currentSelection The in-memory selection list carried over from previous requests.
@@ -523,8 +533,13 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
         }
 
         var selection = getTrimmedQueryParameters(context, queryParameterPrefix + QUERY_PARAMETER_SELECTION);
-        return selection.isEmpty()
-            ? emptyList()
+
+        if (selection.isEmpty() || !isSelectionRestorable()) {
+            return emptyList();
+        }
+
+        return rows.data() != null
+            ? selection.stream().map(rows.data()).filter(Objects::nonNull).collect(toList())
             : new ArrayList<>(load(Page.with().range(0, selection.size()).allMatch(singletonMap(ID, selection)).build(), false));
     }
 
@@ -658,7 +673,8 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
      * when <code>updateQueryString</code> is enabled.
      * <p>
      * Only fires during Ajax requests. Parameters for page, ordering, column filters and selection are only added when they differ from their defaults; the
-     * resulting query string is passed to <code>OptimusFaces.Util.updateQueryString</code> on the client.
+     * resulting query string is passed to <code>OptimusFaces.Util.updateQueryString</code> on the client. The selection is sorted by its string row keys, and
+     * only added when it can be restored, see {@link #processSelectionIfNecessary(FacesContext, List)}.
      *
      * @param context The current {@link FacesContext}.
      */
@@ -690,8 +706,9 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
                     .forEach(value -> params.add(new SimpleParam<>(queryParameterPrefix + entry.getKey(), value)))
             );
 
-        if (selection != null) {
-            selection.stream().sorted().forEach(entity -> params.add(new SimpleParam<>(queryParameterPrefix + QUERY_PARAMETER_SELECTION, entity.getId())));
+        if (selection != null && isSelectionRestorable()) {
+            selection.stream().map(this::getRowKey).sorted()
+                .forEach(rowKey -> params.add(new SimpleParam<>(queryParameterPrefix + QUERY_PARAMETER_SELECTION, rowKey)));
         }
 
         oncomplete("OptimusFaces.Util.updateQueryString('" + Servlets.toQueryString(params) + "')");
@@ -707,28 +724,66 @@ public class LazyPagedDataModel<E extends Identifiable<?>> extends LazyDataModel
     // Getters+setters for op:dataTable and op:column -----------------------------------------------------------------
 
     /**
-     * Returns the entity's ID as a string row key for PrimeFaces {@link DataTable} selection tracking. Falls back to the entity's identity hash code when the
-     * ID is <code>null</code>.
+     * Returns the row key of the entity as a string, for PrimeFaces {@link DataTable} selection tracking: by default its ID, else as specified via
+     * {@link PagedDataModel.Builder#rowKey(PagedDataModel.RowKeyGetter)}. Falls back to the entity's hash code when the row key is <code>null</code>, e.g. when
+     * the entity is not persisted yet.
      *
      * @param entity The entity whose row key is required.
-     * @return String representation of the entity's ID, or its identity hash code.
+     * @return String representation of the entity's row key, or its hash code.
+     * @throws IllegalStateException When the row key is the ID and the model cannot determine the ID of the entity.
      */
     @Override
     public String getRowKey(E entity) {
-        return String.valueOf(entity.getId() != null ? entity.getId() : entity.hashCode());
+        var rowKey = rows.key().apply(entity);
+        return String.valueOf(rowKey != null ? rowKey : entity.hashCode());
     }
 
     /**
-     * Loads and returns the single entity identified by the given row key.
-     * <p>
-     * Issues a one-row query filtered by the entity's ID so that PrimeFaces {@link DataTable} can restore selection or row expansion state after a postback.
+     * Returns the single entity identified by the given row key, so that PrimeFaces {@link DataTable} can restore selection or row expansion state after a
+     * postback: as specified via {@link PagedDataModel.Builder#rowData(PagedDataModel.RowDataLoader)}, else via a one-row query on the ID when the row key is
+     * the ID, else from the currently loaded data.
      *
      * @param rowKey The string row key previously returned by {@link #getRowKey}.
      * @return The corresponding entity.
+     * @throws IllegalStateException When the row key is not the ID and the entity is not in the currently loaded data.
      */
     @Override
     public E getRowData(String rowKey) {
-        return load(Page.with().range(0, 1).allMatch(singletonMap(ID, rowKey)).build(), false).get(0);
+        if (rows.data() != null) {
+            return rows.data().apply(rowKey);
+        }
+        else if (rows.keyIsId()) {
+            return load(Page.with().range(0, 1).allMatch(singletonMap(ID, rowKey)).build(), false).get(0);
+        }
+        else {
+            return findLoadedRowData(rowKey).orElseThrow(() -> new IllegalStateException(format(ERROR_ROW_DATA_NOT_LOADED, rowKey)));
+        }
+    }
+
+    /**
+     * Returns the entity identified by the given row key in the currently loaded data.
+     *
+     * @param rowKey The string row key previously returned by {@link #getRowKey}.
+     * @return The corresponding entity, if any.
+     */
+    protected Optional<E> findLoadedRowData(String rowKey) {
+        var loadedData = getLoadedData();
+        return loadedData == null
+            ? Optional.empty()
+            : loadedData.stream().filter(entity -> entity != null && getRowKey(entity).equals(rowKey)).findFirst();
+    }
+
+    /**
+     * Returns the currently loaded data, wherein {@link #findLoadedRowData(String)} looks up the entity of a row key.
+     *
+     * @return The currently loaded data, or <code>null</code> when nothing is loaded yet.
+     */
+    protected List<E> getLoadedData() {
+        return list;
+    }
+
+    private boolean isSelectionRestorable() {
+        return rows.keyIsId() || rows.data() != null;
     }
 
     /**

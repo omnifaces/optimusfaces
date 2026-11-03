@@ -13,9 +13,11 @@
 package org.omnifaces.optimusfaces.model;
 
 import static java.lang.Math.min;
+import static java.lang.String.format;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
+import static org.omnifaces.persistence.model.dto.Page.ID;
 import static org.omnifaces.utils.Lang.isEmpty;
 import static org.omnifaces.utils.reflect.Reflections.invokeMethod;
 import static org.omnifaces.utils.stream.Streams.stream;
@@ -39,7 +41,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import org.omnifaces.persistence.criteria.Criteria;
-import org.omnifaces.persistence.model.Identifiable;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.primefaces.component.datatable.DataTable;
@@ -58,16 +59,17 @@ import org.primefaces.model.SortMeta;
  * <p>
  * Construct via {@link PagedDataModel#nonLazy(List)}.
  *
- * @param <E> The entity type, which must extend {@link org.omnifaces.persistence.model.Identifiable}.
+ * @param <E> The entity type.
  * @see PagedDataModel
  * @author Bauke Scholtz
  * @since 1.0
  */
-public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends LazyPagedDataModel<E> {
+public final class NonLazyPagedDataModel<E> extends LazyPagedDataModel<E> {
 
     // Constants ------------------------------------------------------------------------------------------------------
 
     private static final long serialVersionUID = 1L;
+    private static final String ERROR_UNKNOWN_PROPERTY = "Property %s does not exist on %s";
 
     // Internal properties --------------------------------------------------------------------------------------------
 
@@ -86,11 +88,21 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
      */
     NonLazyPagedDataModel(
         List<E> allData, LinkedHashMap<String, Boolean> defaultOrdering, Map<String, Object> predefinedCriteria,
-        DynamicCriteria<?> dynamicCriteria
+        DynamicCriteria<?> dynamicCriteria, Rows<E> rows
     )
     {
-        super(null, defaultOrdering, predefinedCriteria, dynamicCriteria);
+        super(null, defaultOrdering, predefinedCriteria, dynamicCriteria, rows);
         this.allData = unmodifiableList(allData);
+    }
+
+    /**
+     * Returns all data.
+     *
+     * @return All data.
+     */
+    @Override
+    protected List<E> getLoadedData() {
+        return allData;
     }
 
     /**
@@ -121,7 +133,7 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
                 }
 
                 if (data.size() > 1) {
-                    Map<List<Method>, Entry<String, Boolean>> ordering = resolveGetters(type, page.getOrdering());
+                    Map<List<Method>, Entry<String, Boolean>> ordering = resolveGetters(type, withoutUnknownId(type, page.getOrdering()));
                     data.sort(new BeanPropertyComparator(table, ordering));
                 }
             }
@@ -268,6 +280,11 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
 
             for (String propertyName : entry.getKey().split("\\.")) {
                 Method getter = resolveGetter(beanClass, propertyName);
+
+                if (getter == null) {
+                    throw new IllegalStateException(format(ERROR_UNKNOWN_PROPERTY, entry.getKey(), type.getName()));
+                }
+
                 methods.add(getter);
                 beanClass = getter.getReturnType();
 
@@ -284,6 +301,24 @@ public final class NonLazyPagedDataModel<E extends Identifiable<?>> extends Lazy
         }
 
         return getters;
+    }
+
+    /**
+     * Returns the given ordering without the default ordering on ID when the given type has no ID property. An explicit ordering on ID is then dropped as well,
+     * because the ordering does not tell it apart from the default one.
+     *
+     * @param type The type of the data.
+     * @param ordering The ordering.
+     * @return The given ordering without the ordering on ID when the given type has no ID property, else the given ordering.
+     */
+    static Map<String, Boolean> withoutUnknownId(Class<?> type, Map<String, Boolean> ordering) {
+        if (!ordering.containsKey(ID) || resolveGetter(type, ID) != null) {
+            return ordering;
+        }
+
+        var orderingWithoutId = new LinkedHashMap<>(ordering);
+        orderingWithoutId.remove(ID);
+        return orderingWithoutId;
     }
 
     private static Method resolveGetter(Class<?> beanClass, String propertyName) {
