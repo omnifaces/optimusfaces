@@ -38,21 +38,21 @@ if (PrimeFaces.widget.DataTable) {
         }
     }
 
-    PrimeFaces.widget.DataTable = PrimeFaces.widget.DataTable.extend({
-        init: function(cfg) {
+    PrimeFaces.widget.DataTable = class extends PrimeFaces.widget.DataTable {
+        init(cfg) {
             makeRowWithKey0Unselectable(cfg.id);
-            this._super(cfg);
+            super.init(cfg);
             checkIfDefaultSortNeedsToBeDescending(this.sortableColumns);
-        },
-        sort: function(columnHeader, order, multi) {
-            this._super(columnHeader, order, multi);
+        }
+        sort(columnHeader, order, multi) {
+            super.sort(columnHeader, order, multi);
             checkIfDefaultSortNeedsToBeDescending(this.sortableColumns);
-        },
-        postUpdateData: function() {
-            this._super();
+        }
+        postUpdateData() {
+            super.postUpdateData();
             this.jq.toggleClass("empty", this.isEmpty());
         }
-    });
+    };
 
     /**
      * Toggle global filter class in filterable columns on focus of global filter input.

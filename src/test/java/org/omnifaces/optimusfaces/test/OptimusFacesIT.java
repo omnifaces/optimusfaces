@@ -126,12 +126,13 @@ public abstract class OptimusFacesIT {
             .addAsLibraries(
                 maven.resolve(
                     "org.omnifaces:omnifaces:" + getProperty("test.omnifaces.version"),
-                    "org.primefaces:primefaces:jar:jakarta:" + getProperty("test.primefaces.version")
+                    "org.primefaces:primefaces:" + getProperty("test.primefaces.version")
                 ).withTransitivity().asFile()
             );
 
         addDataSourceConfig(database, archive);
         addPersistenceConfig(archive);
+        addServletConfigIfNecessary(archive);
         addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
 
         var targetDir = Path.of(System.getProperty("user.dir"), "target");
@@ -153,6 +154,14 @@ public abstract class OptimusFacesIT {
         var persistenceXml = "META-INF/persistence.xml";
 
         archive.addAsResource(persistenceXml + "/" + persistenceConfigXml, persistenceXml);
+    }
+
+    private static void addServletConfigIfNecessary(WebArchive archive) {
+        var webXml = "WEB-INF/web.xml/" + getProperty("profile.id") + ".xml";
+
+        if (OptimusFacesIT.class.getClassLoader().getResource(webXml) != null) {
+            archive.setWebXML(webXml);
+        }
     }
 
     private static void addResources(File root, String directory, BiConsumer<File, String> archiveConsumer) {
