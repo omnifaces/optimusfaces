@@ -12,6 +12,7 @@
  */
 package org.omnifaces.optimusfaces.model;
 
+import static java.lang.String.format;
 import static org.omnifaces.persistence.model.dto.Page.ID;
 import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.omnifaces.utils.stream.Streams.stream;
@@ -1112,6 +1113,7 @@ public interface PagedDataModel<E> extends Serializable {
      * may be passivated or replicated.
      *
      * @param <E> The entity type.
+     * @since 2.0
      * @see Builder#rowKey(RowKeyGetter)
      */
     @FunctionalInterface
@@ -1128,6 +1130,7 @@ public interface PagedDataModel<E> extends Serializable {
      * may be passivated or replicated.
      *
      * @param <E> The entity type.
+     * @since 2.0
      * @see Builder#rowData(RowDataLoader)
      */
     @FunctionalInterface
@@ -1147,7 +1150,7 @@ public interface PagedDataModel<E> extends Serializable {
      * @return A new paged data model builder.
      */
     static <I extends Comparable<I> & Serializable, E extends BaseEntity<I>> Builder<E> lazy(BaseEntityService<I, E> entityService) {
-        return new Builder<E>(entityService::getPage).idGetter(BaseEntity::getId);
+        return new Builder<>(entityService::getPage);
     }
 
     /**
@@ -1158,6 +1161,7 @@ public interface PagedDataModel<E> extends Serializable {
      * @param <E> The generic entity type.
      * @param entityRepository The entity repository.
      * @return A new paged data model builder.
+     * @since 2.0
      */
     static <I extends Comparable<I> & Serializable, E> Builder<E> lazy(EntityRepository<I, E> entityRepository) {
         return new Builder<E>(entityRepository::getPage).idGetter(entityRepository::getId);
@@ -1201,6 +1205,10 @@ public interface PagedDataModel<E> extends Serializable {
      */
     public static class Builder<E> {
 
+        private static final String ERROR_NO_ROW_KEY = "%s does not extend " + BaseEntity.class.getName()
+            + ", so build the model via PagedDataModel.lazy(EntityRepository), or set its row key via PagedDataModel.Builder#rowKey(), and preferably also"
+            + " its row data via PagedDataModel.Builder#rowData()";
+
         private List<E> allData;
         private PartialResultListLoader<E> loader;
         private RowKeyGetter<E> idGetter;
@@ -1220,6 +1228,17 @@ public interface PagedDataModel<E> extends Serializable {
             this.loader = loader;
         }
 
+        /**
+         * Returns the ID of the given entity, being the default row key when the model is not built via {@link PagedDataModel#lazy(EntityRepository)}.
+         */
+        private static Object getBaseEntityId(Object entity) {
+            if (entity instanceof BaseEntity<?> baseEntity) {
+                return baseEntity.getId();
+            }
+
+            throw new IllegalStateException(format(ERROR_NO_ROW_KEY, entity.getClass().getName()));
+        }
+
         private Builder<E> idGetter(RowKeyGetter<E> idGetter) {
             this.idGetter = idGetter;
             return this;
@@ -1237,6 +1256,7 @@ public interface PagedDataModel<E> extends Serializable {
          *
          * @param rowKey The row key of an entity.
          * @return This builder.
+         * @since 2.0
          * @see #rowData(RowDataLoader)
          */
         public Builder<E> rowKey(RowKeyGetter<E> rowKey) {
@@ -1255,6 +1275,7 @@ public interface PagedDataModel<E> extends Serializable {
          *
          * @param rowData The entity of a row key.
          * @return This builder.
+         * @since 2.0
          * @see #rowKey(RowKeyGetter)
          */
         public Builder<E> rowData(RowDataLoader<E> rowData) {
@@ -1418,7 +1439,7 @@ public interface PagedDataModel<E> extends Serializable {
             }
 
             ordering.putIfAbsent(ID, false);
-            RowKeyGetter<E> id = idGetter != null ? idGetter : Rows::getId;
+            RowKeyGetter<E> id = idGetter != null ? idGetter : Builder::getBaseEntityId;
             var rows = rowKey != null ? Rows.of(rowKey, rowData) : Rows.ofId(id, rowData);
 
             if (loader != null) {

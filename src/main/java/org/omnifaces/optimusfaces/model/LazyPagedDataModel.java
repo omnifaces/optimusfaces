@@ -765,6 +765,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
      *
      * @param rowKey The string row key previously returned by {@link #getRowKey}.
      * @return The corresponding entity, if any.
+     * @since 2.0
      */
     protected Optional<E> findLoadedRowData(String rowKey) {
         var loadedData = getLoadedData();
@@ -777,6 +778,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
      * Returns the currently loaded data, wherein {@link #findLoadedRowData(String)} looks up the entity of a row key.
      *
      * @return The currently loaded data, or <code>null</code> when nothing is loaded yet.
+     * @since 2.0
      */
     protected List<E> getLoadedData() {
         return list;
