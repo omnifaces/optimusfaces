@@ -16,24 +16,42 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.omnifaces.optimusfaces.model.LazyPagedDataModel.MAX_CACHED_ORDERING_VALUES;
 import static org.omnifaces.persistence.model.dto.Page.ID;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.util.stream.LongStream;
 
 import jakarta.faces.component.UIData;
+import jakarta.faces.context.FacesContext;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
 import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.primefaces.component.datascroller.DataScroller;
+import org.primefaces.component.datatable.DataTable;
 
 /**
  * Covers the paging of {@link LazyPagedDataModel} through a {@link DataScroller}, with a loader returning the rows of a list of {@link #TOTAL_ROWS} entities
@@ -127,6 +145,188 @@ class LazyPagedDataModelTest {
         referencedModel.load(0, PAGE_SIZE, emptyMap(), emptyMap());
 
         assertEquals(TOTAL_ROWS - 1, referencedModel.getRowData("row" + (TOTAL_ROWS - 1)).getId());
+    }
+
+    // Serialization --------------------------------------------------------------------------------------------------
+
+    /**
+     * Returns the rows by ID when the page has the criteria <code>id</code>, else the rows of the page, like {@link #createModel(LinkedHashMap, Rows)} does.
+     */
+    private static PartialResultList<TestEntity> loadByIdsOrOffset(Page page, boolean count) {
+        if (page.getRequiredCriteria().get(ID) instanceof List<?> ids) {
+            return new PartialResultList<>(ids.stream().map(id -> new TestEntity(Long.parseLong(id.toString()))).toList(), 0, -1);
+        }
+
+        var rows = new ArrayList<TestEntity>();
+
+        for (var i = page.getOffset(); i < Math.min(page.getOffset() + page.getLimit(), TOTAL_ROWS); i++) {
+            rows.add(new TestEntity(TOTAL_ROWS - i));
+        }
+
+        return new PartialResultList<>(rows, page.getOffset(), count ? TOTAL_ROWS : -1);
+    }
+
+    private static LazyPagedDataModel<TestEntity> loadedSerializableModel(int offset, Rows<TestEntity> rowIdentification) {
+        var defaultOrdering = new LinkedHashMap<>(singletonMap(ID, false));
+        var model = new LazyPagedDataModel<>(LazyPagedDataModelTest::loadByIdsOrOffset, defaultOrdering, emptyMap(), null, rowIdentification);
+        model.ordering = defaultOrdering;
+        model.loadPage(mock(UIData.class), offset, PAGE_SIZE, emptyMap(), emptyMap());
+        model.setWrappedData(model.getLoadedData());
+        return model;
+    }
+
+    private static LazyPagedDataModel<TestEntity> loadedSerializableModel() {
+        return loadedSerializableModel(0, Rows.ofId(TestEntity::getId, null));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T serializeAndDeserialize(T object) throws IOException, ClassNotFoundException {
+        var bytes = new ByteArrayOutputStream();
+
+        try (var output = new ObjectOutputStream(bytes)) {
+            output.writeObject(object);
+        }
+
+        try (var input = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            return (T) input.readObject();
+        }
+    }
+
+    private static List<Long> idsOf(List<TestEntity> entities) {
+        return entities.stream().map(TestEntity::getId).toList();
+    }
+
+    private static DataTable tableWithPageSize() {
+        var table = mock(DataTable.class);
+        when(table.getRows()).thenReturn(PAGE_SIZE);
+        return table;
+    }
+
+    @Test
+    void serialization_entityNotSerializable_serializesCopyWithoutEntitiesAndKeepsThemInModel() throws Exception {
+        var model = loadedSerializableModel();
+        var selected = new ArrayList<>(model.getLoadedData().subList(0, 2));
+        model.setSelection(selected);
+
+        var deserialized = serializeAndDeserialize(model);
+
+        assertNull(deserialized.getWrappedData(), "Wrapped data of the copy");
+        assertNull(deserialized.getLoadedData(), "Loaded data of the copy");
+        assertEquals(idsOfRows(0, PAGE_SIZE), idsOf(model.getLoadedData()), "Loaded data of the model");
+        assertEquals(model.getLoadedData(), model.getWrappedData(), "Wrapped data of the model");
+        assertEquals(selected, model.getSelection(), "Selection of the model");
+    }
+
+    @Test
+    void serialization_rowKeyIsId_resolvesSelectionOnFirstAccessViaIdCriteria() throws Exception {
+        var model = loadedSerializableModel();
+        var selected = new ArrayList<>(model.getLoadedData().subList(0, 2));
+        model.setSelection(selected);
+
+        var deserialized = serializeAndDeserialize(model);
+
+        assertEquals(idsOf(selected), idsOf(deserialized.getSelection()), "Selection resolved from row keys");
+        assertSame(deserialized.getSelection(), deserialized.getSelection(), "Selection is memoized");
+    }
+
+    @Test
+    void serialization_preloadPage_loadsSerializedPageAgainAndKeepsRowCount() throws Exception {
+        var deserialized = serializeAndDeserialize(loadedSerializableModel(3 * PAGE_SIZE, Rows.ofId(TestEntity::getId, null)));
+
+        deserialized.preloadPage(mock(FacesContext.class), tableWithPageSize());
+
+        assertEquals(idsOfRows(3 * PAGE_SIZE, PAGE_SIZE), idsOf(deserialized.getLoadedData()), "Loaded data");
+        assertEquals(deserialized.getLoadedData(), deserialized.getWrappedData(), "Wrapped data");
+        assertEquals(TOTAL_ROWS, deserialized.getRowCount(), "Row count");
+    }
+
+    @Test
+    void serialization_customRowKeyWithoutRowData_resolvesSelectedRowsOfReloadedPage() throws Exception {
+        var model = loadedSerializableModel(0, Rows.of(entity -> "row" + entity.getId(), null));
+        var selected = new ArrayList<>(model.getLoadedData().subList(0, 2));
+        model.setSelection(selected);
+        var deserialized = serializeAndDeserialize(model);
+
+        assertNull(deserialized.getSelection(), "Selection before the page is loaded again");
+        deserialized.preloadPage(mock(FacesContext.class), tableWithPageSize());
+
+        assertEquals(idsOf(selected), idsOf(deserialized.getSelection()), "Selection resolved from reloaded page");
+    }
+
+    @Test
+    void serialization_customRowKeyWithoutRowData_dropsSelectedRowsOfOtherPagesWithWarning() throws Exception {
+        var model = loadedSerializableModel(0, Rows.of(entity -> "row" + entity.getId(), null));
+        var onLoadedPage = model.getLoadedData().get(0);
+        var onOtherPage = new TestEntity(1);
+        model.setSelection(new ArrayList<>(List.of(onLoadedPage, onOtherPage)));
+        var deserialized = serializeAndDeserialize(model);
+        deserialized.preloadPage(mock(FacesContext.class), tableWithPageSize());
+        var warnings = new ArrayList<LogRecord>();
+        var handler = new Handler() {
+
+            @Override
+            public void publish(LogRecord record) {
+                if (record.getLevel() == Level.WARNING) {
+                    warnings.add(record);
+                }
+            }
+
+            @Override
+            public void flush() {
+                // NOOP.
+            }
+
+            @Override
+            public void close() {
+                // NOOP.
+            }
+
+        };
+        var logger = Logger.getLogger(LazyPagedDataModel.class.getName());
+        logger.addHandler(handler);
+
+        try {
+            assertEquals(List.of(onLoadedPage.getId()), idsOf(deserialized.getSelection()), "Selection restored from loaded page");
+            deserialized.getSelection();
+        }
+        finally {
+            logger.removeHandler(handler);
+        }
+
+        assertEquals(1, warnings.size(), "Warnings");
+        assertTrue(warnings.get(0).getMessage().contains("rowData()"), warnings.get(0).getMessage());
+        assertNull(deserialized.getRowData("row" + onOtherPage.getId()), "Row data of selected row on other page");
+    }
+
+    @Test
+    void serialization_loadedModel_doesNotReadPageNumberFromQueryStringAgain() throws Exception {
+        var deserialized = serializeAndDeserialize(loadedSerializableModel());
+        deserialized.queryParameterPrefix = "";
+        var table = mock(DataTable.class);
+
+        deserialized.processPageAndOrdering(requestWithPageNumber("5"), table, emptyMap());
+
+        verify(table, never()).setFirst(anyInt());
+    }
+
+    @Test
+    void processPageAndOrdering_modelNotLoadedYet_readsPageNumberFromQueryString() {
+        var defaultOrdering = new LinkedHashMap<>(singletonMap(ID, false));
+        var notLoaded = new LazyPagedDataModel<>(
+            LazyPagedDataModelTest::loadByIdsOrOffset, defaultOrdering, emptyMap(), null, Rows.ofId(TestEntity::getId, null)
+        );
+        notLoaded.queryParameterPrefix = "";
+        var table = tableWithPageSize();
+
+        notLoaded.processPageAndOrdering(requestWithPageNumber("5"), table, emptyMap());
+
+        verify(table).setFirst(4 * PAGE_SIZE);
+    }
+
+    private static FacesContext requestWithPageNumber(String pageNumber) {
+        var context = mock(FacesContext.class, Answers.RETURNS_DEEP_STUBS);
+        when(context.getExternalContext().getRequestParameterMap()).thenReturn(Map.of(PagedDataModel.QUERY_PARAMETER_PAGE, pageNumber));
+        return context;
     }
 
     // DataScroller ---------------------------------------------------------------------------------------------------

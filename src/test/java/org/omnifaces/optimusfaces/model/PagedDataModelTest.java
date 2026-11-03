@@ -521,6 +521,7 @@ class PagedDataModelTest {
         private static final long serialVersionUID = 1L;
 
         private final PagedDataModel<TestEntity> model = PagedDataModel.<TestEntity>lazy((page, estimateTotalNumberOfResults) -> null)
+            .rowKey(TestEntity::getReference)
             .criteria(Map.of("name", Like.contains("test")))
             .criteria(this::getCriteria)
             .build();
@@ -545,17 +546,41 @@ class PagedDataModelTest {
     }
 
     @Test
-    void model_heldByViewScopedBean_survivesSerialization() throws Exception {
-        var entity = new TestEntity();
-        entity.setId(42L);
+    void model_heldByViewScopedBean_survivesSerializationWithoutItsEntities() throws Exception {
+        var entity = entity(42L, "a");
         var bean = new TestBean();
         bean.model.setFilteredValue(List.of(entity));
         bean.model.setSelection(List.of(entity));
 
         var model = serializeAndDeserialize(bean).model;
 
-        assertEquals(42L, model.getFilteredValue().get(0).getId());
-        assertEquals(42L, model.getSelection().get(0).getId());
+        assertNull(model.getFilteredValue(), "Filtered value");
+        assertNull(model.getSelection(), "Selection before it is resolved from its row keys");
+    }
+
+    @Test
+    void nonLazyModel_customRowKeyWithoutRowData_resolvesSelectionFromAllDataAfterDeserialization() throws Exception {
+        var selected = entity(2L, "b");
+        var model = built(PagedDataModel.nonLazy(List.of(entity(1L, "a"), selected)).rowKey(TestEntity::getReference));
+        model.setSelection(List.of(selected));
+
+        var deserialized = serializeAndDeserialize(model);
+
+        assertEquals(List.of("b"), deserialized.getSelection().stream().map(TestEntity::getReference).toList());
+    }
+
+    @Test
+    void nonLazyModel_rowKeyIsId_resolvesSelectionFromAllDataAfterDeserialization() throws Exception {
+        var selected = new TestBaseEntity();
+        selected.setId(2L);
+        var other = new TestBaseEntity();
+        other.setId(1L);
+        var model = built(PagedDataModel.nonLazy(List.of(other, selected)));
+        model.setSelection(List.of(selected));
+
+        var deserialized = serializeAndDeserialize(model);
+
+        assertEquals(List.of(2L), deserialized.getSelection().stream().map(TestBaseEntity::getId).toList());
     }
 
     @Test

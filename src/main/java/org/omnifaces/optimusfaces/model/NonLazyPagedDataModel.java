@@ -106,6 +106,11 @@ public final class NonLazyPagedDataModel<E> extends LazyPagedDataModel<E> {
         return allData;
     }
 
+    @Override
+    boolean isLoadedDataComplete() {
+        return true;
+    }
+
     /**
      * Applies in-memory filtering, sorting and pagination on the full data list.
      * <p>
