@@ -32,8 +32,8 @@ import org.primefaces.component.datatable.DataTable;
  * selection, pagination and other postback actions to silently fail.
  * <p>
  * {@link #preDecode} detects this situation and calls {@link LazyPagedDataModel#preloadPage} to populate the model from the data store before decode proceeds,
- * restoring correct postback behavior for those bean scopes. The same applies to a <code>@ViewScoped</code> model after deserialization, e.g. after session
- * passivation or replication, which does not retain its loaded page.
+ * restoring correct postback behavior for those bean scopes. The same applies to the model of a bean of a passivating scope, such as <code>@ViewScoped</code>
+ * or <code>@SessionScoped</code>, after deserialization, e.g. after session passivation or replication, which does not retain its loaded page.
  *
  * @see LazyPagedDataModel#preloadPage
  * @author Bauke Scholtz
@@ -50,8 +50,9 @@ public class ExtendedDataTable extends DataTable {
 
     /**
      * Preloads the lazy model's page before PrimeFaces {@link DataTable} runs decode, when the model has no wrapped data yet. This happens on postbacks against
-     * request-scoped beans or stateless views whose model is constructed fresh on every request and therefore arrives at decode empty, and for a view scoped
-     * model after deserialization, which does not retain its loaded page.
+     * request-scoped beans or stateless views whose model is constructed fresh on every request and therefore arrives at decode empty, and for the model of a
+     * bean of a passivating scope, such as <code>@ViewScoped</code> or <code>@SessionScoped</code>, after deserialization, which does not retain its loaded
+     * page.
      *
      * @param context The current {@link FacesContext}.
      */

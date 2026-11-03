@@ -92,10 +92,11 @@ import org.primefaces.model.SortOrder;
  * When <code>updateQueryString</code> is set on the <code>&lt;op:dataTable&gt;</code>, every paging, sorting, filtering and selection change is reflected back
  * into the browser URL as query parameters via an Ajax <code>oncomplete</code> callback, making the table state bookmarkable.
  * <p>
- * When serialized, e.g. as part of a passivated or replicated view scoped bean, the model serializes a copy of itself without the entities of the loaded page
- * and of the selection; the model itself keeps them. After deserialization, the page is loaded again on the next postback or render, and the selection is
- * resolved again from its row keys, see {@link #getSelection()}. The entities of the page and of the selection therefore do not need to be
- * {@link Serializable}; the criteria and the ordering values are serialized as they are.
+ * When serialized, e.g. as part of a bean of a passivating scope, such as <code>@ViewScoped</code> or <code>@SessionScoped</code>, which is passivated or
+ * replicated, the model serializes a copy of itself without the entities of the loaded page and of the selection; the model itself keeps them. After
+ * deserialization, the page is loaded again on the next postback or render, and the selection is resolved again from its row keys, see {@link #getSelection()}.
+ * The entities of the page and of the selection therefore do not need to be {@link Serializable}; the criteria and the ordering values are serialized as they
+ * are.
  * <p>
  * Construct via {@link PagedDataModel#lazy(BaseEntityService)}, {@link PagedDataModel#lazy(EntityRepository)} or
  * {@link PagedDataModel#lazy(PagedDataModel.PartialResultListLoader)}.
@@ -251,10 +252,11 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
      * Eagerly loads and caches the first page of data without waiting for PrimeFaces {@link DataTable}'s normal {@link #load} invocation.
      * <p>
      * Called by {@link ExtendedDataTable#preDecode} when the model's wrapped data is still <code>null</code> at the start of a postback, a situation that
-     * arises for request-scoped beans and stateless views that do not retain model state between requests, and for a view scoped model after deserialization,
-     * which does not retain its loaded page. Pre-loading guarantees that row keys, selection state and pagination information are available when PrimeFaces
-     * {@link DataTable} processes the submitted form data during decode. A model which has been loaded before loads its last page again, with the same offset,
-     * ordering and criteria, so that the rows are the ones which were rendered.
+     * arises for request-scoped beans and stateless views that do not retain model state between requests, and for the model of a bean of a passivating scope,
+     * such as <code>@ViewScoped</code> or <code>@SessionScoped</code>, after deserialization, which does not retain its loaded page. Pre-loading guarantees
+     * that row keys, selection state and pagination information are available when PrimeFaces {@link DataTable} processes the submitted form data during
+     * decode. A model which has been loaded before loads its last page again, with the same offset, ordering and criteria, so that the rows are the ones which
+     * were rendered.
      *
      * @param context The current {@link FacesContext}.
      * @param table The {@link DataTable} that triggered the postback.

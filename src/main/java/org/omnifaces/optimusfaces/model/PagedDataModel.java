@@ -1070,8 +1070,8 @@ public interface PagedDataModel<E> extends Serializable {
      * The loader is typically a method reference to a {@link BaseEntityService#getPage(Page, boolean)} implementation. Implement this interface when you need
      * to supply a custom query builder.
      * <p>
-     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
-     * may be passivated or replicated.
+     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a bean of a passivating
+     * scope, such as <code>@ViewScoped</code>, which may be passivated or replicated.
      *
      * @param <E> The entity type.
      */
@@ -1093,8 +1093,8 @@ public interface PagedDataModel<E> extends Serializable {
     /**
      * Functional interface that supplies the criteria which may change during the view lifecycle, keyed by entity getter.
      * <p>
-     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
-     * may be passivated or replicated.
+     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a bean of a passivating
+     * scope, such as <code>@ViewScoped</code>, which may be passivated or replicated.
      *
      * @param <E> The entity type.
      */
@@ -1109,8 +1109,8 @@ public interface PagedDataModel<E> extends Serializable {
      * Functional interface that returns the row key of an entity, which identifies the entity in the PrimeFaces {@link DataTable} and in the selection query
      * string parameter. Its string representation is used as the actual row key.
      * <p>
-     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
-     * may be passivated or replicated.
+     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a bean of a passivating
+     * scope, such as <code>@ViewScoped</code>, which may be passivated or replicated.
      *
      * @param <E> The entity type.
      * @since 2.0
@@ -1126,8 +1126,8 @@ public interface PagedDataModel<E> extends Serializable {
     /**
      * Functional interface that returns the entity of a row key as returned by {@link RowKeyGetter}, for selection, row expansion and row editing.
      * <p>
-     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a view scoped bean which
-     * may be passivated or replicated.
+     * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a bean of a passivating
+     * scope, such as <code>@ViewScoped</code>, which may be passivated or replicated.
      *
      * @param <E> The entity type.
      * @since 2.0
