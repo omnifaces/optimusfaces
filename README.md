@@ -424,18 +424,18 @@ public class YourBackingBean {
 ### Integration Tests
 
 The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions/workflows/maven.yml):
-- WildFly Preview 39.0.1 with Mojarra 4.1.5 and Hibernate 7.1.11
-- GlassFish 8.0.0 with Mojarra 4.1.6 and EclipseLink 5.0.0-B13
-- TomEE 10.1.4 with MyFaces 4.0.3 and OpenJPA 4.1.1
+- WildFly 42.0.0 with Mojarra 4.1.13 and Hibernate 7.4.13
+- GlassFish 8.0.5 with Mojarra 4.1.17 and EclipseLink 5.0.2
+- TomEE 10.2.0 with MyFaces 4.0.3 and OpenJPA 4.1.1
 
 Each environment will run the IT on following databases:
-- H2 2.4.240 (embedded database)
-- MySQL latest 8.x (provided by GitHub Actions Ubuntu environment) with JDBC driver 9.6.0
-- PostgreSQL latest 15.x (provided by GitHub Actions Ubuntu environment) with JDBC driver 42.7.10
-- SQL Server latest 2022 (provided by MicroSoft's Docker image) with JDBC driver 13.2.1.jre11
-- DB2 latest 12 (provided by IBM's Docker image) with JDBC driver 12.1.3.0
+- H2 2.5.252 (embedded database)
+- MySQL 8.4 (provided by Oracle's Docker image) with JDBC driver 26.10.0
+- PostgreSQL (provided by GitHub Actions Ubuntu environment) with JDBC driver 42.7.14
+- SQL Server latest 2022 (provided by Microsoft's Docker image) with JDBC driver 13.6.2.jre11
+- DB2 12.1.5.0 (provided by IBM's Docker image) with JDBC driver 12.1.5.0
 
-Effectively, there are thus 15 full test runs of each [31 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [19 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [33 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [20 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
 
 ### Commercial support
 
