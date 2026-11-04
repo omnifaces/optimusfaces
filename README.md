@@ -8,7 +8,7 @@
 Utility library for OmniFaces + PrimeFaces combined.
 
 
-This project basically combines best of [OmniFaces](https://omnifaces.org/) and [PrimeFaces](https://primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for Jakarta Persistence (JPA). This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a Jakarta Persistence model and a generic entity service.
+This project basically combines best of [OmniFaces](https://omnifaces.org/) and [PrimeFaces](https://primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for Jakarta Persistence (JPA). This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a Jakarta Persistence model and a generic entity repository.
 
 
 ### Installation
@@ -21,7 +21,7 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
     <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-web-api</artifactId>
-        <version>10.0.0</version><!-- Minimum supported version is 10.0.0 -->
+        <version>11.0.0</version><!-- Minimum supported version is 10.0.0 -->
         <scope>provided</scope>
     </dependency>
 
@@ -29,18 +29,17 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>4.0</version><!-- Minimum supported version is 4.0 -->
+        <version>5.5.6</version><!-- Minimum supported version is 4.0 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
-        <classifier>jakarta</classifier>
-        <version>15.0.0</version><!-- Minimum supported version is 15.0.0 -->
+        <version>16.0.1</version><!-- Minimum supported version is 15.0.0:jakarta -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>1.1</version>
+        <version>2.0</version>
     </dependency>
 </dependencies>
 ```
@@ -56,27 +55,16 @@ Jakarta EE (jakarta) namespace:
 - 0.14.J1 - 0.16.J1: Java 11 / OmniFaces 4.0 / PrimeFaces 10.0.0:jakarta
 - 0.17.J1 - 0.20.J1: Java 17 / OmniFaces 4.0 / PrimeFaces 13.0.0:jakarta
 - 0.21.J1 - 0.22.J1: Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
-- 1.0: Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
+- 1.0 - 2.0: Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
 
 
 ### Basic Usage
 
-First create your entity service extending [`org.omnifaces.omnipersistence.service.BaseEntityService`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/service/BaseEntityService.html). You don't necessarily need to add new methods, just extending it is sufficient. It's useful for other generic things too.
-
-```Java
-@Stateless
-public class YourEntityService extends BaseEntityService<Long, YourEntity> {
-
-   // ...
-
-}
-```
-
-And make sure `YourEntity` extends [`org.omnifaces.omnipersistence.model.BaseEntity`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/model/BaseEntity.html) or one of its subclasses `GeneratedIdEntity`, `TimestampedEntity`, `TimestampedBaseEntity`, `VersionedEntity`, `VersionedBaseEntity`, `LockedEntity` or `LockedBaseEntity`.
+Your entity does not need to extend anything.
 
 ```Java
 @Entity
-public class YourEntity extends BaseEntity<Long> {
+public class YourEntity {
 
     @Id @GeneratedValue(strategy=IDENTITY)
     private Long id;
@@ -89,7 +77,7 @@ public class YourEntity extends BaseEntity<Long> {
 }
 ```
 
-Then create a [`org.omnifaces.optimusfaces.model.PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) in your backing bean as below. Noted should be that `@ViewScoped` is used here for basic usage, but `@RequestScoped` works equally fine thanks to the built-in bookmarkability support explained further below.
+Inject an [`org.omnifaces.persistence.service.EntityRepository`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/service/EntityRepository.html) of it into your backing bean, and create a [`org.omnifaces.optimusfaces.model.PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) with it as below. You do not need to create a service class. Noted should be that `@ViewScoped` is used here for basic usage, but `@RequestScoped` works equally fine thanks to the built-in bookmarkability support explained further below.
 
 ```Java
 @Named
@@ -99,11 +87,11 @@ public class YourBackingBean implements Serializable {
     private PagedDataModel<YourEntity> model;
 
     @Inject
-    private YourEntityService service;
-    
+    private EntityRepository<Long, YourEntity> repository;
+
     @PostConstruct
     public void init() {
-        model = PagedDataModel.lazy(service).build();
+        model = PagedDataModel.lazy(repository).build();
     }
 
     public PagedDataModel<YourEntity> getModel() {
@@ -139,6 +127,41 @@ of `<p:column>`.
 Here's how it looks like with default PrimeFaces 15 UI and all. This example uses **exactly** the above Java and XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `LocalDate dateOfBirth` fields.
 
 ![example of op:dataTable](https://github.com/user-attachments/assets/682ad9d2-4458-4b4f-a866-5e3571394663)
+
+
+### Data source
+
+A lazy model needs two things of your application:
+
+- A loader: a function `(Page, boolean) -> PartialResultList<E>`, which returns one page of entities plus an estimated total count.
+- A row key: a value which identifies each entity, usually its ID.
+
+`Page` and `PartialResultList` are value types on the signature of that function, not base classes to extend. Your entities and services do not need to extend or implement any OptimusFaces or OmniPersistence type. OmniPersistence is still a dependency, because `Page` and the `Criteria` come from it.
+
+Choose the factory method by where the data comes from:
+
+| Factory method | Data comes from | Row key |
+|---|---|---|
+| `lazy(EntityRepository)` | An injected `EntityRepository` | The ID |
+| `lazy(EntityRepository, loader)` | An `EntityRepository` with a custom query, e.g. with fetch fields or a query builder | The ID |
+| `lazy(BaseEntityService)` | An existing service extending `BaseEntityService` of an entity extending `BaseEntity` | The ID |
+| `lazy(loader)` | Any other data store | The ID when the entity extends `BaseEntity`, else `rowKey(...)` and preferably also `rowData(...)` on the builder |
+
+The `EntityRepository` and `BaseEntityService` already apply the whole `Page` to the query. A custom loader for another data store must do that itself. Else paging, sorting and filtering in the table silently do nothing. The `Page` contains:
+
+- `getOffset()` and `getLimit()`: the range of the page.
+- `getOrdering()`: the sorted fields, in order, with `true` for ascending. It always ends with `id`, so that the order is defined.
+- `getRequiredCriteria()`: the criteria which must all match. These are the column filters and the criteria of `criteria(...)` on the builder.
+- `getOptionalCriteria()`: the criteria of which at least one must match. These are the global search on all columns.
+
+The fields in ordering and criteria are property paths, such as `address.city`. A criteria value is either a plain value, a collection or array of values of which one must match, or a `Criteria` such as `Like`. A `null` value means `IS NULL`. When the `boolean` argument is `false`, the count may be skipped. The `getLastOrderingValues()`, `getResidualOffset()` and `isReversed()` only enable faster paging via the ordering values of a neighboring row; a custom loader may ignore them, because the offset and limit alone give the correct page.
+
+
+### Serialization
+
+The model is held by your backing bean, not by the Faces view state. A `@ViewScoped` bean is stored in the HTTP session, so the model is only serialized when the session is passivated or replicated. The exception is the OmniFaces `@ViewScoped(saveInViewState = true)`, which stores the bean in the view state, so with client side state saving the model is serialized into every page. A `@RequestScoped` bean is not serialized at all.
+
+When a lazy model is serialized, it leaves out the entities of the loaded page and of the selection. Those entities therefore do not need to be `Serializable`. After deserialization, the page is loaded again and the selection is resolved again from its row keys. All else is serialized as is: the loader, the row key getter, the row data loader, the criteria and the ordering, including the cached ordering values of a few rows. So these must be `Serializable`. The functional interfaces of `PagedDataModel` are `Serializable`, and an `EntityRepository` is too. A lambda which captures a non-serializable object, such as an `EntityManager`, will fail to serialize. A non-lazy model does serialize its whole list, so its entities must be `Serializable`.
 
 
 ### Relationships
@@ -177,12 +200,12 @@ Here's how it looks like with default PrimeFaces 15 UI and all. This example use
 </op:dataTable>
 ```
 
-**DTO projections** are also supported by providing an additional `Class<DTO> resultType` and a `QueryBuilder` mapping to the `getPage()` overload in `BaseEntityService`. See [`PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) javadoc for the full DTO example.
+**DTO projections** are also supported by providing an additional `Class<DTO> resultType` and a `MappedQueryBuilder` mapping to the `getPage()` overload in `EntityRepository`. The model is then of the DTO type, so build it via `lazy(loader)` with `rowKey(YourEntityDTO::getId)`. See [`PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) javadoc for the full DTO example.
 
 
 ### Non-lazy model
 
-For a static in-memory list, use `PagedDataModel.nonLazy(list)`. Unlike `PagedDataModel.lazy(BaseEntityService)`, the entities can be of any type, making it convenient for DTOs. When the entity has no `BaseEntity#getId()`, specify its row key via `rowKey(...)` on the builder.
+For a static in-memory list, use `PagedDataModel.nonLazy(list)`. The entities can be of any type, and the list can come from anywhere. When the entity does not extend `BaseEntity`, specify its row key via `rowKey(...)` on the builder.
 
 ```Java
 @PostConstruct
@@ -195,27 +218,24 @@ public void init() {
 
 ### Providing criteria in the backend
 
-To apply fixed query constraints at the service level, create a custom `getPageXxx()` method using the `QueryBuilder` overload of `getPage()`, then wire it up via `PagedDataModel.lazy(service::getPageXxx)`.
-
-```Java
-@Stateless
-public class YourEntityService extends BaseEntityService<Long, YourEntity> {
-
-    public PartialResultList<YourEntity> getPageOfFooType(Page page, boolean count) {
-        return getPage(page, count, (criteriaBuilder, criteriaQuery, root) -> {
-            criteriaQuery.where(criteriaBuilder.equal(root.get("type"), Type.FOO));
-        });
-    }
-
-}
-```
+To apply fixed query constraints, delegate to the `QueryBuilder` overload of `getPage()` in `EntityRepository` via `PagedDataModel.lazy(repository, loader)`.
 
 ```Java
 @PostConstruct
 public void init() {
-    model = PagedDataModel.lazy(service::getPageOfFooType).build();
+    model = PagedDataModel.lazy(repository, this::getPageOfFooType).build();
+}
+
+private PartialResultList<YourEntity> getPageOfFooType(Page page, boolean count) {
+    return repository.getPage(page, count, (criteriaBuilder, criteriaQuery, root) -> {
+        criteriaQuery.where(criteriaBuilder.equal(root.get("type"), Type.FOO));
+    });
 }
 ```
+
+The same goes for fetch fields, e.g. `PagedDataModel.lazy(repository, (page, count) -> repository.getPage(page, count, "address"))`.
+
+With a service extending `BaseEntityService`, create a `getPageXxx()` method in the service which delegates to the same `getPage()` method, and wire it up via `PagedDataModel.lazy(service::getPageXxx)`.
 
 
 ### Providing criteria in the frontend
@@ -225,7 +245,7 @@ To drive filtering from a separate form in the same view, pass a `Map<Getter<E>,
 ```Java
 @PostConstruct
 public void init() {
-    model = PagedDataModel.lazy(service).criteria(this::getCriteria).build();
+    model = PagedDataModel.lazy(repository).criteria(this::getCriteria).build();
 }
 
 private Map<Getter<YourEntity>, Object> getCriteria() {
@@ -401,11 +421,11 @@ public class YourBackingBean {
     private PagedDataModel<YourEntity> model;
 
     @Inject
-    private YourEntityService service;
+    private EntityRepository<Long, YourEntity> repository;
 
     @PostConstruct
     public void init() {
-        model = PagedDataModel.lazy(service).build();
+        model = PagedDataModel.lazy(repository).build();
     }
 
     public PagedDataModel<YourEntity> getModel() {
@@ -435,7 +455,7 @@ Each environment will run the IT on following databases:
 - SQL Server latest 2022 (provided by Microsoft's Docker image) with JDBC driver 13.6.2.jre11
 - DB2 12.1.5.0 (provided by IBM's Docker image) with JDBC driver 12.1.5.0
 
-Effectively, there are thus 15 full test runs of each [35 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [21 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [37 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [22 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
 
 ### Commercial support
 

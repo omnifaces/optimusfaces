@@ -83,7 +83,7 @@ import org.primefaces.model.SortOrder;
 /**
  * <p>
  * Lazy-loading {@link PagedDataModel} implementation that delegates each page request to a {@link PagedDataModel.PartialResultListLoader}, typically backed by
- * a {@link BaseEntityService}.
+ * an {@link EntityRepository}.
  * <p>
  * On each render PrimeFaces {@link DataTable} calls {@link #load}, which extracts the active sort, per-column filter values, global search term and selection
  * from PrimeFaces {@link DataTable} component, assembles a {@link Page} descriptor and forwards the call to the loader. The resulting {@link PartialResultList}
@@ -98,8 +98,8 @@ import org.primefaces.model.SortOrder;
  * The entities of the page and of the selection therefore do not need to be {@link Serializable}; the criteria and the ordering values are serialized as they
  * are.
  * <p>
- * Construct via {@link PagedDataModel#lazy(BaseEntityService)}, {@link PagedDataModel#lazy(EntityRepository)} or
- * {@link PagedDataModel#lazy(PagedDataModel.PartialResultListLoader)}.
+ * Construct via {@link PagedDataModel#lazy(EntityRepository)}, {@link PagedDataModel#lazy(EntityRepository, PagedDataModel.PartialResultListLoader)},
+ * {@link PagedDataModel#lazy(BaseEntityService)} or {@link PagedDataModel#lazy(PagedDataModel.PartialResultListLoader)}.
  *
  * @param <E> The entity type.
  * @see PagedDataModel

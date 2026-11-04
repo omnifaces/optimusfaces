@@ -62,32 +62,22 @@ import org.primefaces.model.Visibility;
 
 /**
  * <p>
- * Paged data model specifically for <code>&lt;op:dataTable&gt;</code> which utilizes {@link BaseEntityService} from OmniPersistence project. The
- * <code>&lt;op:dataTable&gt;</code> basically wraps the powerful PrimeFaces <code>&lt;p:dataTable&gt;</code> in a very DRY tagfile hereby further simplifying
- * its usage and reducing down the sometimes massive boilerplate code when having a bit advanced use case of <code>&lt;p:dataTable&gt;</code> with its
- * {@link LazyDataModel}.
+ * Paged data model specifically for <code>&lt;op:dataTable&gt;</code>. The <code>&lt;op:dataTable&gt;</code> basically wraps the powerful PrimeFaces
+ * <code>&lt;p:dataTable&gt;</code> in a very DRY tagfile hereby further simplifying its usage and reducing down the sometimes massive boilerplate code when
+ * having a bit advanced use case of <code>&lt;p:dataTable&gt;</code> with its {@link LazyDataModel}.
  *
  *
  * <h2 id="usage"><a href="#usage">Basic Usage</a></h2>
  * <p>
- * First create your entity service extending {@link BaseEntityService} from OmniPersistence project.
+ * Your entity does not need to extend anything.
  *
  * <pre>
- * &#64;Stateless
- * public class YourEntityService extends BaseEntityService&lt;Long, YourEntity&gt; {
- *
- *     // ...
- *
- * }
- * </pre>
- * <p>
- * And make sure <code>YourEntity</code> extends {@link BaseEntity} or one of its subclasses from OmniPersistence project.
- *
- * <pre>
- *
  * &#64;Entity
- * public class YourEntity extends GeneratedIdEntity&lt;Long&gt; {
+ * public class YourEntity {
  *
+ *     &#64;Id
+ *     &#64;GeneratedValue
+ *     private Long id;
  *     private Instant created;
  *     private String name;
  *     private Type type;
@@ -97,7 +87,8 @@ import org.primefaces.model.Visibility;
  * }
  * </pre>
  * <p>
- * Then create a {@link PagedDataModel} in your backing bean as below.
+ * Inject an {@link EntityRepository} of it from OmniPersistence project into your backing bean, and create a {@link PagedDataModel} with it as below. You do
+ * not need to create a service class.
  *
  * <pre>
  * &#64;Named
@@ -107,11 +98,11 @@ import org.primefaces.model.Visibility;
  *     private PagedDataModel&lt;YourEntity&gt; model;
  *
  *     &#64;Inject
- *     private YourEntityService service;
+ *     private EntityRepository&lt;Long, YourEntity&gt; repository;
  *
  *     &#64;PostConstruct
  *     public void init() {
- *         model = PagedDataModel.lazy(service).build();
+ *         model = PagedDataModel.lazy(repository).build();
  *     }
  *
  *     public PagedDataModel&lt;YourEntity&gt; getModel() {
@@ -140,6 +131,64 @@ import org.primefaces.model.Visibility;
  * <p>
  * The <code>field</code> attribute of <code>&lt;op:column&gt;</code> represents the entity property path. This will in turn be used in <code>id</code>,
  * <code>field</code>, <code>headerText</code> and <code>filterBy</code> attributes of <code>&lt;p:column&gt;</code>.
+ *
+ *
+ * <h2 id="data-source"><a href="#data-source">Data source</a></h2>
+ * <p>
+ * A lazy model needs two things of your application:
+ * <ul>
+ * <li>A {@link PartialResultListLoader}: a function which returns one page of entities plus an estimated total count as a {@link PartialResultList} for a given
+ * {@link Page}.</li>
+ * <li>A row key: a value which identifies each entity, usually its ID.</li>
+ * </ul>
+ * <p>
+ * {@link Page} and {@link PartialResultList} are value types on the signature of that function, not base classes to extend. Your entities and services do not
+ * need to extend or implement any OptimusFaces or OmniPersistence type. OmniPersistence is still a dependency, because {@link Page} and the {@link Criteria}
+ * come from it.
+ * <p>
+ * Choose the factory method by where the data comes from:
+ * <ul>
+ * <li>{@link #lazy(EntityRepository)}: an injected {@link EntityRepository}. The loader is {@link EntityRepository#getPage(Page, boolean)} and the row key is
+ * the ID.</li>
+ * <li>{@link #lazy(EntityRepository, PartialResultListLoader)}: an {@link EntityRepository} with a custom query, e.g. with fetch fields or a query builder. The
+ * row key is still the ID.</li>
+ * <li>{@link #lazy(BaseEntityService)}: an existing service extending {@link BaseEntityService} of an entity extending {@link BaseEntity}. This is a shortcut
+ * for projects which already have those.</li>
+ * <li>{@link #lazy(PartialResultListLoader)}: any other data store. The row key is the ID when the entity extends {@link BaseEntity}, else specify it via
+ * {@link Builder#rowKey(RowKeyGetter)}, and preferably also {@link Builder#rowData(RowDataLoader)}.</li>
+ * </ul>
+ * <p>
+ * The {@link EntityRepository} and {@link BaseEntityService} already apply the whole {@link Page} to the query. A custom loader for another data store must do
+ * that itself. Else paging, sorting and filtering in the table silently do nothing. The {@link Page} contains:
+ * <ul>
+ * <li>{@link Page#getOffset()} and {@link Page#getLimit()}: the range of the page.</li>
+ * <li>{@link Page#getOrdering()}: the sorted fields, in order, with <code>true</code> for ascending. It always ends with <code>id</code>, so that the order is
+ * defined.</li>
+ * <li>{@link Page#getRequiredCriteria()}: the criteria which must all match. These are the column filters and the criteria of {@link Builder#criteria(Map)} and
+ * {@link Builder#criteria(DynamicCriteria)}.</li>
+ * <li>{@link Page#getOptionalCriteria()}: the criteria of which at least one must match. These are the global search on all columns.</li>
+ * </ul>
+ * <p>
+ * The fields in ordering and criteria are property paths, such as <code>address.city</code>. A criteria value is either a plain value, a collection or array of
+ * values of which one must match, or a {@link Criteria} such as {@link Like}. A <code>null</code> value means <code>IS NULL</code>. When
+ * <code>estimateTotalNumberOfResults</code> is <code>false</code>, the count may be skipped. The {@link Page#getLastOrderingValues()},
+ * {@link Page#getResidualOffset()} and {@link Page#isReversed()} only enable faster paging via the ordering values of a neighboring row; a custom loader may
+ * ignore them, because the offset and limit alone give the correct page.
+ *
+ *
+ * <h2 id="serialization"><a href="#serialization">Serialization</a></h2>
+ * <p>
+ * The model is held by your backing bean, not by the Faces view state. A <code>&#64;ViewScoped</code> bean is stored in the HTTP session, so the model is only
+ * serialized when the session is passivated or replicated. The exception is the OmniFaces <code>&#64;ViewScoped(saveInViewState = true)</code>, which stores
+ * the bean in the view state, so with client side state saving the model is serialized into every page. A <code>&#64;RequestScoped</code> bean is not
+ * serialized at all.
+ * <p>
+ * When a lazy model is serialized, it leaves out the entities of the loaded page and of the selection. Those entities therefore do not need to be
+ * {@link Serializable}. After deserialization, the page is loaded again and the selection is resolved again from its row keys. All else is serialized as is:
+ * the loader, the row key getter, the row data loader, the criteria and the ordering, including the cached ordering values of a few rows. So these must be
+ * {@link Serializable}. The functional interfaces of this class are {@link Serializable}, and an {@link EntityRepository} is too. A lambda which captures a
+ * non-serializable object, such as an <code>EntityManager</code>, will fail to serialize. A non-lazy model does serialize its whole list, so its entities must
+ * be {@link Serializable}.
  *
  *
  * <h2 id="relationships"><a href="#relationships">Relationships</a></h2>
@@ -194,8 +243,8 @@ import org.primefaces.model.Visibility;
  *
  * <h3>DTO</h3>
  * <p>
- * DTO subclasses of entities are also supported by providing an additional <code>Class&lt;DTO&gt; resultType</code> argument to one of the protected
- * {@link BaseEntityService#getPage(Page, boolean)} methods.
+ * DTO subclasses of entities are also supported by providing an additional <code>Class&lt;DTO&gt; resultType</code> argument to one of the
+ * {@link EntityRepository#getPage(Page, boolean)} methods.
  *
  * <pre>
  * public class YourEntityDTO extends YourEntity {
@@ -214,77 +263,59 @@ import org.primefaces.model.Visibility;
  *
  * }
  * </pre>
+ * <p>
+ * The model is then of the DTO type, so build it via {@link #lazy(PartialResultListLoader)} with the row key of the DTO.
  *
  * <pre>
- * &#64;Stateless
- * public class YourEntityService extends BaseEntityService&lt;Long, YourEntity&gt; {
  *
- *     public PartialResultList&lt;YourEntityDTO&gt; getPageOfYourEntityDTO(Page page, boolean count) {
- *         return getPage(page, count, YourEntityDTO.class, (criteriaBuilder, query, root) -&gt; {
- *             Join&lt;YourEntityDTO, YourChildEntity&gt; child = root.join("child");
+ * &#64;PostConstruct
+ * public void init() {
+ *     model = PagedDataModel.lazy(this::getPageOfYourEntityDTO).rowKey(YourEntityDTO::getId).build();
+ * }
  *
- *             LinkedHashMap&lt;Getter&lt;YourEntityDTO&gt;, Expression&lt;?&gt;&gt; mapping = new LinkedHashMap&lt;&gt;();
- *             mapping.put(YourEntityDTO::getId, root.get("id"));
- *             mapping.put(YourEntityDTO::getName, root.get("name"));
- *             mapping.put(YourEntityDTO::getTotalPrice, builder.sum(child.get("price")));
+ * private PartialResultList&lt;YourEntityDTO&gt; getPageOfYourEntityDTO(Page page, boolean count) {
+ *     return repository.getPage(page, count, YourEntityDTO.class, (criteriaBuilder, query, root) -&gt; {
+ *         Join&lt;YourEntityDTO, YourChildEntity&gt; child = root.join("child");
  *
- *             return mapping;
- *         });
- *     }
+ *         LinkedHashMap&lt;Getter&lt;YourEntityDTO&gt;, Expression&lt;?&gt;&gt; mapping = new LinkedHashMap&lt;&gt;();
+ *         mapping.put(YourEntityDTO::getId, root.get("id"));
+ *         mapping.put(YourEntityDTO::getName, root.get("name"));
+ *         mapping.put(YourEntityDTO::getTotalPrice, criteriaBuilder.sum(child.get("price")));
  *
+ *         return mapping;
+ *     });
  * }
  * </pre>
- *
+ * <p>
  * Note that you must return a {@link LinkedHashMap} with {@link Getter} as key and {@link Expression} as value and that the mapping must be in exactly the same
  * order as constructor arguments of your DTO.
  *
  *
  * <h2 id="criteria-backend"><a href="#criteria-backend">Providing specific criteria in backend</a></h2>
  * <p>
- * In the backend, create a new <code>getPageXxx()</code> method and delegate to one of {@link BaseEntityService#getPage(Page, boolean)} methods which takes a
+ * Delegate to {@link #lazy(EntityRepository, PartialResultListLoader)} with one of the {@link EntityRepository#getPage(Page, boolean)} methods which takes a
  * <code>QueryBuilder</code> argument providing the Jakarta Persistence Criteria API objects to build the query with. For example, to get a page of only
  * entities of a specific type.
  *
  * <pre>
- * &#64;Stateless
- * public class YourEntityService extends BaseEntityService&lt;YourEntity&gt; {
  *
- *     public PartialResultList&lt;YourEntity&gt; getPageOfFooType(Page page, boolean count) {
- *         return getPage(page, count, (criteriaBuilder, criteriaQuery, root) -&gt; {
- *             criteriaQuery.where(criteriaBuilder.equal(root.get("type"), Type.FOO));
- *         });
- *     }
+ * &#64;PostConstruct
+ * public void init() {
+ *     model = PagedDataModel.lazy(repository, this::getPageOfFooType).build();
+ * }
  *
+ * private PartialResultList&lt;YourEntity&gt; getPageOfFooType(Page page, boolean count) {
+ *     return repository.getPage(page, count, (criteriaBuilder, criteriaQuery, root) -&gt; {
+ *         criteriaQuery.where(criteriaBuilder.equal(root.get("type"), Type.FOO));
+ *     });
  * }
  * </pre>
  * <p>
- * And in the frontend, delegate to {@link PagedDataModel#lazy(PartialResultListLoader)}.
- *
- * <pre>
- * &#64;Named
- * &#64;ViewScoped
- * public class YourBackingBean implements Serializable {
- *
- *     private PagedDataModel&lt;YourEntity&gt; model;
- *
- *     &#64;Inject
- *     private YourEntityService service;
- *
- *     &#64;PostConstruct
- *     public void init() {
- *         model = PagedDataModel.lazy(service::getPageOfFooType).build();
- *     }
- *
- *     public PagedDataModel&lt;YourEntity&gt; getModel() {
- *         return model;
- *     }
- *
- * }
- * </pre>
+ * The same goes for fetch fields, e.g. <code>PagedDataModel.lazy(repository, (page, count) -&gt; repository.getPage(page, count, "address"))</code>.
  * <p>
- * For an entity which does not extend {@link BaseEntity} and is loaded via an {@link EntityRepository}, delegate to
- * {@link PagedDataModel#lazy(EntityRepository, PartialResultListLoader)} instead, so that the row key is still the ID, e.g.
- * <code>PagedDataModel.lazy(repository, (page, count) -&gt; repository.getPage(page, count, "address"))</code>.
+ * With a service extending {@link BaseEntityService}, create a <code>getPageXxx()</code> method in the service which delegates to the same
+ * <code>getPage()</code> method, and delegate to it via {@link #lazy(PartialResultListLoader)}, e.g.
+ * <code>PagedDataModel.lazy(service::getPageOfFooType)</code>.
  *
  *
  * <h2 id="criteria-frontend"><a href="#criteria-frontend">Providing specific criteria in frontend</a></h2>
@@ -304,11 +335,11 @@ import org.primefaces.model.Visibility;
  *     // ...
  *
  *     &#64;Inject
- *     private YourEntityService service;
+ *     private EntityRepository&lt;Long, YourEntity&gt; repository;
  *
  *     &#64;PostConstruct
  *     public void init() {
- *         model = PagedDataModel.lazy(service).criteria(this::getCriteria).build();
+ *         model = PagedDataModel.lazy(repository).criteria(this::getCriteria).build();
  *     }
  *
  *     private Map&lt;Getter&lt;YourEntity&gt;, Object&gt; getCriteria() {
@@ -372,9 +403,9 @@ import org.primefaces.model.Visibility;
  * }
  * </pre>
  * <p>
- * On contrary to lazy loading via {@link #lazy(BaseEntityService)}, which requires the entities to be of type {@link BaseEntity}, you can here provide entities
- * of any type, which is easier to apply on DTOs. The default ordering is by the <code>id</code> property when the entity has it, so an entity without it needs
- * {@link Builder#orderBy(String, boolean)} for a defined order, and an entity without {@link BaseEntity#getId()} needs {@link Builder#rowKey(RowKeyGetter)}.
+ * The entities can be of any type, and the list can come from anywhere. The default ordering is by the <code>id</code> property when the entity has it, so an
+ * entity without it needs {@link Builder#orderBy(String, boolean)} for a defined order. An entity which does not extend {@link BaseEntity} needs
+ * {@link Builder#rowKey(RowKeyGetter)}.
  *
  *
  * <h2 id="presentation"><a href="#presentation">Presentation</a></h2>
@@ -486,14 +517,14 @@ import org.primefaces.model.Visibility;
  *
  * <h2 id="sorting"><a href="#sorting">Sorting</a></h2>
  * <p>
- * By default, the model is sorted by {@link BaseEntity#getId()} in descending order. You can override this by {@link Builder#orderBy(Getter, boolean)} passing
- * the getter method reference and whether you want to sort ascending or not.
+ * By default, the model is sorted by the <code>id</code> property in descending order. You can override this by {@link Builder#orderBy(Getter, boolean)}
+ * passing the getter method reference and whether you want to sort ascending or not.
  *
  * <pre>
  *
  * &#64;PostConstruct
  * public void init() {
- *     model = PagedDataModel.lazy(service).orderBy(YourEntity::getName, true).build();
+ *     model = PagedDataModel.lazy(repository).orderBy(YourEntity::getName, true).build();
  * }
  * </pre>
  * <p>
@@ -503,7 +534,7 @@ import org.primefaces.model.Visibility;
  *
  * &#64;PostConstruct
  * public void init() {
- *     model = PagedDataModel.lazy(service).orderBy(YourEntity::getType, true).orderBy(YourEntity::getId, false).build();
+ *     model = PagedDataModel.lazy(repository).orderBy(YourEntity::getType, true).orderBy(YourEntity::getId, false).build();
  * }
  * </pre>
  * <p>
@@ -1071,8 +1102,9 @@ public interface PagedDataModel<E> extends Serializable {
     /**
      * Functional interface that abstracts the data-store call for loading one page of results.
      * <p>
-     * The loader is typically a method reference to a {@link BaseEntityService#getPage(Page, boolean)} implementation. Implement this interface when you need
-     * to supply a custom query builder.
+     * The loader is typically a lambda or method reference which delegates to one of the {@link EntityRepository#getPage(Page, boolean)} or
+     * {@link BaseEntityService#getPage(Page, boolean)} methods, but it can load from any data store. It must then apply the whole given {@link Page}, see
+     * <a href="PagedDataModel.html#data-source">Data source</a>.
      * <p>
      * It is {@link Serializable} because the paged data model holding it is itself {@link Serializable} and is typically retained in a bean of a passivating
      * scope, such as <code>@ViewScoped</code>, which may be passivated or replicated.
@@ -1188,14 +1220,15 @@ public interface PagedDataModel<E> extends Serializable {
     }
 
     /**
-     * Use this if you want to build a lazy paged data model using a custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
+     * Use this if you want to build a lazy paged data model using a custom loader, e.g. one which loads from a data store other than OmniPersistence. The
+     * loader must then apply the whole given {@link Page}, see <a href="PagedDataModel.html#data-source">Data source</a>.
      *
      * <p>
      * The row key is the ID when the entity extends {@link BaseEntity}, else it must be specified via {@link Builder#rowKey(RowKeyGetter)}. For an entity which
      * does not extend {@link BaseEntity} and is loaded via OmniPersistence, consider {@link #lazy(EntityRepository, PartialResultListLoader)} instead.
      *
      * @param <E> The generic entity type.
-     * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
+     * @param loader The custom loader.
      * @return A new paged data model builder.
      */
     static <E> Builder<E> lazy(PartialResultListLoader<E> loader) {
@@ -1415,7 +1448,7 @@ public interface PagedDataModel<E> extends Serializable {
          * <p>
          * Set the ordering by entity getter.
          * <p>
-         * This can be invoked multiple times and will be remembered in same order. The default ordering is <code>BaseEntity::getId, false</code>.
+         * This can be invoked multiple times and will be remembered in same order. The default ordering is <code>"id", false</code>.
          *
          * @param sortField The sort field.
          * @param sortAscending Whether to sort ascending.
@@ -1430,7 +1463,7 @@ public interface PagedDataModel<E> extends Serializable {
          * <p>
          * Set the ordering by property path.
          * <p>
-         * This can be invoked multiple times and will be remembered in same order. The default ordering is <code>BaseEntity::getId, false</code>.
+         * This can be invoked multiple times and will be remembered in same order. The default ordering is <code>"id", false</code>.
          *
          * @param propertyPath The property path.
          * @param sortAscending Whether to sort ascending.

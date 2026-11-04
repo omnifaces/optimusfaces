@@ -559,6 +559,16 @@ public abstract class OptimusFacesIT {
         testQueryStringLoading("LazyWithEntityRepositoryAndLoader");
     }
 
+    /**
+     * An entity repository is not transactional, so this asserts that fetching a <code>&#64;OneToMany</code> of a page works without a transaction of the
+     * calling bean.
+     */
+    @Test
+    public void testLazyWithEntityRepositoryAndOneToMany() {
+        open("LazyWithEntityRepositoryAndOneToMany");
+        testOneToMany();
+    }
+
     @Test
     public void testLazyStatelessPagingSortingFilteringAndSelection() {
         open("LazyStateless");
@@ -1064,6 +1074,7 @@ public abstract class OptimusFacesIT {
     protected void testOneToMany() {
         assertNoCartesianProduct();
         assertPaginatorState(1, TOTAL_RECORDS);
+        assertNoEmptyCells(phones_numberColumn);
         testGlobalFilter();
 
         clickColumn(phones_numberColumn);
@@ -1428,6 +1439,11 @@ public abstract class OptimusFacesIT {
         List<Integer> actualIds = getCells(idColumn).stream().map(WebElement::getText).map(Integer::valueOf).sorted().collect(toList());
         List<Integer> expectedIds = actualIds.stream().distinct().collect(toList());
         assertEquals(expectedIds, actualIds, "No cartesian product");
+    }
+
+    protected void assertNoEmptyCells(WebElement column) {
+        var emptyCells = getCells(column).stream().map(WebElement::getText).filter(String::isBlank).count();
+        assertEquals(0L, emptyCells, "No empty cells");
     }
 
 }
