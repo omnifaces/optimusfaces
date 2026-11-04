@@ -435,7 +435,7 @@ Each environment will run the IT on following databases:
 - SQL Server latest 2022 (provided by Microsoft's Docker image) with JDBC driver 13.6.2.jre11
 - DB2 12.1.5.0 (provided by IBM's Docker image) with JDBC driver 12.1.5.0
 
-Effectively, there are thus 15 full test runs of each [33 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [20 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [35 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [21 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
 
 ### Commercial support
 

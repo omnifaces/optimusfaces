@@ -281,6 +281,10 @@ import org.primefaces.model.Visibility;
  *
  * }
  * </pre>
+ * <p>
+ * For an entity which does not extend {@link BaseEntity} and is loaded via an {@link EntityRepository}, delegate to
+ * {@link PagedDataModel#lazy(EntityRepository, PartialResultListLoader)} instead, so that the row key is still the ID, e.g.
+ * <code>PagedDataModel.lazy(repository, (page, count) -&gt; repository.getPage(page, count, "address"))</code>.
  *
  *
  * <h2 id="criteria-frontend"><a href="#criteria-frontend">Providing specific criteria in frontend</a></h2>
@@ -1164,7 +1168,23 @@ public interface PagedDataModel<E> extends Serializable {
      * @since 2.0
      */
     static <I extends Comparable<I> & Serializable, E> Builder<E> lazy(EntityRepository<I, E> entityRepository) {
-        return new Builder<E>(entityRepository::getPage).idGetter(entityRepository::getId);
+        return lazy(entityRepository, entityRepository::getPage);
+    }
+
+    /**
+     * Use this if you want to build a lazy paged data model using a custom {@link EntityRepository#getPage(Page, boolean)} implementation, e.g. one with fetch
+     * fields or a query builder. The entity does not need to extend {@link BaseEntity}: the row key is the ID as returned by
+     * {@link EntityRepository#getId(Object)}.
+     *
+     * @param <I> The generic ID type.
+     * @param <E> The generic entity type.
+     * @param entityRepository The entity repository.
+     * @param loader The custom {@link EntityRepository#getPage(Page, boolean)} implementation.
+     * @return A new paged data model builder.
+     * @since 2.0
+     */
+    static <I extends Comparable<I> & Serializable, E> Builder<E> lazy(EntityRepository<I, E> entityRepository, PartialResultListLoader<E> loader) {
+        return new Builder<>(loader).idGetter(entityRepository::getId);
     }
 
     /**
@@ -1172,7 +1192,7 @@ public interface PagedDataModel<E> extends Serializable {
      *
      * <p>
      * The row key is the ID when the entity extends {@link BaseEntity}, else it must be specified via {@link Builder#rowKey(RowKeyGetter)}. For an entity which
-     * does not extend {@link BaseEntity} and is loaded via OmniPersistence, consider {@link #lazy(EntityRepository)} instead.
+     * does not extend {@link BaseEntity} and is loaded via OmniPersistence, consider {@link #lazy(EntityRepository, PartialResultListLoader)} instead.
      *
      * @param <E> The generic entity type.
      * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
@@ -1229,7 +1249,7 @@ public interface PagedDataModel<E> extends Serializable {
         }
 
         /**
-         * Returns the ID of the given entity, being the default row key when the model is not built via {@link PagedDataModel#lazy(EntityRepository)}.
+         * Returns the ID of the given entity, being the default row key when the model is not built via an {@link EntityRepository}.
          */
         private static Object getBaseEntityId(Object entity) {
             if (entity instanceof BaseEntity<?> baseEntity) {
@@ -1250,9 +1270,8 @@ public interface PagedDataModel<E> extends Serializable {
          * when the entity has no ID which is known to the model, or when you want to identify it by something else than its ID, e.g.
          * <code>.rowKey(YourEntity::getReference)</code>.
          * <p>
-         * When not set, the row key is the ID: as returned by {@link EntityRepository#getId(Object)} when built via
-         * {@link PagedDataModel#lazy(EntityRepository)}, else as returned by {@link BaseEntity#getId()}. The model then throws {@link IllegalStateException}
-         * for an entity which has no ID known to the model.
+         * When not set, the row key is the ID: as returned by {@link EntityRepository#getId(Object)} when built via an {@link EntityRepository}, else as
+         * returned by {@link BaseEntity#getId()}. The model then throws {@link IllegalStateException} for an entity which has no ID known to the model.
          *
          * @param rowKey The row key of an entity.
          * @return This builder.

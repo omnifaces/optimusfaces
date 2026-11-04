@@ -360,7 +360,6 @@
                 <version>3.12.0</version>
                 <configuration>
                     <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-                    <javadocVersion>${javase.version}</javadocVersion>
                     <release>${javase.version}</release>
                     <notimestamp>true</notimestamp>
                     <splitindex>true</splitindex>
