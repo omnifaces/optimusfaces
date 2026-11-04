@@ -21,7 +21,7 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
     <dependency>
         <groupId>jakarta.platform</groupId>
         <artifactId>jakarta.jakartaee-web-api</artifactId>
-        <version>10.0.0</version><!-- Minimum supported version is 10.0.0 -->
+        <version>11.0.0</version><!-- Minimum supported version is 10.0.0 -->
         <scope>provided</scope>
     </dependency>
 
@@ -29,18 +29,17 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>4.0</version><!-- Minimum supported version is 4.0 -->
+        <version>5.5.6</version><!-- Minimum supported version is 4.0 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
-        <classifier>jakarta</classifier>
-        <version>15.0.0</version><!-- Minimum supported version is 15.0.0 -->
+        <version>16.0.1</version><!-- Minimum supported version is 15.0.0:jakarta -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>optimusfaces</artifactId>
-        <version>1.1</version>
+        <version>2.0</version>
     </dependency>
 </dependencies>
 ```
@@ -56,7 +55,7 @@ Jakarta EE (jakarta) namespace:
 - 0.14.J1 - 0.16.J1: Java 11 / OmniFaces 4.0 / PrimeFaces 10.0.0:jakarta
 - 0.17.J1 - 0.20.J1: Java 17 / OmniFaces 4.0 / PrimeFaces 13.0.0:jakarta
 - 0.21.J1 - 0.22.J1: Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
-- 1.0: Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
+- 1.0 - 2.0: Java 17 / OmniFaces 4.0 / PrimeFaces 15.0.0:jakarta
 
 
 ### Basic Usage
