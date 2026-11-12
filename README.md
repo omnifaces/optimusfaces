@@ -274,6 +274,7 @@ Available `Criteria` wrappers: `Like`, `Not`, `Between`, `Order`, `Enumerated`, 
 | `updateQueryString` | `true` | Reflects paging, sorting, filtering and selection state in the browser URL as query parameters, making the table state bookmarkable and enabling `@RequestScoped` backing beans and stateless views. |
 | `queryParameterPrefix` | | Prefix for all query parameters; useful when multiple tables share a page to avoid parameter name collisions. |
 | `sortable` | `true` | Enables sorting on all columns; can be overridden per column via `<op:column sortable="false">`. |
+| `sortMode` | `single` | Set to `multiple` to sort by more than one column: a click on a column header with Ctrl or Cmd pressed adds the column to the sort, a click without replaces the sort. |
 | `filterable` | `true` | Enables filtering on all columns; can be overridden per column via `<op:column filterable="false">`. |
 | `paginable` | `true` | Enables the paginator. |
 | `rows` | `10` | Rows per page. |
@@ -408,7 +409,11 @@ In plain PrimeFaces, a lazy `<p:dataTable>` requires a `@ViewScoped` backing bea
 
 This also means that stateless JSF views (`<f:view transient="true">`), which disable Faces state saving entirely and therefore inherently break `@ViewScoped` beans and require `@RequestScoped` beans, are simply not an option in plain PrimeFaces when you need a lazy data table.
 
-OptimusFaces solves this differently. After every page load, `LazyPagedDataModel` collects the current table state and emits a JavaScript callback to `OptimusFaces.Util.updateQueryString()` in `optimusfaces.js`. That function calls `window.history.replaceState()` to update the browser URL without a page reload and also updates the JSF ViewState in all forms on the page. The URL now always reflects the exact current table state: page number, sort column, sort direction, active column filters and row selection.
+OptimusFaces solves this differently. After every page load, `LazyPagedDataModel` collects the current table state and emits a JavaScript callback to `OptimusFaces.Util.updateQueryString()` in `optimusfaces.js`. That function calls `window.history.replaceState()` to update the browser URL without a page reload and also updates the JSF ViewState in all forms on the page. The URL now always reflects the exact current table state: page number, sort columns, sort directions, active column filters and row selection.
+
+Each sorted column is one `o` query parameter, in order of priority, with a `-` prefix for descending, e.g. `?o=lastName&o=-dateOfBirth`.
+Only the sort which differs from the default ordering of the model is in the URL.
+Fields which are not a column of the table are ignored, and with `sortMode="single"` only the first valid one is used.
 
 On the next request, whether it is a postback, a browser refresh or a bookmarked URL, `ExtendedDataTable` takes over. It overrides `preDecode()` and detects that the lazy model has no wrapped data yet. Instead of letting decode fail, it calls `LazyPagedDataModel#preloadPage()`, which reads the table state back from the URL query string parameters and loads the correct page from the data store before decode proceeds. Faces state is never needed for this. The query string is the state.
 
@@ -445,6 +450,7 @@ Recompile your code against both.
 
 - `NestedBaseEntityELResolver` is renamed to `NestedEntityELResolver`. It is registered automatically, so this only matters when your code references it.
 - Your entities no longer need to extend `BaseEntity`. See [Data source](#data-source) for the row key.
+- `PagedDataModel#getOrdering()` returns a `List<SortMeta>` instead of a single `SortMeta`, in order of priority. So does the `protected` method `LazyPagedDataModel#getInitialOrdering()`.
 
 
 ### Known Issues
@@ -466,7 +472,7 @@ Each environment will run the IT on following databases:
 - SQL Server latest 2022 (provided by Microsoft's Docker image) with JDBC driver 13.6.2.jre11
 - DB2 12.1.5.0 (provided by IBM's Docker image) with JDBC driver 12.1.5.0
 
-Effectively, there are thus 15 full test runs of each [37 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [22 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 15 full test runs of each [37 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [23 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
 
 ### Commercial support
 

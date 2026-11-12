@@ -1049,11 +1049,12 @@ public interface PagedDataModel<E> extends Serializable {
     // op:dataTable properties ----------------------------------------------------------------------------------------
 
     /**
-     * Returns the primary active sort as a PrimeFaces {@link SortMeta}.
+     * Returns the active sort as PrimeFaces {@link SortMeta} list, in order of priority. This contains more than one entry only when the <code>sortMode</code>
+     * of <code>&lt;op:dataTable&gt;</code> is <code>multiple</code>. Fields which are not a column of the table are left out.
      *
-     * @return The current sort descriptor; <code>null</code> when no ordering is defined.
+     * @return The current sort descriptors, in order of priority; empty when no ordering is defined.
      */
-    SortMeta getOrdering(); // TODO: support new multisort feature
+    List<SortMeta> getOrdering();
 
     /**
      * Returns the active column filters as a map of field name to {@link FilterMeta}.
