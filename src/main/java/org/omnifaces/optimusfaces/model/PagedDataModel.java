@@ -152,8 +152,9 @@ import org.primefaces.model.Visibility;
  * the ID.</li>
  * <li>{@link #lazy(EntityRepository, PartialResultListLoader)}: an {@link EntityRepository} with a custom query, e.g. with fetch fields or a query builder. The
  * row key is still the ID.</li>
- * <li>{@link #lazy(BaseEntityService)}: an existing service extending {@link BaseEntityService} of an entity extending {@link BaseEntity}. This is a shortcut
- * for projects which already have those.</li>
+ * <li>{@link #lazy(BaseEntityService)}: an existing service extending {@link BaseEntityService}. The loader is {@link BaseEntityService#getPage(Page, boolean)}
+ * and the row key is the ID.</li>
+ * <li>{@link #lazy(BaseEntityService, PartialResultListLoader)}: a {@link BaseEntityService} with a custom query. The row key is still the ID.</li>
  * <li>{@link #lazy(PartialResultListLoader)}: any other data store. The row key is the ID when the entity extends {@link BaseEntity}, else specify it via
  * {@link Builder#rowKey(RowKeyGetter)}, and preferably also {@link Builder#rowData(RowDataLoader)}.</li>
  * </ul>
@@ -1177,16 +1178,32 @@ public interface PagedDataModel<E> extends Serializable {
     }
 
     /**
-     * Use this if you want to build a lazy paged data model using a {@link BaseEntityService} of an entity extending {@link BaseEntity}. For an entity which
-     * does not extend {@link BaseEntity}, use {@link #lazy(EntityRepository)} instead.
+     * Use this if you want to build a lazy paged data model using a {@link BaseEntityService}. The entity does not need to extend {@link BaseEntity}: the row
+     * key is the ID as returned by {@link BaseEntityService#getId(Object)}.
      *
      * @param <I> The generic ID type.
-     * @param <E> The generic base entity type.
+     * @param <E> The generic entity type.
      * @param entityService The entity service.
      * @return A new paged data model builder.
      */
-    static <I extends Comparable<I> & Serializable, E extends BaseEntity<I>> Builder<E> lazy(BaseEntityService<I, E> entityService) {
-        return new Builder<>(entityService::getPage);
+    static <I extends Comparable<I> & Serializable, E> Builder<E> lazy(BaseEntityService<I, E> entityService) {
+        return new Builder<>(entityService::getPage).idGetter(entityService::getId);
+    }
+
+    /**
+     * Use this if you want to build a lazy paged data model using a custom {@link BaseEntityService#getPage(Page, boolean)} implementation, e.g. one with fetch
+     * fields or a query builder. The entity does not need to extend {@link BaseEntity}: the row key is the ID as returned by
+     * {@link BaseEntityService#getId(Object)}.
+     *
+     * @param <I> The generic ID type.
+     * @param <E> The generic entity type.
+     * @param entityService The entity service.
+     * @param loader The custom {@link BaseEntityService#getPage(Page, boolean)} implementation.
+     * @return A new paged data model builder.
+     * @since 2.0
+     */
+    static <I extends Comparable<I> & Serializable, E> Builder<E> lazy(BaseEntityService<I, E> entityService, PartialResultListLoader<E> loader) {
+        return new Builder<>(loader).idGetter(entityService::getId);
     }
 
     /**

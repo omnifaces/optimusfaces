@@ -143,8 +143,9 @@ Choose the factory method by where the data comes from:
 | Factory method | Data comes from | Row key |
 |---|---|---|
 | `lazy(EntityRepository)` | An injected `EntityRepository` | The ID |
-| `lazy(EntityRepository, loader)` | An `EntityRepository` with a custom query, e.g. with fetch fields or a query builder | The ID |
-| `lazy(BaseEntityService)` | An existing service extending `BaseEntityService` of an entity extending `BaseEntity` | The ID |
+| `lazy(EntityRepository, loader)` | An `EntityRepository` with a custom query | The ID |
+| `lazy(BaseEntityService)` | An existing service extending `BaseEntityService` | The ID |
+| `lazy(BaseEntityService, loader)` | A `BaseEntityService` with a custom query | The ID |
 | `lazy(loader)` | Any other data store | The ID when the entity extends `BaseEntity`, else `rowKey(...)` and preferably also `rowData(...)` on the builder |
 
 The `EntityRepository` and `BaseEntityService` already apply the whole `Page` to the query. A custom loader for another data store must do that itself. Else paging, sorting and filtering in the table silently do nothing. The `Page` contains:
@@ -235,7 +236,7 @@ private PartialResultList<YourEntity> getPageOfFooType(Page page, boolean count)
 
 The same goes for fetch fields, e.g. `PagedDataModel.lazy(repository, (page, count) -> repository.getPage(page, count, "address"))`.
 
-With a service extending `BaseEntityService`, create a `getPageXxx()` method in the service which delegates to the same `getPage()` method, and wire it up via `PagedDataModel.lazy(service::getPageXxx)`.
+With a service extending `BaseEntityService`, create a `getPageXxx()` method in the service which delegates to the same `getPage()` method, and wire it up via `PagedDataModel.lazy(service, service::getPageXxx)`.
 
 
 ### Providing criteria in the frontend
@@ -436,10 +437,20 @@ public class YourBackingBean {
 ```
 
 
+### Upgrading from 1.x
+
+OptimusFaces 2.0 requires OmniPersistence 2.0, see also its [upgrade notes](https://github.com/omnifaces/omnipersistence#15-upgrading-from-1x).
+OptimusFaces 1.x does not run on OmniPersistence 2.0.
+Recompile your code against both.
+
+- `NestedBaseEntityELResolver` is renamed to `NestedEntityELResolver`. It is registered automatically, so this only matters when your code references it.
+- Your entities no longer need to extend `BaseEntity`. See [Data source](#data-source) for the row key.
+
+
 ### Known Issues
 
-- OpenJPA generates broken nested correlated subqueries for `@OneToMany` in count subquery context, this has been work arounded, but the total result count when filtering might be inaccurate there. In case this is undesireable, use a DTO projection instead.
-- OpenJPA and Hibernate+PostgreSQL/SQLServer generate broken nested correlated subqueries for `@ElementCollection` in count subquery context when a `LIKE`-based filter (e.g. global filter) is involved, this has been work arounded, but the total result count may be inaccurate when the search term matches entities exclusively via the element collection field and not via any other field. In case this is undesireable, use a DTO projection instead.
+- OpenJPA generates broken nested correlated subqueries for `@OneToMany` in count subquery context, this has been worked around, but the total result count when filtering might be inaccurate there. In case this is undesirable, use a DTO projection instead.
+- OpenJPA and Hibernate+PostgreSQL/SQLServer generate broken nested correlated subqueries for `@ElementCollection` in count subquery context when a `LIKE`-based filter (e.g. global filter) is involved, this has been worked around, but the total result count may be inaccurate when the search term matches entities exclusively via the element collection field and not via any other field. In case this is undesirable, use a DTO projection instead.
 
 ### Integration Tests
 

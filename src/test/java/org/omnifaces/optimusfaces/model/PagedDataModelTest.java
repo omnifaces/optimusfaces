@@ -263,11 +263,11 @@ class PagedDataModelTest {
     }
 
     @Test
-    void getRowKey_baseEntityViaEntityService_isId() {
+    void getRowKey_entityService_isIdOfService() {
         @SuppressWarnings("unchecked")
-        BaseEntityService<Long, TestBaseEntity> service = mock(BaseEntityService.class);
-        var entity = new TestBaseEntity();
-        entity.setId(42L);
+        BaseEntityService<Long, TestEntity> service = mock(BaseEntityService.class);
+        var entity = entity(null, "a");
+        when(service.getId(entity)).thenReturn(42L);
 
         assertEquals("42", built(PagedDataModel.lazy(service)).getRowKey(entity));
     }
@@ -285,6 +285,16 @@ class PagedDataModelTest {
         var entity = new TestBaseEntity();
 
         assertEquals(String.valueOf(entity.hashCode()), built(PagedDataModel.nonLazy(new ArrayList<TestBaseEntity>())).getRowKey(entity));
+    }
+
+    @Test
+    void getRowKey_entityServiceWithLoader_isIdOfService() {
+        @SuppressWarnings("unchecked")
+        BaseEntityService<Long, TestEntity> service = mock(BaseEntityService.class);
+        var entity = entity(null, "a");
+        when(service.getId(entity)).thenReturn(42L);
+
+        assertEquals("42", built(PagedDataModel.lazy(service, (page, count) -> null)).getRowKey(entity));
     }
 
     @Test
