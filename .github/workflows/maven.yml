@@ -56,7 +56,7 @@ jobs:
       if: matrix.database == 'PostgreSQL'
       run: |
         sudo systemctl start postgresql.service
-        sudo -u postgres psql postgres -c "CREATE DATABASE test;"
+        sudo -u postgres psql postgres -c "CREATE DATABASE test TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C';"
         sudo -u postgres psql postgres -c "CREATE USER test WITH ENCRYPTED PASSWORD 'test';"
         sudo -u postgres psql postgres -c "GRANT ALL PRIVILEGES ON DATABASE test TO test;"
         sudo -u postgres psql postgres -c "\c test postgres" -c "GRANT ALL ON SCHEMA public TO test;"
