@@ -47,6 +47,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -79,6 +80,7 @@ import org.omnifaces.persistence.criteria.Order;
 import org.omnifaces.util.Servlets;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -279,6 +281,19 @@ public abstract class OptimusFacesIT {
         }
 
         return emptyList();
+    }
+
+    /**
+     * Asserts that the given actual value gets the given expected value. This is necessary for the query string, because the browser URL may receive it shortly
+     * after the Ajax request has completed.
+     */
+    protected void assertEventually(Object expected, Supplier<?> actual, String message) {
+        try {
+            waitUntil(() -> Objects.equals(expected, actual.get()));
+        }
+        catch (TimeoutException e) {
+            assertEquals(expected, actual.get(), message);
+        }
     }
 
     protected int getRowCount() {
@@ -791,7 +806,7 @@ public abstract class OptimusFacesIT {
         clickColumn(genderColumn);
         assertEquals("descending", getSortDirection(genderColumn), "gender column sort");
         assertEquals("none", getSortDirection(emailColumn), "email column sort");
-        assertEquals(List.of("-gender"), getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
+        assertEventually(List.of("-gender"), () -> getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
     }
 
     private static String getSortDirection(WebElement column) {
@@ -804,7 +819,7 @@ public abstract class OptimusFacesIT {
     private void assertMultiSortedStateByGenderAscendingAndEmailDescending() {
         assertEquals("ascending", getSortDirection(genderColumn), "gender column sort");
         assertEquals("descending", getSortDirection(emailColumn), "email column sort");
-        assertEquals(List.of("gender", "-email"), getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
+        assertEventually(List.of("gender", "-email"), () -> getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
 
         var genders = getCells(genderColumn).stream().map(WebElement::getText).toList();
         var emails = getCells(emailColumn).stream().map(WebElement::getText).toList();
@@ -1277,8 +1292,8 @@ public abstract class OptimusFacesIT {
      */
     private void assertSortedByCollectionState(WebElement column, boolean ascending) {
         var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+        assertEventually((ascending ? "" : "-") + field, () -> getQueryParameter(QUERY_PARAMETER_ORDER), "order query string");
         assertEquals(ascending ? "ascending" : "descending", getSortDirection(column), field + " column sort");
-        assertEquals((ascending ? "" : "-") + field, getQueryParameter(QUERY_PARAMETER_ORDER), "order query string");
 
         Comparator<String> order = ascending ? naturalOrder() : reverseOrder();
         var sortKeys = getCells(column).stream().map(cell -> stream(cell.getText().split("\n")).sorted(order).findFirst().orElse("")).toList();
@@ -1379,7 +1394,7 @@ public abstract class OptimusFacesIT {
         assertEquals("Showing " + startRecord + " - " + endRecord + " of " + totalRecords + " records", pageReport.getText(), "page report");
         assertEquals(min(pageCount, 10), pages.size(), "page count");
         assertEquals(String.valueOf(currentPage), pageCurrent.getText(), "page current");
-        assertEquals(currentPage == 1 ? null : String.valueOf(currentPage), getQueryParameter(QUERY_PARAMETER_PAGE), "page query string");
+        assertEventually(currentPage == 1 ? null : String.valueOf(currentPage), () -> getQueryParameter(QUERY_PARAMETER_PAGE), "page query string");
     }
 
     protected void assertSortedState(WebElement column, boolean ascending) {
@@ -1395,7 +1410,9 @@ public abstract class OptimusFacesIT {
         assertTrue(activeColumn.findElement(By.cssSelector(".ui-column-title")).getText().equals(field), field + " column must be active");
         assertEquals(ascending, sortableColumnClass.contains("ui-icon-triangle-1-n"), field + " column must be sorted ascending");
         assertEquals(!ascending, sortableColumnClass.contains("ui-icon-triangle-1-s"), field + " column must be sorted descending");
-        assertEquals(isDefaultOrderBy && !ascending ? null : (ascending ? "" : "-") + field, getQueryParameter(QUERY_PARAMETER_ORDER), "order query string");
+        assertEventually(
+            isDefaultOrderBy && !ascending ? null : (ascending ? "" : "-") + field, () -> getQueryParameter(QUERY_PARAMETER_ORDER), "order query string"
+        );
 
         var cells = getCells(column);
         List<String> actualValues = cells.stream().map(this::sortIterableIfNecessary).collect(toList());
@@ -1456,7 +1473,7 @@ public abstract class OptimusFacesIT {
         var input = "select".equals(filter.getTagName()) ? new Select(filter).getFirstSelectedOption() : filter;
         String actualFilterValue = input.getAttribute("value");
         assertEquals(filterValue, actualFilterValue, "filter value");
-        assertEquals(actualFilterValue, getQueryParameter(field), "filter query string");
+        assertEventually(actualFilterValue, () -> getQueryParameter(field), "filter query string");
 
         List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
         assertTrue(actualValues.stream().allMatch(value -> value.contains(filterValue)), field + " filtering " + actualValues + " matches " + filterValue);
@@ -1465,13 +1482,13 @@ public abstract class OptimusFacesIT {
     protected void assertSelectedState(int selectedId) {
         assertTrue(selectedRow.findElement(By.cssSelector("td:first-child")).getText().equals(String.valueOf(selectedId)), selectedId + " must be selected");
         assertTrue(("[Person[" + selectedId + "]]").equals(selection.getText()), selectedId + " must be in the selection");
-        assertEquals(String.valueOf(selectedId), getQueryParameter(QUERY_PARAMETER_SELECTION), "select query string");
+        assertEventually(String.valueOf(selectedId), () -> getQueryParameter(QUERY_PARAMETER_SELECTION), "select query string");
     }
 
     protected void assertGlobalFilterState(String filterValue) {
         var actualFilterValue = globalFilter.getAttribute("value");
         assertEquals(filterValue, actualFilterValue, "filter value");
-        assertEquals(actualFilterValue, getQueryParameter(QUERY_PARAMETER_SEARCH), "filter query string");
+        assertEventually(actualFilterValue, () -> getQueryParameter(QUERY_PARAMETER_SEARCH), "filter query string");
 
         for (WebElement row : rows) {
             var rowAsString = row.getText();
