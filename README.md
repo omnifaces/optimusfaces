@@ -455,8 +455,7 @@ Recompile your code against both.
 
 ### Known Issues
 
-- OpenJPA correlates a nested subquery in the count query with an extra cross-joined entity instead of the counted one. Therefore a negated or multi-valued criteria on a `@OneToMany`, such as a set of phone types, is ignored in the total result count on OpenJPA: the count is that of the query without it. The rows themselves are filtered correctly. In case this is undesirable, use a DTO projection instead.
-- On OpenJPA and on Hibernate with PostgreSQL or SQL Server, a negated criteria or a `Criteria` such as `Like` on an `@ElementCollection` (e.g. the global filter) is ignored in the total result count: the count is that of the query without it. The rows themselves are filtered correctly. In case this is undesirable, use a DTO projection instead.
+- OpenJPA correlates a nested subquery in the count query with an extra cross-joined entity instead of the counted one, because it incorrectly declares the root of the enclosing subquery once more when the nested subquery refers to it. Therefore, on OpenJPA, a negated or multi-valued criteria on a `@OneToMany`, such as a set of phone types, and a negated criteria or a `Criteria` such as `Like` on an `@ElementCollection`, such as the global filter, are ignored in the total result count: the count is that of the query without them. The rows themselves are filtered correctly. In case this is undesirable, use a DTO projection instead.
 
 ### Integration Tests
 
