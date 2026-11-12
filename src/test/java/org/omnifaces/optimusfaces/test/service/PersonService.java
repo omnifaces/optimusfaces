@@ -12,9 +12,6 @@
  */
 package org.omnifaces.optimusfaces.test.service;
 
-import static org.omnifaces.persistence.Database.DB2;
-import static org.omnifaces.persistence.Database.POSTGRESQL;
-import static org.omnifaces.persistence.Database.SQLSERVER;
 import static org.omnifaces.persistence.JPA.concat;
 import static org.omnifaces.persistence.Provider.HIBERNATE;
 
@@ -78,18 +75,7 @@ public class PersonService extends BaseEntityService<Long, Person> {
                 );
             }
 
-            if ((getDatabase() == POSTGRESQL || getDatabase() == SQLSERVER || getDatabase() == DB2) && !(query instanceof Subquery)) { // These enforce the SQL
-                                                                                                                                       // standard strictly:
-                                                                                                                                       // every non-aggregated
-                                                                                                                                       // SELECT column must
-                                                                                                                                       // appear in GROUP BY.
-                                                                                                                                       // Other DBs (H2, MySQL)
-                                                                                                                                       // are lenient about
-                                                                                                                                       // this. The count
-                                                                                                                                       // subquery uses EXISTS
-                                                                                                                                       // and doesn't aggregate,
-                                                                                                                                       // so GROUP BY is not
-                                                                                                                                       // needed there.
+            if (!(query instanceof Subquery)) { // The count subquery is an EXISTS without aggregation, so it must not be grouped.
                 query.groupBy(person.get("id"), person.get("email"), personAddress);
             }
 

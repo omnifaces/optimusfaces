@@ -32,7 +32,6 @@ import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_SE
 import static org.omnifaces.optimusfaces.model.PagedDataModel.QUERY_PARAMETER_SELECTION;
 import static org.omnifaces.optimusfaces.test.service.StartupService.ROWS_PER_PAGE;
 import static org.omnifaces.optimusfaces.test.service.StartupService.TOTAL_RECORDS;
-import static org.omnifaces.persistence.Database.POSTGRESQL;
 import static org.openqa.selenium.Keys.BACK_SPACE;
 import static org.openqa.selenium.Keys.CONTROL;
 import static org.openqa.selenium.Keys.SPACE;
@@ -66,6 +65,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -96,9 +96,11 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 @ExtendWith(OptimusFacesIT.TestLogger.class)
 public abstract class OptimusFacesIT {
 
-    private static final int TIMEOUT_IN_SECONDS = 10;
+    private static final String OPENJPA_ONE_TO_MANY_COUNT = "OpenJPA correlates a nested subquery in the count query with an extra cross-joined entity"
+        + " instead of the counted one, so OmniPersistence leaves a criteria on a @OneToMany out of the count query";
+    private static final String HIBERNATE_FORMULA = "address.string is a Hibernate specific @Formula";
 
-    private static Database database;
+    private static final int TIMEOUT_IN_SECONDS = 10;
 
     private WebDriver browser;
 
@@ -115,7 +117,6 @@ public abstract class OptimusFacesIT {
     }
 
     protected static <T extends OptimusFacesIT> WebArchive createArchive(Class<T> testClass, Database database) {
-        OptimusFacesIT.database = database;
         var packageName = testClass.getPackage().getName();
         var maven = Maven.resolver();
 
@@ -294,26 +295,6 @@ public abstract class OptimusFacesIT {
 
     protected static boolean isTomEE() {
         return getProperty("profile.id").startsWith("tomee-");
-    }
-
-    protected static boolean isHibernate() {
-        return getProperty("profile.id").endsWith("-hibernate");
-    }
-
-    protected static boolean isEclipseLink() {
-        return getProperty("profile.id").endsWith("-eclipselink");
-    }
-
-    protected static boolean isOpenJPA() {
-        return getProperty("profile.id").endsWith("-openjpa");
-    }
-
-    protected static boolean isPostgreSQL() {
-        return database == POSTGRESQL;
-    }
-
-    protected boolean isLazy() {
-        return browser.getCurrentUrl().contains("OptimusFacesITLazy");
     }
 
     // Elements -------------------------------------------------------------------------------------------------------
@@ -648,6 +629,20 @@ public abstract class OptimusFacesIT {
     }
 
     @Test
+    @DisabledIfSystemProperty(named = "profile.id", matches = ".*-(eclipselink|openjpa)", disabledReason = HIBERNATE_FORMULA)
+    public void testLazyWithOneToOneFormulaFilter() {
+        open("LazyWithOneToOne");
+        testOneToOneFormulaFilter();
+    }
+
+    @Test
+    @DisabledIfSystemProperty(named = "profile.id", matches = ".*-(eclipselink|openjpa)", disabledReason = HIBERNATE_FORMULA)
+    public void testNonLazyWithOneToOneFormulaFilter() {
+        open("NonLazyWithOneToOne");
+        testOneToOneFormulaFilter();
+    }
+
+    @Test
     public void testLazyWithOneToMany() {
         open("LazyWithOneToMany");
         testOneToMany();
@@ -657,6 +652,19 @@ public abstract class OptimusFacesIT {
     public void testNonLazyWithOneToMany() {
         open("NonLazyWithOneToMany");
         testOneToMany();
+    }
+
+    @Test
+    @DisabledIfSystemProperty(named = "profile.id", matches = ".*-openjpa", disabledReason = OPENJPA_ONE_TO_MANY_COUNT)
+    public void testLazyWithOneToManyCriteriaRowCount() {
+        open("LazyWithOneToMany");
+        testOneToManyCriteriaRowCount();
+    }
+
+    @Test
+    public void testNonLazyWithOneToManyCriteriaRowCount() {
+        open("NonLazyWithOneToMany");
+        testOneToManyCriteriaRowCount();
     }
 
     @Test
@@ -1094,47 +1102,23 @@ public abstract class OptimusFacesIT {
         clickColumn(address_stringColumn);
         assertPaginatorState(1, 11);
 
-        var hibernatePostgreSQL = isHibernate() && isPostgreSQL();
-
-        if (hibernatePostgreSQL) {
-            // Hibernate properly generates ORDER BY on the @Formula expression, but PostgreSQL's glibc en_US.UTF-8 collation (strcoll) treats space differently
-            // from Java's ICU4J Collator.
-            // Space sorts between '1' and '2' in glibc but before '0' in ICU4J, so PostgreSQL gives 'Street110, Street111, Street11, Street112' while both Java
-            // comparators give 'Street11, Street110, Street111, Street112'.
-            // EclipseLink and OpenJPA are unaffected because they do not support @Formula and return records in default insertion order, which happens to
-            // coincide with Java's natural ordering for this test data.
-            System.out
-                .println("SKIPPING assertSortedState(address.string) for Hibernate+PostgreSQL due to glibc vs ICU4J space-character collation difference.");
-        }
-        else {
-            assertSortedState(address_stringColumn, true);
-        }
-
+        assertSortedState(address_stringColumn, true);
         assertNoCartesianProduct();
 
         clearColumnFilter(address_houseNumberColumnFilter);
         assertPaginatorState(1, TOTAL_RECORDS);
+        assertSortedState(address_stringColumn, true);
+        assertNoCartesianProduct();
+    }
 
-        if (!hibernatePostgreSQL) {
-            assertSortedState(address_stringColumn, true);
-        }
-
+    protected void testOneToOneFormulaFilter() {
+        guardPrimeFacesAjax(() -> address_stringColumnFilter.sendKeys("11"));
+        assertPaginatorState(1, 11);
+        assertFilteredState(address_stringColumnFilter, "11");
         assertNoCartesianProduct();
 
-        if (isOpenJPA() || isEclipseLink()) {
-            System.out.println(
-                "SKIPPING assertFilteredState(address.string) for OpenJPA and EclipseLink because it doesn't support derived properties like Hibernate @Formula; the intended test is however already covered by testDTO()."
-            );
-        }
-        else {
-            guardPrimeFacesAjax(() -> address_stringColumnFilter.sendKeys("11"));
-            assertPaginatorState(1, 11);
-            assertFilteredState(address_stringColumnFilter, "11");
-            assertNoCartesianProduct();
-
-            clearColumnFilter(address_stringColumnFilter);
-            assertPaginatorState(1, TOTAL_RECORDS);
-        }
+        clearColumnFilter(address_stringColumnFilter);
+        assertPaginatorState(1, TOTAL_RECORDS);
     }
 
     protected void testOneToMany() {
@@ -1178,56 +1162,54 @@ public abstract class OptimusFacesIT {
         assertSortedState(phones_numberColumn, true);
         assertNoCartesianProduct();
 
-        var skipAssertRowCount = isOpenJPA() && isLazy(); // OpenJPA generates broken nested correlated subqueries for @OneToMany in count subquery context, so
-                                                          // the count is inaccurate there.
-
-        if (skipAssertRowCount) {
-            System.out.println("SKIPPING assertRowCount(phones.type) for OpenJPA because count is inaccurate for @OneToMany in count subquery context");
-        }
-
         guardFacesAjax(criteriaPhoneTypeMOBILE::click);
         assertCriteriaState(phones_typeColumn, "MOBILE");
-        var rowCount4 = getRowCount();
-        if (!skipAssertRowCount) {
-            assertTrue(rowCount4 < TOTAL_RECORDS, rowCount4 + " must be less than " + TOTAL_RECORDS);
-        }
         assertNoCartesianProduct();
 
         guardFacesAjax(criteriaPhoneTypeHOME::click);
         assertCriteriaState(phones_typeColumn, "MOBILE", "HOME");
-        var rowCount5 = getRowCount();
-        if (!skipAssertRowCount) {
-            assertTrue(rowCount5 < rowCount4, rowCount5 + " must be less than " + rowCount4);
-        }
         assertNoCartesianProduct();
 
         guardFacesAjax(criteriaPhoneTypeWORK::click);
         assertCriteriaState(phones_typeColumn, "MOBILE", "HOME", "WORK");
-        var rowCount6 = getRowCount();
-        if (!skipAssertRowCount) {
-            assertTrue(rowCount6 < rowCount5, rowCount6 + " must be less than " + rowCount5);
-        }
         assertNoCartesianProduct();
 
         guardFacesAjax(criteriaPhoneTypeMOBILE::click); // Uncheck
         assertCriteriaState(phones_typeColumn, "HOME", "WORK");
-        var rowCount7 = getRowCount();
-        if (!skipAssertRowCount) {
-            assertTrue(rowCount7 > rowCount6, rowCount7 + " must be more than " + rowCount6);
-        }
         assertNoCartesianProduct();
 
         guardFacesAjax(criteriaPhoneTypeHOME::click); // Uncheck
         assertCriteriaState(phones_typeColumn, "WORK");
-        var rowCount8 = getRowCount();
-        if (!skipAssertRowCount) {
-            assertTrue(rowCount8 > rowCount7, rowCount8 + " must be more than " + rowCount7);
-        }
         assertNoCartesianProduct();
 
         guardFacesAjax(criteriaPhoneTypeWORK::click); // Uncheck
         assertPaginatorState(1, TOTAL_RECORDS);
         assertNoCartesianProduct();
+    }
+
+    protected void testOneToManyCriteriaRowCount() {
+        guardFacesAjax(criteriaPhoneTypeMOBILE::click);
+        var rowCount1 = getRowCount();
+        assertTrue(rowCount1 < TOTAL_RECORDS, rowCount1 + " must be less than " + TOTAL_RECORDS);
+
+        guardFacesAjax(criteriaPhoneTypeHOME::click);
+        var rowCount2 = getRowCount();
+        assertTrue(rowCount2 < rowCount1, rowCount2 + " must be less than " + rowCount1);
+
+        guardFacesAjax(criteriaPhoneTypeWORK::click);
+        var rowCount3 = getRowCount();
+        assertTrue(rowCount3 < rowCount2, rowCount3 + " must be less than " + rowCount2);
+
+        guardFacesAjax(criteriaPhoneTypeMOBILE::click); // Uncheck
+        var rowCount4 = getRowCount();
+        assertTrue(rowCount4 > rowCount3, rowCount4 + " must be more than " + rowCount3);
+
+        guardFacesAjax(criteriaPhoneTypeHOME::click); // Uncheck
+        var rowCount5 = getRowCount();
+        assertTrue(rowCount5 > rowCount4, rowCount5 + " must be more than " + rowCount4);
+
+        guardFacesAjax(criteriaPhoneTypeWORK::click); // Uncheck
+        assertPaginatorState(1, TOTAL_RECORDS);
     }
 
     protected void testElementCollection() {
@@ -1280,6 +1262,27 @@ public abstract class OptimusFacesIT {
         guardFacesAjax(criteriaGroupDEVELOPER::click); // Uncheck
         assertPaginatorState(1, TOTAL_RECORDS);
         assertNoCartesianProduct();
+
+        clickColumn(groupsColumn);
+        assertSortedByCollectionState(groupsColumn, true);
+        assertNoCartesianProduct();
+
+        clickColumn(groupsColumn);
+        assertSortedByCollectionState(groupsColumn, false);
+        assertNoCartesianProduct();
+    }
+
+    /**
+     * Asserts that the rows are sorted by the lowest element of the collection in the given column when ascending, or by the highest element when descending.
+     */
+    private void assertSortedByCollectionState(WebElement column, boolean ascending) {
+        var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+        assertEquals(ascending ? "ascending" : "descending", getSortDirection(column), field + " column sort");
+        assertEquals((ascending ? "" : "-") + field, getQueryParameter(QUERY_PARAMETER_ORDER), "order query string");
+
+        Comparator<String> order = ascending ? naturalOrder() : reverseOrder();
+        var sortKeys = getCells(column).stream().map(cell -> stream(cell.getText().split("\n")).sorted(order).findFirst().orElse("")).toList();
+        assertTrue(isSortedBy(sortKeys, order), field + " ordering by " + (ascending ? "lowest" : "highest") + " element: " + sortKeys);
     }
 
     protected void testManyToOne() {

@@ -455,8 +455,8 @@ Recompile your code against both.
 
 ### Known Issues
 
-- OpenJPA generates broken nested correlated subqueries for `@OneToMany` in count subquery context, this has been worked around, but the total result count when filtering might be inaccurate there. In case this is undesirable, use a DTO projection instead.
-- OpenJPA and Hibernate+PostgreSQL/SQLServer generate broken nested correlated subqueries for `@ElementCollection` in count subquery context when a `LIKE`-based filter (e.g. global filter) is involved, this has been worked around, but the total result count may be inaccurate when the search term matches entities exclusively via the element collection field and not via any other field. In case this is undesirable, use a DTO projection instead.
+- OpenJPA correlates a nested subquery in the count query with an extra cross-joined entity instead of the counted one. Therefore a negated or multi-valued criteria on a `@OneToMany`, such as a set of phone types, is ignored in the total result count on OpenJPA: the count is that of the query without it. The rows themselves are filtered correctly. In case this is undesirable, use a DTO projection instead.
+- On OpenJPA and on Hibernate with PostgreSQL or SQL Server, a negated criteria or a `Criteria` such as `Like` on an `@ElementCollection` (e.g. the global filter) is ignored in the total result count: the count is that of the query without it. The rows themselves are filtered correctly. In case this is undesirable, use a DTO projection instead.
 
 ### Integration Tests
 
