@@ -17,6 +17,7 @@ import static java.lang.System.getProperty;
 import static java.time.Duration.ofSeconds;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.logging.Level.OFF;
@@ -33,6 +34,7 @@ import static org.omnifaces.optimusfaces.test.service.StartupService.ROWS_PER_PA
 import static org.omnifaces.optimusfaces.test.service.StartupService.TOTAL_RECORDS;
 import static org.omnifaces.persistence.Database.POSTGRESQL;
 import static org.openqa.selenium.Keys.BACK_SPACE;
+import static org.openqa.selenium.Keys.CONTROL;
 import static org.openqa.selenium.Keys.SPACE;
 import static org.openqa.selenium.Keys.TAB;
 
@@ -43,6 +45,7 @@ import java.nio.file.Path;
 import java.text.Collator;
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -80,6 +83,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
@@ -259,17 +263,21 @@ public abstract class OptimusFacesIT {
     }
 
     protected String getQueryParameter(String name) {
+        var values = getQueryParameters(name);
+        return values.isEmpty() ? null : values.get(0);
+    }
+
+    protected List<String> getQueryParameters(String name) {
         if (browser.getCurrentUrl().contains("?")) {
             var queryString = browser.getCurrentUrl().split("\\?", 2)[1];
-            var params = Servlets.toParameterMap(queryString);
-            var values = params.get(name);
+            var values = Servlets.toParameterMap(queryString).get(name);
 
             if (values != null) {
-                return values.get(0);
+                return values;
             }
         }
 
-        return null;
+        return emptyList();
     }
 
     protected int getRowCount() {
@@ -664,6 +672,12 @@ public abstract class OptimusFacesIT {
     }
 
     @Test
+    public void testLazyWithMultiSort() {
+        open("LazyWithMultiSort");
+        testMultiSort();
+    }
+
+    @Test
     public void testLazyWithManyToOne() {
         open("LazyWithManyToOne");
         testManyToOne();
@@ -749,6 +763,58 @@ public abstract class OptimusFacesIT {
 
     private void clickColumn(WebElement column) {
         guardPrimeFacesAjax(column.findElement(By.cssSelector(".ui-column-title"))::click);
+    }
+
+    private void controlClickColumn(WebElement column) {
+        var title = column.findElement(By.cssSelector(".ui-column-title"));
+        guardPrimeFacesAjax(() -> new Actions(browser).keyDown(CONTROL).click(title).keyUp(CONTROL).perform());
+    }
+
+    protected void testMultiSort() {
+        clickColumn(genderColumn);
+        controlClickColumn(emailColumn);
+        controlClickColumn(emailColumn);
+        assertPaginatorState(1);
+        assertMultiSortedStateByGenderAscendingAndEmailDescending();
+
+        open("LazyWithMultiSort", QUERY_PARAMETER_ORDER + "=gender&" + QUERY_PARAMETER_ORDER + "=-email");
+        assertMultiSortedStateByGenderAscendingAndEmailDescending();
+
+        clickColumn(genderColumn);
+        assertEquals("descending", getSortDirection(genderColumn), "gender column sort");
+        assertEquals("none", getSortDirection(emailColumn), "email column sort");
+        assertEquals(List.of("-gender"), getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
+    }
+
+    private static String getSortDirection(WebElement column) {
+        var sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
+        return sortableColumnClass.contains("ui-icon-triangle-1-n")
+            ? "ascending"
+            : sortableColumnClass.contains("ui-icon-triangle-1-s") ? "descending" : "none";
+    }
+
+    private void assertMultiSortedStateByGenderAscendingAndEmailDescending() {
+        assertEquals("ascending", getSortDirection(genderColumn), "gender column sort");
+        assertEquals("descending", getSortDirection(emailColumn), "email column sort");
+        assertEquals(List.of("gender", "-email"), getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
+
+        var genders = getCells(genderColumn).stream().map(WebElement::getText).toList();
+        var emails = getCells(emailColumn).stream().map(WebElement::getText).toList();
+        var collator = Collator.getInstance(Locale.ENGLISH);
+        var seenGenders = new HashSet<String>();
+        var groupStart = 0;
+
+        for (var i = 1; i <= genders.size(); i++) {
+            if (i == genders.size() || !genders.get(i).equals(genders.get(groupStart))) {
+                assertTrue(seenGenders.add(genders.get(groupStart)), "rows of gender " + genders.get(groupStart) + " must be contiguous");
+                var groupEmails = emails.subList(groupStart, i);
+                assertTrue(
+                    isSortedBy(groupEmails, reverseOrder()) || isSortedBy(groupEmails, (a, b) -> collator.compare(b, a)),
+                    "emails of gender " + genders.get(groupStart) + " must be sorted descending: " + groupEmails
+                );
+                groupStart = i;
+            }
+        }
     }
 
     protected void testDefaultOrderBy() {

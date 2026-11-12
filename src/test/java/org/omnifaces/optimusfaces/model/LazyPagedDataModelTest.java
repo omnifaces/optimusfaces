@@ -26,6 +26,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.omnifaces.optimusfaces.model.LazyPagedDataModel.MAX_CACHED_ORDERING_VALUES;
 import static org.omnifaces.persistence.model.dto.Page.ID;
+import static org.primefaces.model.SortOrder.ASCENDING;
+import static org.primefaces.model.SortOrder.DESCENDING;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +35,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +53,10 @@ import org.mockito.Answers;
 import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
 import org.omnifaces.persistence.model.dto.Page;
 import org.omnifaces.utils.collection.PartialResultList;
+import org.primefaces.component.api.UIColumn;
 import org.primefaces.component.datascroller.DataScroller;
 import org.primefaces.component.datatable.DataTable;
+import org.primefaces.model.SortMeta;
 
 /**
  * Covers the paging of {@link LazyPagedDataModel} through a {@link DataScroller}, with a loader returning the rows of a list of {@link #TOTAL_ROWS} entities
@@ -327,6 +332,140 @@ class LazyPagedDataModelTest {
         var context = mock(FacesContext.class, Answers.RETURNS_DEEP_STUBS);
         when(context.getExternalContext().getRequestParameterMap()).thenReturn(Map.of(PagedDataModel.QUERY_PARAMETER_PAGE, pageNumber));
         return context;
+    }
+
+    // Multi-sort -----------------------------------------------------------------------------------------------------
+
+    @Test
+    void processPageAndOrdering_twoSortMetas_ordersByBothInPriorityOrderThenByDefault() {
+        model.queryParameterPrefix = "";
+        var sortBy = new LinkedHashMap<String, SortMeta>();
+        sortBy.put("even", SortMeta.builder().field("even").order(DESCENDING).priority(0).build());
+        sortBy.put("name", SortMeta.builder().field("name").order(ASCENDING).priority(1).build());
+
+        var ordering = model.processPageAndOrdering(requestWithPageNumber("1"), tableWithPageSize(), sortBy);
+
+        assertEquals(List.of(Map.entry("even", false), Map.entry("name", true), Map.entry(ID, false)), List.copyOf(ordering.entrySet()));
+    }
+
+    @Test
+    void withoutDefaultOrdering_sortedThenDefault_isSortedPartOnly() {
+        assertEquals(orderingOf("even", true), model.withoutDefaultOrdering(orderingOf("even", true, ID, false)));
+    }
+
+    @Test
+    void withoutDefaultOrdering_defaultOrdering_isEmpty() {
+        assertTrue(model.withoutDefaultOrdering(orderingOf(ID, false)).isEmpty());
+    }
+
+    @Test
+    void withoutDefaultOrdering_defaultOrderingReordered_isLeadingPartWhichDiffers() {
+        var twoFieldModel = createModel(orderingOf("even", true, ID, false));
+
+        assertEquals(orderingOf(ID, false), twoFieldModel.withoutDefaultOrdering(orderingOf(ID, false, "even", true)));
+    }
+
+    @Test
+    void toSortedColumns_sortedThenDefault_isSortedPartOnly() {
+        var sortedColumns = model.toSortedColumns(orderingOf("even", true, ID, false), tableWithColumns(true, "even", ID));
+
+        assertEquals(List.of("even:ASCENDING:0"), describe(sortedColumns));
+    }
+
+    @Test
+    void toSortedColumns_defaultOrdering_isFirstDefaultOrdering() {
+        var sortedColumns = model.toSortedColumns(orderingOf(ID, false), tableWithColumns(true, "even", ID));
+
+        assertEquals(List.of("id:DESCENDING:0"), describe(sortedColumns));
+    }
+
+    @Test
+    void toSortedColumns_fieldIsNoColumn_isLeftOut() {
+        var sortedColumns = model.toSortedColumns(orderingOf(ID, false), tableWithColumns(true, "even"));
+
+        assertTrue(sortedColumns.isEmpty());
+    }
+
+    @Test
+    void getOrdering_dataScroller_isEmpty() {
+        load(0);
+
+        assertTrue(model.getOrdering().isEmpty());
+    }
+
+    @Test
+    void getInitialOrdering_orderParameterWithWhitespace_isTrimmed() {
+        var ordering = model.getInitialOrdering(requestWithOrder(" -even "), tableWithColumns(true, "even", ID));
+
+        assertEquals(List.of("even:DESCENDING:0"), describe(ordering));
+    }
+
+    @Test
+    void getInitialOrdering_multiSort_isAllOrderParametersOfColumnsInOrder() {
+        var table = tableWithColumns(true, "even", ID);
+
+        var ordering = model.getInitialOrdering(requestWithOrder("even", "-id", "unknown"), table);
+
+        assertEquals(List.of("even:ASCENDING:0", "id:DESCENDING:1"), describe(ordering));
+    }
+
+    @Test
+    void getInitialOrdering_singleSort_isFirstOrderParameterOfColumnOnly() {
+        var table = tableWithColumns(false, "even", ID);
+
+        var ordering = model.getInitialOrdering(requestWithOrder("unknown", "-even", "id"), table);
+
+        assertEquals(List.of("even:DESCENDING:0"), describe(ordering));
+    }
+
+    @Test
+    void getInitialOrdering_noOrderParameter_isFirstDefaultOrdering() {
+        var ordering = model.getInitialOrdering(requestWithOrder(), tableWithColumns(true, "even", ID));
+
+        assertEquals(List.of("id:DESCENDING:0"), describe(ordering));
+    }
+
+    @Test
+    void getInitialOrdering_defaultOrderingFieldIsNoColumn_isEmpty() {
+        var ordering = model.getInitialOrdering(requestWithOrder(), tableWithColumns(true, "even"));
+
+        assertTrue(ordering.isEmpty());
+    }
+
+    private static LinkedHashMap<String, Boolean> orderingOf(Object... fieldsAndAscendings) {
+        var ordering = new LinkedHashMap<String, Boolean>();
+
+        for (var i = 0; i < fieldsAndAscendings.length; i += 2) {
+            ordering.put((String) fieldsAndAscendings[i], (Boolean) fieldsAndAscendings[i + 1]);
+        }
+
+        return ordering;
+    }
+
+    private static DataTable tableWithColumns(boolean multiSort, String... fields) {
+        var table = mock(DataTable.class);
+        var columns = new ArrayList<UIColumn>();
+
+        for (var field : fields) {
+            var column = mock(UIColumn.class);
+            when(column.getField()).thenReturn(field);
+            columns.add(column);
+        }
+
+        when(table.getColumns()).thenReturn(columns);
+        when(table.getAttributes()).thenReturn(new HashMap<>());
+        when(table.isMultiSort()).thenReturn(multiSort);
+        return table;
+    }
+
+    private static FacesContext requestWithOrder(String... orders) {
+        var context = mock(FacesContext.class, Answers.RETURNS_DEEP_STUBS);
+        when(context.getExternalContext().getRequestParameterValuesMap()).thenReturn(Map.of(PagedDataModel.QUERY_PARAMETER_ORDER, orders));
+        return context;
+    }
+
+    private static List<String> describe(List<SortMeta> ordering) {
+        return ordering.stream().map(sortMeta -> sortMeta.getField() + ":" + sortMeta.getOrder() + ":" + sortMeta.getPriority()).toList();
     }
 
     // DataScroller ---------------------------------------------------------------------------------------------------

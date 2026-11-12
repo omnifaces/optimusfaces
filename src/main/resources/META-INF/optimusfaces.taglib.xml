@@ -76,6 +76,12 @@
             <required>false</required>
             <type>boolean</type>
         </attribute>
+            <attribute>
+                <description>The sort mode: single or multiple. Defaults to single. With multiple, a click on a column header with the meta key (Ctrl or Cmd) pressed adds the column to the sort, a click without replaces the sort. This attribute is ignored when sortable=false.</description>
+                <name>sortMode</name>
+                <required>false</required>
+                <type>java.lang.String</type>
+            </attribute>
         <attribute>
             <description>Whether the table is filterable. Defaults to true. This can be overriden on a per-column basis when same attribute is also set in op:column.</description>
             <name>filterable</name>

@@ -78,7 +78,6 @@ import org.primefaces.component.datatable.DataTable;
 import org.primefaces.model.FilterMeta;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortMeta;
-import org.primefaces.model.SortOrder;
 
 /**
  * <p>
@@ -155,8 +154,8 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
     /** Ordering values of the first and last row of each loaded page, keyed by row index; valid for {@link #page} criteria and ordering only. */
     private final TreeMap<Integer, Map<String, Object>> orderingValuesByRowIndex = new TreeMap<>();
 
-    /** Cached {@link SortMeta} derived from {@link #ordering}; recomputed whenever {@link #ordering} changes. */
-    private SortMeta orderingCache;
+    /** Cached {@link SortMeta} list derived from {@link #ordering}; recomputed whenever {@link #ordering} changes. */
+    private List<SortMeta> orderingCache = emptyList();
     /** Cached view of {@link #filters} as {@link FilterMeta} map; cleared whenever {@link #filters} changes. */
     private Map<String, FilterMeta> filtersCache;
 
@@ -266,8 +265,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
             list = load(page, false);
         }
         else {
-            var sortBy = getInitialOrdering(context, table);
-            loadPage(context, table, singletonMap(sortBy.getField(), sortBy), emptyMap());
+            loadPage(context, table, toSortBy(getInitialOrdering(context, table)), emptyMap());
         }
 
         setWrappedData(list);
@@ -280,10 +278,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
         updateQueryString = parseBoolean(String.valueOf(table.getAttributes().get("updateQueryString")));
         queryParameterPrefix = parseQueryParameterPrefix(table);
         ordering = processPageAndOrdering(context, table, sortBy);
-        var firstOrdering = ordering.isEmpty() ? null : ordering.entrySet().iterator().next();
-        orderingCache = firstOrdering == null
-            ? null
-            : SortMeta.builder().field(firstOrdering.getKey()).order(firstOrdering.getValue() ? ASCENDING : DESCENDING).build();
+        orderingCache = toSortedColumns(ordering, table);
         filters = processFilters(context, table, processableColumns, filterBy);
         filtersCache = null;
         globalFilter = processGlobalFilter(context, table, filterBy);
@@ -332,6 +327,77 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
 
     private static boolean isSameOrdering(Map<String, Boolean> ordering, Map<String, Boolean> otherOrdering) {
         return List.copyOf(ordering.entrySet()).equals(List.copyOf(otherOrdering.entrySet()));
+    }
+
+    private LinkedHashMap<String, Boolean> withDefaultOrdering(Map<String, Boolean> ordering) {
+        var orderingWithDefault = new LinkedHashMap<>(ordering);
+        defaultOrdering.forEach(orderingWithDefault::putIfAbsent);
+        return orderingWithDefault;
+    }
+
+    /**
+     * Returns the shortest leading part of the given ordering which yields the given ordering again after {@link #withDefaultOrdering(Map)}. This is the part
+     * which is sorted by the user, and is empty when the given ordering is the default ordering.
+     */
+    LinkedHashMap<String, Boolean> withoutDefaultOrdering(Map<String, Boolean> ordering) {
+        var leadingOrdering = new LinkedHashMap<String, Boolean>();
+
+        for (var entry : ordering.entrySet()) {
+            if (isSameOrdering(withDefaultOrdering(leadingOrdering), ordering)) {
+                break;
+            }
+
+            leadingOrdering.put(entry.getKey(), entry.getValue());
+        }
+
+        return leadingOrdering;
+    }
+
+    private Map<String, Boolean> orElseFirstDefaultOrdering(Map<String, Boolean> ordering) {
+        if (!ordering.isEmpty() || defaultOrdering.isEmpty()) {
+            return ordering;
+        }
+
+        var firstDefaultOrdering = defaultOrdering.entrySet().iterator().next();
+        return singletonMap(firstDefaultOrdering.getKey(), firstDefaultOrdering.getValue());
+    }
+
+    /**
+     * Returns the {@link SortMeta} list of the columns of the given table which are sorted by the given ordering: the part sorted by the user, or else the
+     * first entry of the default ordering.
+     */
+    List<SortMeta> toSortedColumns(Map<String, Boolean> ordering, DataTable table) {
+        return toSortMetas(orElseFirstDefaultOrdering(withoutDefaultOrdering(ordering)), getColumnFields(table));
+    }
+
+    private static Map<String, SortMeta> toSortBy(List<SortMeta> sortMetas) {
+        var sortBy = new LinkedHashMap<String, SortMeta>();
+
+        for (var sortMeta : sortMetas) {
+            sortBy.put(sortMeta.getField(), sortMeta);
+        }
+
+        return sortBy;
+    }
+
+    private static Set<String> getColumnFields(DataTable table) {
+        return table.getColumns().stream().map(UIColumn::getField).filter(Objects::nonNull).collect(toSet());
+    }
+
+    /**
+     * Converts the given ordering to {@link SortMeta} instances with ascending priority. Fields which are not a column of the table are skipped, because
+     * PrimeFaces {@link DataTable} rejects a {@link SortMeta} without a matching column.
+     */
+    private static List<SortMeta> toSortMetas(Map<String, Boolean> ordering, Set<String> columnFields) {
+        var sortMetas = new ArrayList<SortMeta>(ordering.size());
+
+        for (var entry : ordering.entrySet()) {
+            if (columnFields.contains(entry.getKey())) {
+                sortMetas.add(SortMeta.builder().field(entry.getKey()).order(entry.getValue() ? ASCENDING : DESCENDING).priority(sortMetas.size()).build());
+            }
+        }
+
+        return sortMetas;
     }
 
     private Page buildPage(int offset, int limit, Map<String, Object> requiredCriteria, Map<String, Object> optionalCriteria) {
@@ -452,12 +518,6 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
      * @return An ordered map of field name to ascending flag representing the full effective ordering.
      */
     protected LinkedHashMap<String, Boolean> processPageAndOrdering(FacesContext context, DataTable table, Map<String, SortMeta> sortBy) {
-        var ordering = new LinkedHashMap<String, Boolean>(2);
-
-        var tableSortMeta = sortBy.isEmpty() ? new SortMeta() : sortBy.values().iterator().next();
-        var tableSortField = tableSortMeta.getField();
-        var tableSortOrder = tableSortMeta.getOrder();
-
         if (!loaded) {
             var page = getTrimmedQueryParameter(context, queryParameterPrefix + QUERY_PARAMETER_PAGE);
 
@@ -471,47 +531,46 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
             }
         }
 
-        if (!isEmpty(tableSortField)) {
-            ordering.put(tableSortField, tableSortOrder == ASCENDING);
+        var tableOrdering = new LinkedHashMap<String, Boolean>(sortBy.size());
+
+        for (var sortMeta : sortBy.values()) {
+            if (!isEmpty(sortMeta.getField())) {
+                tableOrdering.putIfAbsent(sortMeta.getField(), sortMeta.getOrder() == ASCENDING);
+            }
         }
 
-        defaultOrdering.forEach((defaultSortField, defaultSortAscending) -> ordering.putIfAbsent(defaultSortField, defaultSortAscending));
-        return ordering;
+        return withDefaultOrdering(tableOrdering);
     }
 
     /**
-     * Returns the initial {@link SortMeta} for pre-loading the model before PrimeFaces {@link DataTable} decode runs.
+     * Returns the initial {@link SortMeta} list for pre-loading the model before PrimeFaces {@link DataTable} decode runs.
      * <p>
-     * Reads the <code>order</code> query parameter to restore a bookmarked sort; falls back to the first entry of the configured default ordering when no valid
-     * query parameter is found.
+     * Reads the <code>order</code> query parameters to restore a bookmarked sort, in their order, skipping fields which are not a column of the table. Only the
+     * first valid one is used when the table is not {@link DataTable#isMultiSort()}. Falls back to the first entry of the configured default ordering when no
+     * valid query parameter is found.
      *
      * @param context The current {@link FacesContext}.
      * @param table The surrounding {@link DataTable}.
-     * @return A {@link SortMeta} describing the field and direction to sort by initially.
+     * @return The {@link SortMeta} list describing the fields and directions to sort by initially, in order of priority.
      */
-    protected SortMeta getInitialOrdering(FacesContext context, DataTable table) {
-        var sort = getTrimmedQueryParameter(context, parseQueryParameterPrefix(table) + QUERY_PARAMETER_ORDER);
+    protected List<SortMeta> getInitialOrdering(FacesContext context, DataTable table) {
+        var columnFields = getColumnFields(table);
+        var initialOrdering = new LinkedHashMap<String, Boolean>();
 
-        if (!isEmpty(sort)) {
-            String field;
-            SortOrder order;
+        for (var order : getTrimmedQueryParameters(context, parseQueryParameterPrefix(table) + QUERY_PARAMETER_ORDER)) {
+            var descending = order.startsWith("-");
+            var field = descending ? order.substring(1) : order;
 
-            if (sort.startsWith("-")) {
-                field = sort.substring(1);
-                order = DESCENDING;
-            }
-            else {
-                field = sort;
-                order = ASCENDING;
-            }
+            if (columnFields.contains(field)) {
+                initialOrdering.putIfAbsent(field, !descending);
 
-            if (!isEmpty(sort) && table.getColumns().stream().anyMatch(column -> field.equals(column.getField()))) {
-                return SortMeta.builder().field(field).order(order).build();
+                if (!table.isMultiSort()) {
+                    break;
+                }
             }
         }
 
-        var defaultOrder = defaultOrdering.entrySet().iterator().next();
-        return SortMeta.builder().field(defaultOrder.getKey()).order(defaultOrder.getValue() ? ASCENDING : DESCENDING).build();
+        return toSortMetas(orElseFirstDefaultOrdering(initialOrdering), columnFields);
     }
 
     /**
@@ -744,10 +803,8 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
             params.add(new SimpleParam<>(queryParameterPrefix + QUERY_PARAMETER_PAGE, currentPage));
         }
 
-        if (!page.getOrdering().equals(defaultOrdering)) {
-            var order = page.getOrdering().entrySet().iterator().next();
-            params.add(new SimpleParam<>(queryParameterPrefix + QUERY_PARAMETER_ORDER, (order.getValue() ? "" : "-") + order.getKey()));
-        }
+        withoutDefaultOrdering(page.getOrdering())
+            .forEach((field, ascending) -> params.add(new SimpleParam<>(queryParameterPrefix + QUERY_PARAMETER_ORDER, (ascending ? "" : "-") + field)));
 
         filters.entrySet().stream()
             .forEach(
@@ -854,12 +911,12 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
     }
 
     /**
-     * Returns the active sort as a PrimeFaces {@link SortMeta}, or the initial ordering when no page has been loaded yet.
+     * Returns the active sort as PrimeFaces {@link SortMeta} list, or the initial ordering when no page has been loaded yet.
      *
-     * @return The current primary sort descriptor; <code>null</code> when no ordering is defined.
+     * @return The current sort descriptors, in order of priority; empty when no ordering is defined.
      */
     @Override
-    public SortMeta getOrdering() {
+    public List<SortMeta> getOrdering() {
         if (ordering == null) {
             var context = FacesContext.getCurrentInstance();
             var table = (DataTable) getCurrentComponent(context);
@@ -1024,7 +1081,7 @@ public class LazyPagedDataModel<E> extends LazyDataModel<E> implements PagedData
 
     private static List<String> getTrimmedQueryParameters(FacesContext context, String name) {
         var params = getRequestParameterValues(context, name);
-        return params != null ? stream(params).filter(Lang::isNotBlank).collect(toList()) : emptyList();
+        return params != null ? stream(params).filter(Lang::isNotBlank).map(String::trim).collect(toList()) : emptyList();
     }
 
 }

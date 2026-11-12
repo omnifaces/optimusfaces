@@ -33,6 +33,7 @@
         <o:tagAttribute name="queryParameterPrefix" />
 
     <o:tagAttribute name="sortable" default="#{true}" />
+        <o:tagAttribute name="sortMode" default="single" />
     <o:tagAttribute name="filterable" default="#{true}" />
     <o:tagAttribute name="paginable" default="#{true}" />
         <o:tagAttribute name="rows" default="10" />
@@ -76,6 +77,7 @@
         </c:if>
         <c:if test="#{sortable}">
             <f:attribute name="sortBy" value="#{value.ordering}" />
+            <f:attribute name="sortMode" value="#{sortMode}" />
             <p:ajax event="sort" update="@(.updateOnDataTableSort)" />
         </c:if>
         <c:if test="#{filterable or searchable}">
