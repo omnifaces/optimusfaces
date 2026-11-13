@@ -464,14 +464,10 @@ The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/
 - GlassFish 8.0.5 with Mojarra 4.1.17 and EclipseLink 5.0.2
 - TomEE 10.2.0 with MyFaces 4.0.3 and OpenJPA 4.1.1
 
-Each environment will run the IT on following databases:
-- H2 2.5.252 (embedded database)
-- MySQL 8.4 (provided by Oracle's Docker image) with JDBC driver 26.10.0
-- PostgreSQL (provided by GitHub Actions Ubuntu environment) with JDBC driver 42.7.14
-- SQL Server latest 2022 (provided by Microsoft's Docker image) with JDBC driver 13.6.2.jre11
-- DB2 12.1.5.0 (provided by IBM's Docker image) with JDBC driver 12.1.5.0
+Each environment runs the IT on H2 2.5.252 (embedded database).
+The SQL of the lazy model is built by OmniPersistence, whose own [integration tests](https://github.com/omnifaces/omnipersistence#14-integration-tests-and-further-examples) cover every query shape which OptimusFaces generates on H2, MySQL, PostgreSQL, SQL Server and DB2.
 
-Effectively, there are thus 15 full test runs of each [37 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [23 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
+Effectively, there are thus 3 full test runs of each [41 test cases](https://github.com/omnifaces/optimusfaces/blob/main/src/test/java/org/omnifaces/optimusfaces/test/OptimusFacesIT.java) on [23 XHTML files](https://github.com/omnifaces/optimusfaces/tree/main/src/test/resources/org.omnifaces.optimusfaces.test).
 
 ### Commercial support
 
