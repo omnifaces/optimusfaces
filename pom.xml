@@ -74,10 +74,6 @@
         <test.glassfish.version>8.0.5</test.glassfish.version> <!-- https://mvnrepository.com/artifact/org.glassfish.main.distributions/glassfish --> <!-- NOTE: needs Java 21 instead of 17! Else it complains that it's unable eo execute bin/asadmin -->
         <test.tomee.version>10.2.0</test.tomee.version> <!-- https://mvnrepository.com/artifact/org.apache.tomee/apache-tomee -->
         <test.h2.version>2.5.252</test.h2.version> <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-        <test.mysql-driver.version>26.10.0</test.mysql-driver.version> <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
-        <test.postgresql-driver.version>42.7.14</test.postgresql-driver.version> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <test.sqlserver-driver.version>13.6.2.jre11</test.sqlserver-driver.version> <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
-        <test.db2-driver.version>12.1.5.0</test.db2-driver.version> <!-- https://mvnrepository.com/artifact/com.ibm.db2/jcc -->
         <test.omnifaces.version>5.5.6</test.omnifaces.version> <!-- https://mvnrepository.com/artifact/org.omnifaces/omnifaces -->
         <test.primefaces.version>16.0.1</test.primefaces.version> <!-- https://mvnrepository.com/artifact/org.primefaces/primefaces -->
     </properties>
@@ -489,82 +485,6 @@
                                     </artifactItems>
                                 </configuration>
                             </execution>
-                            <execution>
-                                <id>install-mysql-driver-in-wildfly</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.mysql</groupId>
-                                            <artifactId>mysql-connector-j</artifactId>
-                                            <version>${test.mysql-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
-                                            <destFileName>mysql.jar</destFileName>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-psql-driver-in-wildfly</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.postgresql</groupId>
-                                            <artifactId>postgresql</artifactId>
-                                            <version>${test.postgresql-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
-                                            <destFileName>postgresql.jar</destFileName>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-mssql-driver-in-wildfly</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.microsoft.sqlserver</groupId>
-                                            <artifactId>mssql-jdbc</artifactId>
-                                            <version>${test.sqlserver-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
-                                            <destFileName>mssql.jar</destFileName>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-db2-driver-in-wildfly</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.ibm.db2</groupId>
-                                            <artifactId>jcc</artifactId>
-                                            <version>${test.db2-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/wildfly-${test.wildfly.version}/standalone/deployments</outputDirectory>
-                                            <destFileName>db2.jar</destFileName>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
                         </executions>
                     </plugin>
                     <plugin>
@@ -621,78 +541,6 @@
                                             <groupId>com.h2database</groupId>
                                             <artifactId>h2</artifactId>
                                             <version>${test.h2.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-mysql-driver-in-glassfish</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.mysql</groupId>
-                                            <artifactId>mysql-connector-j</artifactId>
-                                            <version>${test.mysql-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-psql-driver-in-glassfish</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.postgresql</groupId>
-                                            <artifactId>postgresql</artifactId>
-                                            <version>${test.postgresql-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-mssql-driver-in-glassfish</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.microsoft.sqlserver</groupId>
-                                            <artifactId>mssql-jdbc</artifactId>
-                                            <version>${test.sqlserver-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/glassfish8/glassfish/domains/domain1/lib</outputDirectory> <!-- Not in modules because of OSGI constraint -->
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-db2-driver-in-glassfish</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.ibm.db2</groupId>
-                                            <artifactId>jcc</artifactId>
-                                            <version>${test.db2-driver.version}</version>
                                             <type>jar</type>
                                             <outputDirectory>${project.build.directory}/glassfish8/glassfish/modules</outputDirectory>
                                         </artifactItem>
@@ -756,78 +604,6 @@
                                             <groupId>com.h2database</groupId>
                                             <artifactId>h2</artifactId>
                                             <version>${test.h2.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-mysql-driver-in-tomee</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.mysql</groupId>
-                                            <artifactId>mysql-connector-j</artifactId>
-                                            <version>${test.mysql-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-psql-driver-in-tomee</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.postgresql</groupId>
-                                            <artifactId>postgresql</artifactId>
-                                            <version>${test.postgresql-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-mssql-driver-in-tomee</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.microsoft.sqlserver</groupId>
-                                            <artifactId>mssql-jdbc</artifactId>
-                                            <version>${test.sqlserver-driver.version}</version>
-                                            <type>jar</type>
-                                            <outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>install-db2-driver-in-tomee</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>com.ibm.db2</groupId>
-                                            <artifactId>jcc</artifactId>
-                                            <version>${test.db2-driver.version}</version>
                                             <type>jar</type>
                                             <outputDirectory>${project.build.directory}/apache-tomee-webprofile-${test.tomee.version}/lib</outputDirectory>
                                         </artifactItem>

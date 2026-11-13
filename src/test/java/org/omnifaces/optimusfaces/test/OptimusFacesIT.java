@@ -55,6 +55,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit5.ArquillianExtension;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.exporter.ZipExporter;
@@ -72,7 +74,6 @@ import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.omnifaces.optimusfaces.test.model.Gender;
-import org.omnifaces.persistence.Database;
 import org.omnifaces.persistence.criteria.Between;
 import org.omnifaces.persistence.criteria.Criteria;
 import org.omnifaces.persistence.criteria.Like;
@@ -95,14 +96,15 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 @TestInstance(Lifecycle.PER_CLASS)
-@ExtendWith(OptimusFacesIT.TestLogger.class)
-public abstract class OptimusFacesIT {
+@ExtendWith({ OptimusFacesIT.TestLogger.class, ArquillianExtension.class })
+public class OptimusFacesIT {
 
     private static final String OPENJPA_ONE_TO_MANY_COUNT = "OpenJPA correlates a nested subquery in the count query with an extra cross-joined entity"
         + " instead of the counted one, so OmniPersistence leaves a criteria on a @OneToMany out of the count query";
     private static final String HIBERNATE_FORMULA = "address.string is a Hibernate specific @Formula";
 
     private static final int TIMEOUT_IN_SECONDS = 10;
+    private static final String WAR_NAME = "optimusfaces.war"; // TomEE binds the data source under the application name, so they must differ.
 
     private WebDriver browser;
 
@@ -118,11 +120,13 @@ public abstract class OptimusFacesIT {
         PageFactory.initElements(browser, this);
     }
 
-    protected static <T extends OptimusFacesIT> WebArchive createArchive(Class<T> testClass, Database database) {
+    @Deployment(testable = false)
+    public static WebArchive createDeployment() {
+        var testClass = OptimusFacesIT.class;
         var packageName = testClass.getPackage().getName();
         var maven = Maven.resolver();
 
-        var archive = create(WebArchive.class, testClass.getSimpleName() + ".war")
+        var archive = create(WebArchive.class, WAR_NAME)
             .addPackage(packageName + ".model")
             .addPackage(packageName + ".model.dto")
             .addPackage(packageName + ".service")
@@ -137,22 +141,22 @@ public abstract class OptimusFacesIT {
                 ).withTransitivity().asFile()
             );
 
-        addDataSourceConfig(database, archive);
+        addDataSourceConfig(archive);
         addPersistenceConfig(archive);
         addServletConfigIfNecessary(archive);
         addResources(new File(testClass.getClassLoader().getResource(packageName).getFile()), "", archive::addAsWebResource);
 
         var targetDir = Path.of(System.getProperty("user.dir"), "target");
-        archive.as(ZipExporter.class).exportTo(new File(targetDir + "/" + testClass.getSimpleName() + ".war"));
+        archive.as(ZipExporter.class).exportTo(new File(targetDir + "/" + WAR_NAME));
 
         return archive;
     }
 
-    private static void addDataSourceConfig(Database database, WebArchive archive) {
+    private static void addDataSourceConfig(WebArchive archive) {
         var dataSourceConfigXml = isWildFly() ? "wildfly-ds.xml" : isGlassFish() ? "glassfish-resources.xml" : isTomEE() ? "resources.xml" : null;
 
         if (dataSourceConfigXml != null) {
-            archive.addAsWebInfResource("WEB-INF/" + dataSourceConfigXml + "/" + database.name().toLowerCase() + ".xml", dataSourceConfigXml);
+            archive.addAsWebInfResource("WEB-INF/" + dataSourceConfigXml, dataSourceConfigXml);
         }
     }
 
