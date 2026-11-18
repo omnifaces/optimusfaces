@@ -15,7 +15,7 @@ package org.omnifaces.optimusfaces.test.service;
 import jakarta.ejb.Stateless;
 
 import org.omnifaces.optimusfaces.test.model.Phone;
-import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.persistence.query.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
 import org.omnifaces.utils.collection.PartialResultList;
 

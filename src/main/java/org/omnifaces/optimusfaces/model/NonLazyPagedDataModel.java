@@ -17,7 +17,7 @@ import static java.lang.String.format;
 import static java.util.Collections.singletonMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
-import static org.omnifaces.persistence.model.dto.Page.ID;
+import static org.omnifaces.persistence.query.Page.ID;
 import static org.omnifaces.utils.Lang.isEmpty;
 import static org.omnifaces.utils.reflect.Reflections.invokeMethod;
 import static org.omnifaces.utils.stream.Streams.stream;
@@ -41,7 +41,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import org.omnifaces.persistence.criteria.Criteria;
-import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.persistence.query.Page;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.component.datatable.feature.FilterFeature;

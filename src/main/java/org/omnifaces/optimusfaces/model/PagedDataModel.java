@@ -13,7 +13,7 @@
 package org.omnifaces.optimusfaces.model;
 
 import static java.lang.String.format;
-import static org.omnifaces.persistence.model.dto.Page.ID;
+import static org.omnifaces.persistence.query.Page.ID;
 import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.omnifaces.utils.stream.Streams.stream;
 
@@ -46,7 +46,7 @@ import org.omnifaces.persistence.criteria.Not;
 import org.omnifaces.persistence.criteria.Numeric;
 import org.omnifaces.persistence.criteria.Order;
 import org.omnifaces.persistence.model.BaseEntity;
-import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.persistence.query.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
 import org.omnifaces.persistence.service.EntityRepository;
 import org.omnifaces.utils.collection.PartialResultList;
