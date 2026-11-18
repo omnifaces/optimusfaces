@@ -25,7 +25,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.omnifaces.optimusfaces.model.LazyPagedDataModel.MAX_CACHED_ORDERING_VALUES;
-import static org.omnifaces.persistence.model.dto.Page.ID;
+import static org.omnifaces.persistence.query.Page.ID;
 import static org.primefaces.model.SortOrder.ASCENDING;
 import static org.primefaces.model.SortOrder.DESCENDING;
 
@@ -51,7 +51,7 @@ import jakarta.faces.context.FacesContext;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
-import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.persistence.query.Page;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.primefaces.component.api.UIColumn;
 import org.primefaces.component.datascroller.DataScroller;

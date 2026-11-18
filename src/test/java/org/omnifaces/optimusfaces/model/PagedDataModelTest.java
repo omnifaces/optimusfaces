@@ -51,7 +51,7 @@ import org.omnifaces.optimusfaces.model.PagedDataModel.PartialResultListLoader;
 import org.omnifaces.optimusfaces.model.PagedDataModel.RowKeyGetter;
 import org.omnifaces.persistence.criteria.Like;
 import org.omnifaces.persistence.model.BaseEntity;
-import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.persistence.query.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
 import org.omnifaces.persistence.service.EntityRepository;
 import org.omnifaces.utils.collection.PartialResultList;

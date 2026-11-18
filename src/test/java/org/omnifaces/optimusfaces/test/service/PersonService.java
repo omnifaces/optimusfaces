@@ -26,7 +26,7 @@ import org.omnifaces.optimusfaces.test.model.Address;
 import org.omnifaces.optimusfaces.test.model.Person;
 import org.omnifaces.optimusfaces.test.model.Phone;
 import org.omnifaces.optimusfaces.test.model.dto.PersonCard;
-import org.omnifaces.persistence.model.dto.Page;
+import org.omnifaces.persistence.query.Page;
 import org.omnifaces.persistence.service.BaseEntityService;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.omnifaces.utils.reflect.Getter;
