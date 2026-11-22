@@ -21,7 +21,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.reverseOrder;
 import static java.util.logging.Level.OFF;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.jboss.shrinkwrap.api.ShrinkWrap.create;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1419,7 +1418,7 @@ public class OptimusFacesIT {
         );
 
         var cells = getCells(column);
-        List<String> actualValues = cells.stream().map(this::sortIterableIfNecessary).collect(toList());
+        List<String> actualValues = cells.stream().map(WebElement::getText).collect(toList());
         List<String> expectedValues;
 
         if ("id".equals(field)) {
@@ -1450,20 +1449,6 @@ public class OptimusFacesIT {
             }
         }
         return true;
-    }
-
-    private String sortIterableIfNecessary(WebElement cell) {
-        var text = cell.getText();
-
-        if (text.contains("\n")) {
-            text = stream(text.split("\n")).sorted(isSortedAscending(activeColumn) ? naturalOrder() : reverseOrder()).collect(joining("\n"));
-        }
-
-        return text;
-    }
-
-    private static boolean isSortedAscending(WebElement column) {
-        return "ascending".equals(column.getAttribute("aria-sort"));
     }
 
     protected void assertFilteredState(WebElement filter, String filterValue) {
