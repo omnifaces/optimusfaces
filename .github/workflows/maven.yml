@@ -23,8 +23,8 @@ jobs:
   test:
     name: Test ${{matrix.server}}
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         server: [wildfly-hibernate, glassfish-eclipselink, tomee-openjpa]
 
