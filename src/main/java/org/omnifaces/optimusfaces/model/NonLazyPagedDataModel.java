@@ -196,7 +196,7 @@ public final class NonLazyPagedDataModel<E> extends LazyPagedDataModel<E> {
             Object propertyValue = invokeMethods(entity, criteria.getKey(), null, false);
             Object criteriaValue = criteria.getValue().getValue();
 
-            if (endsInCollection(criteria.getKey()) && isNullValue(criteriaValue)) {
+            if (endsInCollection(criteria.getKey()) && Criteria.unwrap(criteriaValue) == null) {
                 return hasNoElements(propertyValue, countCollections(criteria.getKey()) - 1) != (criteriaValue instanceof Not);
             }
             else if (propertyValue instanceof Collection && !(criteriaValue instanceof Criteria)) {
@@ -402,13 +402,6 @@ public final class NonLazyPagedDataModel<E> extends LazyPagedDataModel<E> {
      */
     private static boolean endsInCollection(List<Method> getters) {
         return Collection.class.isAssignableFrom(getters.get(getters.size() - 1).getReturnType());
-    }
-
-    /**
-     * Returns whether given criteria value is <code>null</code> or <code>Not.value(null)</code>.
-     */
-    private static boolean isNullValue(Object criteriaValue) {
-        return criteriaValue == null || (criteriaValue instanceof Not not && not.getValue() == null);
     }
 
     /**
