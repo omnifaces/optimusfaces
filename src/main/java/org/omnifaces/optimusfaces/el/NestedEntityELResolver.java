@@ -18,6 +18,7 @@ import static org.omnifaces.utils.stream.Streams.stream;
 import java.beans.FeatureDescriptor;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import jakarta.el.ELContext;
 import jakarta.el.ELResolver;
@@ -36,8 +37,8 @@ import org.omnifaces.persistence.model.BaseEntity;
  * full {@link ELContext#getELResolver() EL resolver chain}, so that every intermediate value benefits from other custom resolvers (e.g. proxy-aware or
  * lazy-loaded resolvers).
  * <p>
- * {@link java.util.Collection} values encountered at any hop in the chain are automatically expanded: the remaining path is mapped over every element and the
- * results are collected into a {@link java.util.List}.
+ * {@link Collection} values encountered at any hop in the chain are automatically expanded: the remaining path is mapped over every element and the results are
+ * collected into a {@link List}.
  * <p>
  * When <code>base</code> is not an entity, or the property string contains no dot, this resolver returns <code>null</code> without calling
  * {@link ELContext#setPropertyResolved(boolean)}, allowing the runtime to continue down the resolver chain.
@@ -102,9 +103,9 @@ public class NestedEntityELResolver extends ELResolver {
      * Returns <code>null</code> and leaves {@link ELContext#isPropertyResolved()} unchanged when <code>base</code> is not an entity or when
      * <code>property</code> contains no dot, signaling to the runtime that it should continue down the resolver chain.
      * <p>
-     * Otherwise the path is split on <code>'.'</code> and each segment is resolved via {@link ELContext#getELResolver()}. Intermediate
-     * {@link java.util.Collection} values are expanded by mapping the remaining path over every element. After full resolution,
-     * {@link ELContext#setPropertyResolved(boolean) context.setPropertyResolved(true)} is called.
+     * Otherwise the path is split on <code>'.'</code> and each segment is resolved via {@link ELContext#getELResolver()}. Intermediate {@link Collection}
+     * values are expanded by mapping the remaining path over every element. After full resolution, {@link ELContext#setPropertyResolved(boolean)
+     * context.setPropertyResolved(true)} is called.
      *
      * @param context The EL context.
      * @param base The base object; only entities are handled.

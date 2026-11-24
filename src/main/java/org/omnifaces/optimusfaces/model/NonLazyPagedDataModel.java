@@ -33,14 +33,18 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.SortedSet;
 
 import org.omnifaces.persistence.criteria.Criteria;
+import org.omnifaces.persistence.criteria.Not;
 import org.omnifaces.persistence.query.Page;
 import org.omnifaces.utils.collection.PartialResultList;
 import org.primefaces.component.datatable.DataTable;
@@ -54,8 +58,8 @@ import org.primefaces.model.SortMeta;
  * touching the data store on every page request.
  * <p>
  * Filtering supports {@link org.omnifaces.persistence.criteria.Criteria}-based predicates as well as plain equality and case-insensitive string comparison.
- * Sorting uses a {@link java.util.Comparator} that handles nested properties, {@link java.util.Collection}-valued paths, <code>null</code>-ordering and
- * locale-aware string comparison.
+ * Sorting uses a {@link Comparator} that handles nested properties, {@link Collection}-valued paths, <code>null</code>-ordering and locale-aware string
+ * comparison.
  * <p>
  * Construct via {@link PagedDataModel#nonLazy(List)}.
  *
@@ -192,7 +196,10 @@ public final class NonLazyPagedDataModel<E> extends LazyPagedDataModel<E> {
             Object propertyValue = invokeMethods(entity, criteria.getKey(), null, false);
             Object criteriaValue = criteria.getValue().getValue();
 
-            if (propertyValue instanceof Collection && !(criteriaValue instanceof Criteria)) {
+            if (endsInCollection(criteria.getKey()) && isNullValue(criteriaValue)) {
+                return hasNoElements(propertyValue, countCollections(criteria.getKey()) - 1) != (criteriaValue instanceof Not);
+            }
+            else if (propertyValue instanceof Collection && !(criteriaValue instanceof Criteria)) {
                 return isEmpty(criteriaValue) || stream(criteriaValue).allMatch(value -> ((Collection<?>) propertyValue).contains(value));
             }
             else {
@@ -339,20 +346,21 @@ public final class NonLazyPagedDataModel<E> extends LazyPagedDataModel<E> {
         }
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     private Object invokeMethods(Object instance, List<Method> methods, BeanPropertyComparator comparator, boolean ascending) {
         Object result = instance;
 
         for (int i = 0; i < methods.size(); i++) {
-            if (result instanceof List) {
+            if (result instanceof Collection) {
                 List<Method> remainingMethods = methods.subList(i, methods.size());
+                Collection<?> items = (Collection<?>) result;
 
-                if (!remainingMethods.isEmpty() && comparator != null && ((List<?>) result).size() > 1) {
-                    ((List) result)
-                        .sort(new BeanPropertyComparator(comparator, singletonMap(remainingMethods, new AbstractMap.SimpleEntry<>(null, ascending))));
+                if (comparator != null && items.size() > 1) {
+                    items = sort(
+                        items, new BeanPropertyComparator(comparator, singletonMap(remainingMethods, new AbstractMap.SimpleEntry<>(null, ascending)))
+                    );
                 }
 
-                return stream(result).map(item -> invokeMethods(item, remainingMethods, comparator, ascending)).collect(toList());
+                return items.stream().map(item -> invokeMethods(item, remainingMethods, comparator, ascending)).collect(toList());
             }
             else {
                 result = invokeMethod(result, methods.get(i));
@@ -362,8 +370,64 @@ public final class NonLazyPagedDataModel<E> extends LazyPagedDataModel<E> {
         return result;
     }
 
+    /**
+     * Returns the elements of given collection sorted by given comparator. A {@link List} and a {@link LinkedHashSet} are sorted in place, so that they are
+     * presented in that order as well. Any other collection, such as a {@link HashSet} or a {@link SortedSet}, cannot be reordered, so a sorted copy of it is
+     * returned.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private static Collection<?> sort(Collection<?> collection, Comparator comparator) {
+        if (collection instanceof List list) {
+            list.sort(comparator);
+            return list;
+        }
+
+        var sorted = new ArrayList<Object>(collection);
+        sorted.sort(comparator);
+
+        if (collection instanceof LinkedHashSet set) {
+            set.clear();
+            set.addAll(sorted);
+        }
+
+        return sorted;
+    }
+
     private static String lower(Object value, Locale locale) {
         return value == null ? null : value.toString().toLowerCase(locale);
+    }
+
+    /**
+     * Returns whether the last of given getters returns a collection.
+     */
+    private static boolean endsInCollection(List<Method> getters) {
+        return Collection.class.isAssignableFrom(getters.get(getters.size() - 1).getReturnType());
+    }
+
+    /**
+     * Returns whether given criteria value is <code>null</code> or <code>Not.value(null)</code>.
+     */
+    private static boolean isNullValue(Object criteriaValue) {
+        return criteriaValue == null || (criteriaValue instanceof Not not && not.getValue() == null);
+    }
+
+    /**
+     * Returns how many of given getters return a collection.
+     */
+    private static int countCollections(List<Method> getters) {
+        return (int) getters.stream().filter(getter -> Collection.class.isAssignableFrom(getter.getReturnType())).count();
+    }
+
+    /**
+     * Returns whether given property value is <code>null</code> or a collection without elements. At a nesting depth above 0, the property value is a
+     * collection of the collections nested in its elements, and it has no elements when none of these has elements.
+     */
+    private static boolean hasNoElements(Object propertyValue, int nestingDepth) {
+        if (!(propertyValue instanceof Collection<?> collection)) {
+            return propertyValue == null;
+        }
+
+        return nestingDepth == 0 ? collection.isEmpty() : collection.stream().allMatch(nested -> hasNoElements(nested, nestingDepth - 1));
     }
 
 }

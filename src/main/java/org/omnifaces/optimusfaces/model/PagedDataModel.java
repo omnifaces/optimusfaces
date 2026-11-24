@@ -364,7 +364,10 @@ import org.primefaces.model.Visibility;
  * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order}, {@link Enumerated},
  * {@link Numeric}, {@link Bool} and {@link IgnoreCase}. You can even create your own ones by extending {@link Criteria}. Note that any <code>null</code> value
  * is automatically interpreted as <code>IS NULL</code>. In case you intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in
- * case you'd like to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria.
+ * case you'd like to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria. On a collection property itself, such as
+ * <code>"tags"</code> or <code>"children.labels"</code>, a <code>null</code> value matches the rows without elements, and <code>Not(null)</code> the rows with
+ * elements. On a collection nested in a collection, such as <code>"children.labels"</code>, a row without elements is one of which no child has labels,
+ * including a row without children.
  * <p>
  * Those <code>searchNameStartsWith</code>, <code>searchStartDate</code> and <code>searchTypes</code> in the above example can in turn be supplied via Jakarta
  * Faces input components in the same form the usual way. For example:
@@ -1378,7 +1381,7 @@ public interface PagedDataModel<E> extends Serializable {
          * <p>
          * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you intend to search for
          * <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a
-         * <code>null</code> value to the criteria.
+         * <code>null</code> value to the criteria. On a collection property, see the class javadoc.
          * <p>
          * The predefined criteria can be set only once in this builder.
          *
@@ -1421,7 +1424,7 @@ public interface PagedDataModel<E> extends Serializable {
          * <p>
          * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you intend to search for
          * <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a
-         * <code>null</code> value to the criteria.
+         * <code>null</code> value to the criteria. On a collection property, see the class javadoc.
          * <p>
          * The dynamic criteria can be set only once in this builder.
          *
