@@ -91,9 +91,9 @@
         </c:if>
         <c:if test="#{searchable or exportable or actionable}">
             <f:facet name="header">
-                <div class="ui-datatable-actions ui-helper-clearfix">
+                <h:panelGroup layout="block" styleClass="#{component.namingContainer.cssPrefix}datatable-actions #{component.namingContainer.cssPrefix}helper-clearfix">
                     <c:if test="#{searchable}">
-                        <span class="ui-datatable-search">
+                        <h:panelGroup styleClass="#{component.namingContainer.cssPrefix}datatable-search">
                             <p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" placeholder="#{searchPlaceholder}"
                                 styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
                             </p:inputText>
@@ -101,11 +101,11 @@
                                 styleClass="search" a:data-tablewidgetid="#{id}" onclick="return false">
                             </p:button>
                             <h:inputHidden id="globalFilter" />
-                        </span>
+                        </h:panelGroup>
                     </c:if>
 
                     <c:if test="#{exportable}">
-                        <span class="ui-datatable-export">
+                        <h:panelGroup styleClass="#{component.namingContainer.cssPrefix}datatable-export">
                             <p:commandButton id="columnToggler" type="button" value="#{columnTogglerButtonLabel}" styleClass="toggle" />
                             <p:splitButton id="#{id}_export" value="#{exportButtonLabel}" styleClass="export"
                                 actionListener="#{value.prepareExportVisible(id)}" ajax="false">
@@ -128,16 +128,16 @@
                                     <f:param name="$export" value="all" />
                                 </p:menuitem>
                             </p:splitButton>
-                            <span class="ui-menubutton">
+                            <h:panelGroup styleClass="#{component.namingContainer.cssPrefix}menubutton">
                                 <p:columnToggler id="#{id}_toggler" trigger="columnToggler" datasource="#{id}">
                                     <p:ajax event="toggle" listener="#{value.toggleColumn}" />
                                 </p:columnToggler>
-                            </span>
-                        </span>
+                            </h:panelGroup>
+                        </h:panelGroup>
                     </c:if>
 
                     <ui:insert name="actions" />
-                </div>
+                </h:panelGroup>
             </f:facet>
         </c:if>
         <ui:insert />

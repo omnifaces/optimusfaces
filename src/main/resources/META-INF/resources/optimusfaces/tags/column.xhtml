@@ -56,13 +56,13 @@
     <p:column
         field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" sortBy="#{value}"
         filterable="#{filterable}" filterBy="#{value}" filterValue="#{$pagedDataModel.getFilter(field).filterValue}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
-        styleClass="#{styleClass}#{sortable and $dataTable.getActiveSortMeta().containsKey(field) ? ' ui-state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ui-filter-column' : ''}"
+        styleClass="#{styleClass}#{sortable and $dataTable.getActiveSortMeta().containsKey(field) ? ' ' += $dataTable.cssPrefix += 'state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ' += $dataTable.cssPrefix += 'filter-column' : ''}"
         rendered="#{rendered}" visible="#{visible}" responsivePriority="#{responsivePriority}" exportable="#{exportable}"
     >
         <c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>
         <c:if test="#{not empty filterOptions}">
             <f:facet name="filter">
-                <p:selectOneMenu id="#{id}Filter" onchange="PF('#{$dataTable.widgetVar}').filter()" styleClass="ui-custom-filter">
+                <p:selectOneMenu id="#{id}Filter" onchange="PF('#{$dataTable.widgetVar}').filter()" styleClass="#{$dataTable.cssPrefix}custom-filter">
                     <f:selectItems value="#{$pagedDataModel.convertFilterOptionsIfNecessary(filterOptions)}" />
                 </p:selectOneMenu>
             </f:facet>

@@ -21,8 +21,21 @@
  */
 if (PrimeFaces.widget.DataTable) {
 
+    // The handlers bind before any table exists, so they match the ui- classes up to PrimeFaces 16 and the p- classes since PrimeFaces 17.
+    var SELECTABLE_ROW_CLASSES = "ui-widget-content p-component-content";
+    var SORTED_COLUMN_CLASSES = ["ui-state-active", "p-state-active"];
+    var FILTER_COLUMN = "th.ui-filter-column, th.p-filter-column";
+    var GLOBAL_FILTER_INPUT = ".ui-datatable-actions input.filter, .p-datatable-actions input.filter";
+    var GLOBAL_SEARCH_BUTTON = ".ui-datatable-actions button.search, .p-datatable-actions button.search";
+
     function makeRowWithKey0Unselectable(id) {
-        $(document.getElementById(id)).find("tr[data-rk=0]").removeClass("ui-widget-content");
+        $(document.getElementById(id)).find("tr[data-rk=0]").removeClass(SELECTABLE_ROW_CLASSES);
+    }
+
+    function isSorted($column) {
+        return SORTED_COLUMN_CLASSES.some(function(sortedColumnClass) {
+            return $column.hasClass(sortedColumnClass);
+        });
     }
 
     function checkIfDefaultSortNeedsToBeDescending($sortableColumns) {
@@ -32,7 +45,7 @@ if (PrimeFaces.widget.DataTable) {
 
         for (var i = 0; i < $sortableColumns.length; i++) {
             var $sortableColumn = $sortableColumns.eq(i);
-            if ($sortableColumn.hasClass("desc") && !$sortableColumn.hasClass("ui-state-active")) {
+            if ($sortableColumn.hasClass("desc") && !isSorted($sortableColumn)) {
                 $sortableColumn.data("sortorder", 1);
             }
         }
@@ -57,23 +70,23 @@ if (PrimeFaces.widget.DataTable) {
     /**
      * Toggle global filter class in filterable columns on focus of global filter input.
      */
-    $(document).on("focus", ".ui-datatable-actions .ui-inputfield.filter", function() {
-        $(this).closest("form").find("th.ui-filter-column").addClass("global");
-    }).on("blur", ".ui-datatable-actions .ui-inputfield.filter", function() {
-        $(this).closest("form").find("th.ui-filter-column").removeClass("global");
+    $(document).on("focus", GLOBAL_FILTER_INPUT, function() {
+        $(this).closest("form").find(FILTER_COLUMN).addClass("global");
+    }).on("blur", GLOBAL_FILTER_INPUT, function() {
+        $(this).closest("form").find(FILTER_COLUMN).removeClass("global");
     });
 
     /**
      * Global search actions.
      */
-    $(document).on("keypress", ".ui-datatable-actions .ui-inputfield.filter", function(event) {
+    $(document).on("keypress", GLOBAL_FILTER_INPUT, function(event) {
         if (event.keyCode == 13) {
             $(this).next().click();
             return false;
         }
-    }).on("search", ".ui-datatable-actions .ui-inputfield.filter", function() {
+    }).on("search", GLOBAL_FILTER_INPUT, function() {
         $(this).next().click();
-    }).on("click", ".ui-datatable-actions .ui-button.search", function() {
+    }).on("click", GLOBAL_SEARCH_BUTTON, function() {
         var dataTableWidget = PF($(this).data("tablewidgetid"));
         var $globalFilter = dataTableWidget.jq.find("[id$=globalFilter]");
         var $globalFilterValue = $(this).prev().val().trim();

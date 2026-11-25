@@ -105,6 +105,12 @@ public class OptimusFacesIT {
     private static final int TIMEOUT_IN_SECONDS = 10;
     private static final String WAR_NAME = "optimusfaces.war"; // TomEE binds the data source under the application name, so they must differ.
 
+    private static final int FIRST_PRIMEFACES_VERSION_WITHOUT_JAKARTA_CLASSIFIER = 16;
+
+    // Up to PrimeFaces 16 the CSS classes have the ui- prefix, since PrimeFaces 17 the p- prefix.
+    private static final String COLUMN_TITLE = ".ui-column-title, .p-column-title";
+    private static final String SORTABLE_COLUMN_ICON = ".ui-sortable-column-icon, .p-sortable-column-icon";
+
     private WebDriver browser;
 
     @ArquillianResource
@@ -136,7 +142,7 @@ public class OptimusFacesIT {
             .addAsLibraries(
                 maven.resolve(
                     "org.omnifaces:omnifaces:" + getProperty("test.omnifaces.version"),
-                    "org.primefaces:primefaces:" + getProperty("test.primefaces.version")
+                    getPrimeFacesCoordinate(getProperty("test.primefaces.version"))
                 ).withTransitivity().asFile()
             );
 
@@ -149,6 +155,15 @@ public class OptimusFacesIT {
         archive.as(ZipExporter.class).exportTo(new File(targetDir + "/" + WAR_NAME));
 
         return archive;
+    }
+
+    /**
+     * PrimeFaces 15 publishes its Jakarta build under the <code>jakarta</code> classifier and its default jar is <code>javax</code>. PrimeFaces 16 and newer
+     * publish only a Jakarta default jar.
+     */
+    private static String getPrimeFacesCoordinate(String version) {
+        var classifier = Integer.parseInt(version.split("\\.", 2)[0]) < FIRST_PRIMEFACES_VERSION_WITHOUT_JAKARTA_CLASSIFIER ? "jar:jakarta:" : "";
+        return "org.primefaces:primefaces:" + classifier + version;
     }
 
     private static void addDataSourceConfig(WebArchive archive) {
@@ -356,7 +371,7 @@ public class OptimusFacesIT {
     @FindBy(id = "form:table:groups")
     private WebElement groupsColumn;
 
-    @FindBy(css = "#form\\:table th.ui-state-active")
+    @FindBy(css = "#form\\:table th.ui-state-active, #form\\:table th.p-state-active")
     private WebElement activeColumn;
 
     @FindBy(id = "form:table:filter")
@@ -401,28 +416,28 @@ public class OptimusFacesIT {
     @FindBy(css = "#form\\:table_data tr:nth-child(5) td:first-child")
     private WebElement fifthRow;
 
-    @FindBy(css = "#form\\:table_data tr.ui-state-highlight")
+    @FindBy(css = "#form\\:table_data tr.ui-state-highlight, #form\\:table_data tr.p-state-highlight")
     private WebElement selectedRow;
 
-    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-current")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-current, #form\\:table_paginator_bottom .p-paginator-current")
     private WebElement pageReport;
 
-    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-first")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-first, #form\\:table_paginator_bottom .p-paginator-first")
     private WebElement pageFirst;
 
-    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-prev")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-prev, #form\\:table_paginator_bottom .p-paginator-prev")
     private WebElement pagePrevious;
 
-    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-page")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-page, #form\\:table_paginator_bottom .p-paginator-page")
     private List<WebElement> pages;
 
-    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-page.ui-state-active")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-page.ui-state-active, #form\\:table_paginator_bottom .p-paginator-page.p-state-active")
     private WebElement pageCurrent;
 
-    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-next")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-next, #form\\:table_paginator_bottom .p-paginator-next")
     private WebElement pageNext;
 
-    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-last")
+    @FindBy(css = "#form\\:table_paginator_bottom .ui-paginator-last, #form\\:table_paginator_bottom .p-paginator-last")
     private WebElement pageLast;
 
     @FindBy(id = "form:criteria:0")
@@ -788,11 +803,11 @@ public class OptimusFacesIT {
     }
 
     private void clickColumn(WebElement column) {
-        guardPrimeFacesAjax(column.findElement(By.cssSelector(".ui-column-title"))::click);
+        guardPrimeFacesAjax(column.findElement(By.cssSelector(COLUMN_TITLE))::click);
     }
 
     private void controlClickColumn(WebElement column) {
-        var title = column.findElement(By.cssSelector(".ui-column-title"));
+        var title = column.findElement(By.cssSelector(COLUMN_TITLE));
         guardPrimeFacesAjax(() -> new Actions(browser).keyDown(CONTROL).click(title).keyUp(CONTROL).perform());
     }
 
@@ -813,10 +828,18 @@ public class OptimusFacesIT {
     }
 
     private static String getSortDirection(WebElement column) {
-        var sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
-        return sortableColumnClass.contains("ui-icon-triangle-1-n")
+        var sortableColumnClass = column.findElement(By.cssSelector(SORTABLE_COLUMN_ICON)).getAttribute("class");
+        return isSortedAscending(sortableColumnClass)
             ? "ascending"
-            : sortableColumnClass.contains("ui-icon-triangle-1-s") ? "descending" : "none";
+            : isSortedDescending(sortableColumnClass) ? "descending" : "none";
+    }
+
+    private static boolean isSortedAscending(String sortableColumnClass) {
+        return sortableColumnClass.contains("ui-icon-triangle-1-n") || sortableColumnClass.contains("p-datatable-sort-asc-icon");
+    }
+
+    private static boolean isSortedDescending(String sortableColumnClass) {
+        return sortableColumnClass.contains("ui-icon-triangle-1-s") || sortableColumnClass.contains("p-datatable-sort-desc-icon");
     }
 
     private void assertMultiSortedStateByGenderAscendingAndEmailDescending() {
@@ -1294,7 +1317,7 @@ public class OptimusFacesIT {
      * Asserts that the rows are sorted by the lowest element of the collection in the given column when ascending, or by the highest element when descending.
      */
     private void assertSortedByCollectionState(WebElement column, boolean ascending) {
-        var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+        var field = column.findElement(By.cssSelector(COLUMN_TITLE)).getText();
         assertEventually((ascending ? "" : "-") + field, () -> getQueryParameter(QUERY_PARAMETER_ORDER), "order query string");
         assertEquals(ascending ? "ascending" : "descending", getSortDirection(column), field + " column sort");
 
@@ -1401,18 +1424,18 @@ public class OptimusFacesIT {
     }
 
     protected void assertSortedState(WebElement column, boolean ascending) {
-        var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+        var field = column.findElement(By.cssSelector(COLUMN_TITLE)).getText();
 
         assertSortedState(column, ascending, "id".equals(field));
     }
 
     protected void assertSortedState(WebElement column, boolean ascending, boolean isDefaultOrderBy) {
-        var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
-        var sortableColumnClass = column.findElement(By.cssSelector(".ui-sortable-column-icon")).getAttribute("class");
+        var field = column.findElement(By.cssSelector(COLUMN_TITLE)).getText();
+        var sortableColumnClass = column.findElement(By.cssSelector(SORTABLE_COLUMN_ICON)).getAttribute("class");
 
-        assertTrue(activeColumn.findElement(By.cssSelector(".ui-column-title")).getText().equals(field), field + " column must be active");
-        assertEquals(ascending, sortableColumnClass.contains("ui-icon-triangle-1-n"), field + " column must be sorted ascending");
-        assertEquals(!ascending, sortableColumnClass.contains("ui-icon-triangle-1-s"), field + " column must be sorted descending");
+        assertTrue(activeColumn.findElement(By.cssSelector(COLUMN_TITLE)).getText().equals(field), field + " column must be active");
+        assertEquals(ascending, isSortedAscending(sortableColumnClass), field + " column must be sorted ascending");
+        assertEquals(!ascending, isSortedDescending(sortableColumnClass), field + " column must be sorted descending");
         assertEventually(
             isDefaultOrderBy && !ascending ? null : (ascending ? "" : "-") + field, () -> getQueryParameter(QUERY_PARAMETER_ORDER), "order query string"
         );
@@ -1458,7 +1481,7 @@ public class OptimusFacesIT {
             column = column.findElement(By.xpath(".."));
         }
 
-        var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+        var field = column.findElement(By.cssSelector(COLUMN_TITLE)).getText();
         var input = "select".equals(filter.getTagName()) ? new Select(filter).getFirstSelectedOption() : filter;
         String actualFilterValue = input.getAttribute("value");
         assertEquals(filterValue, actualFilterValue, "filter value");
@@ -1486,7 +1509,7 @@ public class OptimusFacesIT {
     }
 
     protected void assertCriteriaState(WebElement column, Criteria<?> criteria, Function<String, ?> parser) {
-        var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+        var field = column.findElement(By.cssSelector(COLUMN_TITLE)).getText();
         List<String> actualValues = getCells(column).stream().map(WebElement::getText).collect(toList());
         assertTrue(
             actualValues.stream().allMatch(value -> criteria.applies(parser.apply(value))), field + " criteria " + actualValues + " matches " + criteria
@@ -1494,7 +1517,7 @@ public class OptimusFacesIT {
     }
 
     protected void assertCriteriaState(WebElement column, String... criteriaValues) {
-        var field = column.findElement(By.cssSelector(".ui-column-title")).getText();
+        var field = column.findElement(By.cssSelector(COLUMN_TITLE)).getText();
         List<String> expectedValues = asList(criteriaValues);
         getCells(column).stream().map(WebElement::getText).forEach(text -> {
             List<String> actualValues = asList(text.split("\n"));

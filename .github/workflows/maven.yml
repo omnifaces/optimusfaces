@@ -21,12 +21,18 @@ on:
 
 jobs:
   test:
-    name: Test ${{matrix.server}}
+    name: ${{ matrix.primefaces && format('Test {0} PrimeFaces {1}', matrix.server, matrix.primefaces) || format('Test {0}', matrix.server) }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         server: [wildfly-hibernate, glassfish-eclipselink, tomee-openjpa]
+        primefaces: [''] # Empty means test.primefaces.version of pom.xml.
+        include:
+        - server: wildfly-hibernate
+          primefaces: 15.0.20
+        - server: wildfly-hibernate
+          primefaces: 17.0.0-SNAPSHOT
 
     steps:
     - uses: actions/checkout@v7.0.1
@@ -38,7 +44,7 @@ jobs:
         cache: maven
 
     - name: Test with Maven
-      run: mvn -B -U verify -DskipUTs=false -DskipITs=false -Dmaven.javadoc.skip=true -P ${{matrix.server}}
+      run: mvn -B -U verify -DskipUTs=false -DskipITs=false -Dmaven.javadoc.skip=true -P ${{matrix.server}} ${{ matrix.primefaces && format('-Dtest.primefaces.version={0}', matrix.primefaces) || '' }}
 
   deploy:
     name: Deploy SNAPSHOT
