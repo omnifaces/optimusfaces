@@ -52,11 +52,10 @@
         <o:tagAttribute name="exportValue" default="#{value}" />
 
 
-    <!-- getActiveSortMeta() must be invoked as method: it is an interface default method, which Java 17 bean introspection does not expose as property. -->
     <p:column
         field="#{field}" id="#{id}" headerText="#{head}" sortable="#{sortable}" sortBy="#{value}"
         filterable="#{filterable}" filterBy="#{value}" filterValue="#{$pagedDataModel.getFilter(field).filterValue}" filterMatchMode="#{empty filterMode ? 'contains' : filterMode}"
-        styleClass="#{styleClass}#{sortable and $dataTable.getActiveSortMeta().containsKey(field) ? ' ' += $dataTable.cssPrefix += 'state-active' : ''}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ' += $dataTable.cssPrefix += 'filter-column' : ''}"
+        styleClass="#{styleClass}#{sortable and sortDescending ? ' desc' : ''}#{$dataTable.attributes.searchable and not filterable ? ' ' += $dataTable.cssPrefix += 'filter-column' : ''}"
         rendered="#{rendered}" visible="#{visible}" responsivePriority="#{responsivePriority}" exportable="#{exportable}"
     >
         <c:if test="#{not empty width}"><f:attribute name="width" value="#{width}" /></c:if>

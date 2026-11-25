@@ -778,11 +778,14 @@ import org.primefaces.model.Visibility;
  * rendered with the prefix of the PrimeFaces version in use, as is any PrimeFaces class. The selectors below use the <code>ui-</code> prefix, so with
  * PrimeFaces 17 e.g. <code>.ui-datatable-actions</code> becomes <code>.p-datatable-actions</code>.
  * <p>
- * Standard PrimeFaces CSS is being reused as much as possible, including the fix of missing <code>.ui-state-active</code> or <code>.p-state-active</code> class
- * on a sorted column when sorting is done via <code>field</code> attribute. Below is a list of new additions:
+ * Standard PrimeFaces CSS is being reused as much as possible.
+ * <p>
+ * The <code>&lt;op:dataTable&gt;</code> loads the default stylesheet <code>styles/datatable.css</code> of the <code>optimusfaces</code> library. It puts the
+ * global search field and the export buttons on one line, where the global search field takes the remaining width. Your own CSS overrides it with a selector of
+ * the same form as in the list below, such as <code>.ui-datatable-actions .ui-datatable-search</code>. Below is a list of new additions:
  * <ul>
  * <li><code>.ui-datatable-actions</code>: the div holding the global search field and export buttons
- * <li><code>.ui-datatable-actions .ui-datatable-search</code>: the span holding the global search field
+ * <li><code>.ui-datatable-actions .ui-datatable-search</code>: the input group holding the global search field and button
  * <li><code>.ui-datatable-actions .ui-datatable-export</code>: the span holding the export buttons
  * <li><code>.ui-datatable-actions .ui-inputfield.filter</code>: the global search input field
  * <li><code>.ui-datatable-actions .ui-button.search</code>: the global search button
