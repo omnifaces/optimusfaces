@@ -21,17 +21,19 @@ on:
 
 jobs:
   test:
-    name: ${{ matrix.primefaces && format('Test {0} PrimeFaces {1}', matrix.server, matrix.primefaces) || format('Test {0}', matrix.server) }}
+    name: ${{matrix.server}} pf${{matrix.pf}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         server: [wildfly-hibernate, glassfish-eclipselink, tomee-openjpa]
-        primefaces: [''] # Empty means test.primefaces.version of pom.xml.
+        pf: [16] # Major version of test.primefaces.version in pom.xml.
         include:
         - server: wildfly-hibernate
+          pf: 15
           primefaces: 15.0.20
         - server: wildfly-hibernate
+          pf: 17
           primefaces: 17.0.0-SNAPSHOT
 
     steps:
