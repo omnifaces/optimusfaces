@@ -1,0 +1,46 @@
+/**
+ * Copyright OmniFaces
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+/**
+ * Default layout of the <op:dataTable> header: the global search field takes the remaining width, and the export buttons
+ * and any custom actions follow on the same line. Up to PrimeFaces 16 the classes have the ui- prefix, since PrimeFaces 17
+ * the p- prefix.
+ */
+.ui-datatable-actions,
+.p-datatable-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+}
+
+.ui-datatable-actions .ui-datatable-export,
+.p-datatable-actions .p-datatable-export {
+    display: flex;
+    align-items: center;
+}
+
+/* The column toggler span stays in the export group as an empty flex item, so a gap would trail after the last button. */
+.ui-datatable-actions .ui-datatable-export > .export,
+.p-datatable-actions .p-datatable-export > .export {
+    margin-inline-start: 0.75em;
+}
+
+.ui-datatable-actions .ui-datatable-search,
+.p-datatable-actions .p-datatable-search {
+    flex: 1 1 auto;
+    width: auto;
+}
+
+.ui-datatable-actions .ui-datatable-search > .filter,
+.p-datatable-actions .p-datatable-search > .filter {
+    flex: 1 1 auto;
+}

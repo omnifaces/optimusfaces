@@ -29,12 +29,12 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>5.5.6</version><!-- Minimum supported version is 4.0 -->
+        <version>5.5.8</version><!-- Minimum supported version is 4.0 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
-        <version>16.0.1</version><!-- Minimum supported version is 15.0.0:jakarta -->
+        <version>16.0.2</version><!-- Minimum supported version is 15.0.0:jakarta -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
@@ -124,9 +124,16 @@ The `field` attribute of `<op:column>` represents the entity property path. This
 in turn be used in `id`, `field`, `headerText` and `filterBy` attributes
 of `<p:column>`.
 
-Here's how it looks like with default PrimeFaces 15 UI and all. This example uses **exactly** the above Java and XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `LocalDate dateOfBirth` fields.
+Here's how it looks like with the default UI of PrimeFaces 17, and of PrimeFaces 16 and older.
+This example uses **exactly** the above Java and XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `LocalDate dateOfBirth` fields.
 
-![example of op:dataTable](https://github.com/user-attachments/assets/682ad9d2-4458-4b4f-a866-5e3571394663)
+PrimeFaces 17:
+
+![example of op:dataTable on PrimeFaces 17](https://github.com/user-attachments/assets/9aa18b40-7783-4fd7-b489-66df68623f08)
+
+PrimeFaces 16 and older:
+
+![example of op:dataTable on PrimeFaces 16 and older](https://github.com/user-attachments/assets/67ff87f2-d8fe-40f6-ad6a-3d8248b8b725)
 
 
 ### Data source

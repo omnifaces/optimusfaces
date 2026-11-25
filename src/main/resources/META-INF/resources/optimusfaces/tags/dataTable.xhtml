@@ -91,17 +91,17 @@
         </c:if>
         <c:if test="#{searchable or exportable or actionable}">
             <f:facet name="header">
-                <h:panelGroup layout="block" styleClass="#{component.namingContainer.cssPrefix}datatable-actions #{component.namingContainer.cssPrefix}helper-clearfix">
+                <h:panelGroup layout="block" styleClass="#{component.namingContainer.cssPrefix}datatable-actions">
                     <c:if test="#{searchable}">
-                        <h:panelGroup styleClass="#{component.namingContainer.cssPrefix}datatable-search">
+                        <h:panelGroup styleClass="#{component.namingContainer.cssPrefix}datatable-search #{component.namingContainer.cssPrefix}inputgroup">
                             <p:inputText id="filter" a:type="search" a:value="#{fn:trim(param.q)}" placeholder="#{searchPlaceholder}"
                                 styleClass="filter" rendered="#{facesContext.currentPhaseId.ordinal eq 6}">
                             </p:inputText>
                             <p:button id="search" type="button" value="#{searchButtonLabel}"
                                 styleClass="search" a:data-tablewidgetid="#{id}" onclick="return false">
                             </p:button>
-                            <h:inputHidden id="globalFilter" />
                         </h:panelGroup>
+                        <h:inputHidden id="globalFilter" />
                     </c:if>
 
                     <c:if test="#{exportable}">
@@ -145,4 +145,5 @@
 
     <h:outputScript library="optimusfaces" name="scripts/optimusfaces.js" target="head" />
     <h:outputScript library="optimusfaces" name="scripts/datatable.js" target="head" />
+    <h:outputStylesheet library="optimusfaces" name="styles/datatable.css" />
 </ui:composition>
