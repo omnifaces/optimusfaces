@@ -774,8 +774,12 @@ import org.primefaces.model.Visibility;
  *
  * <h2 id="css"><a href="#css">CSS</a></h2>
  * <p>
- * Standard PrimeFaces CSS is being reused as much as possible, including the fix of missing <code>.ui-state-active</code> class on a sorted column when sorting
- * is done via <code>field</code> attribute. Below is a list of new additions:
+ * Up to PrimeFaces 16 the CSS classes have the <code>ui-</code> prefix, since PrimeFaces 17 the <code>p-</code> prefix. The classes added by OptimusFaces are
+ * rendered with the prefix of the PrimeFaces version in use, as is any PrimeFaces class. The selectors below use the <code>ui-</code> prefix, so with
+ * PrimeFaces 17 e.g. <code>.ui-datatable-actions</code> becomes <code>.p-datatable-actions</code>.
+ * <p>
+ * Standard PrimeFaces CSS is being reused as much as possible, including the fix of missing <code>.ui-state-active</code> or <code>.p-state-active</code> class
+ * on a sorted column when sorting is done via <code>field</code> attribute. Below is a list of new additions:
  * <ul>
  * <li><code>.ui-datatable-actions</code>: the div holding the global search field and export buttons
  * <li><code>.ui-datatable-actions .ui-datatable-search</code>: the span holding the global search field

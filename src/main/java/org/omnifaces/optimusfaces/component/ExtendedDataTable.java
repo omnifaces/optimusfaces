@@ -12,10 +12,13 @@
  */
 package org.omnifaces.optimusfaces.component;
 
+import java.util.regex.Pattern;
+
 import jakarta.faces.context.FacesContext;
 
 import org.omnifaces.optimusfaces.model.LazyPagedDataModel;
 import org.primefaces.component.datatable.DataTable;
+import org.primefaces.context.PrimeApplicationContext;
 
 /**
  * <p>
@@ -40,6 +43,13 @@ import org.primefaces.component.datatable.DataTable;
  * @since 1.0
  */
 public class ExtendedDataTable extends DataTable {
+
+    private static final int FIRST_PRIMEFACES_VERSION_WITH_P_CSS_PREFIX = 17;
+    private static final Pattern MAJOR_VERSION = Pattern.compile("\\d{1,9}");
+    private static final String P_CSS_PREFIX = "p-";
+    private static final String UI_CSS_PREFIX = "ui-";
+
+    private static volatile String cssPrefix;
 
     /**
      * Creates the component; this is done by the Faces runtime via the bundled <code>faces-config.xml</code>.
@@ -67,6 +77,42 @@ public class ExtendedDataTable extends DataTable {
         }
 
         super.preDecode(context);
+    }
+
+    /**
+     * Returns the prefix of the CSS classes of the PrimeFaces version in use: <code>p-</code> since PrimeFaces 17, and <code>ui-</code> up to PrimeFaces 16.
+     * The <code>&lt;op:dataTable&gt;</code> and <code>&lt;op:column&gt;</code> tags render every CSS class they add with this prefix.
+     *
+     * @return The prefix of the CSS classes of the PrimeFaces version in use.
+     * @since 2.0
+     */
+    public String getCssPrefix() {
+        var prefix = cssPrefix;
+
+        if (prefix == null) {
+            prefix = resolveCssPrefix(PrimeApplicationContext.getCurrentInstance(getFacesContext()).getEnvironment().getBuildVersion());
+            cssPrefix = prefix;
+        }
+
+        return prefix;
+    }
+
+    /**
+     * Returns the prefix of the CSS classes of the given PrimeFaces version.
+     *
+     * @param primeFacesVersion The PrimeFaces build version, such as <code>16.0.2</code> or <code>17.0.0-SNAPSHOT</code>. May be <code>null</code>.
+     * @return <code>p-</code> when the major version is at least 17, else <code>ui-</code>.
+     */
+    static String resolveCssPrefix(String primeFacesVersion) {
+        if (primeFacesVersion != null) {
+            var majorVersion = MAJOR_VERSION.matcher(primeFacesVersion);
+
+            if (majorVersion.lookingAt() && Integer.parseInt(majorVersion.group()) >= FIRST_PRIMEFACES_VERSION_WITH_P_CSS_PREFIX) {
+                return P_CSS_PREFIX;
+            }
+        }
+
+        return UI_CSS_PREFIX;
     }
 
 }

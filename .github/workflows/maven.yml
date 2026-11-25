@@ -21,12 +21,20 @@ on:
 
 jobs:
   test:
-    name: Test ${{matrix.server}}
+    name: ${{matrix.server}} pf${{matrix.pf}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         server: [wildfly-hibernate, glassfish-eclipselink, tomee-openjpa]
+        pf: [16] # Major version of test.primefaces.version in pom.xml.
+        include:
+        - server: wildfly-hibernate
+          pf: 15
+          primefaces: 15.0.20
+        - server: wildfly-hibernate
+          pf: 17
+          primefaces: 17.0.0-SNAPSHOT
 
     steps:
     - uses: actions/checkout@v7.0.1
@@ -38,7 +46,7 @@ jobs:
         cache: maven
 
     - name: Test with Maven
-      run: mvn -B -U verify -DskipUTs=false -DskipITs=false -Dmaven.javadoc.skip=true -P ${{matrix.server}}
+      run: mvn -B -U verify -DskipUTs=false -DskipITs=false -Dmaven.javadoc.skip=true -P ${{matrix.server}} ${{ matrix.primefaces && format('-Dtest.primefaces.version={0}', matrix.primefaces) || '' }}
 
   deploy:
     name: Deploy SNAPSHOT
