@@ -29,12 +29,12 @@ This project basically combines best of [OmniFaces](https://omnifaces.org/) and 
     <dependency>
         <groupId>org.omnifaces</groupId>
         <artifactId>omnifaces</artifactId>
-        <version>5.5.6</version><!-- Minimum supported version is 4.0 -->
+        <version>5.5.8</version><!-- Minimum supported version is 4.0 -->
     </dependency>
     <dependency>
         <groupId>org.primefaces</groupId>
         <artifactId>primefaces</artifactId>
-        <version>16.0.1</version><!-- Minimum supported version is 15.0.0:jakarta -->
+        <version>16.0.2</version><!-- Minimum supported version is 15.0.0:jakarta -->
     </dependency>
     <dependency>
         <groupId>org.omnifaces</groupId>
