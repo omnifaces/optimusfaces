@@ -12,9 +12,9 @@
  */
 package org.omnifaces.optimusfaces.test.view;
 
-import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonMap;
-import static org.omnifaces.utils.Lang.isEmpty;
+import static org.omnifaces.util.Utils.coalesce;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -49,7 +49,7 @@ public class OptimusFacesITLazyWithElementCollectionBean implements Serializable
     }
 
     private Map<Getter<Person>, Object> mapSelectedCriteria() {
-        return isEmpty(selectedGroups) ? emptyMap() : singletonMap(Person::getGroups, selectedGroups);
+        return singletonMap(Person::getGroups, coalesce(selectedGroups, emptySet()));
     }
 
     public PagedDataModel<Person> getLazyGroupies() {

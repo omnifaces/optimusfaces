@@ -451,6 +451,14 @@ Recompile your code against both.
 - `NestedBaseEntityELResolver` is renamed to `NestedEntityELResolver`. It is registered automatically, so this only matters when your code references it.
 - Your entities no longer need to extend `BaseEntity`. See [Data source](#data-source) for the row key.
 - `PagedDataModel#getOrdering()` returns a `List<SortMeta>` instead of a single `SortMeta`, in order of priority. So does the `protected` method `LazyPagedDataModel#getInitialOrdering()`.
+- A `null` criteria on a collection property, such as `groups`, matches the rows without elements, also in a non-lazy model, where it used to match every row. So a non-lazy model now agrees with a lazy one. For no restriction, leave the criteria out or pass an empty collection. A bound selection which is still `null` therefore needs a fallback such as `singletonMap(Person::getGroups, coalesce(selection, emptySet()))`.
+
+  | Wanted | Criteria value |
+  |---|---|
+  | No restriction | none, or an empty collection such as `Set.of()` |
+  | No elements at all | `null` |
+  | At least one element | `Not.value(null)` |
+  | Any of the given elements | the elements, such as `Set.of(USER, ADMIN)` |
 
 
 ### Known Issues
