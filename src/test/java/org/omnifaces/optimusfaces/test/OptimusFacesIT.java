@@ -72,7 +72,8 @@ import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.omnifaces.optimusfaces.test.model.Gender;
+import org.omnifaces.optimusfaces.test.model.DateOfBirth;
+import org.omnifaces.optimusfaces.test.model.Status;
 import org.omnifaces.persistence.criteria.Between;
 import org.omnifaces.persistence.criteria.Criteria;
 import org.omnifaces.persistence.criteria.Like;
@@ -344,8 +345,8 @@ public class OptimusFacesIT {
     @FindBy(id = "form:table:email")
     private WebElement emailColumn;
 
-    @FindBy(id = "form:table:gender")
-    private WebElement genderColumn;
+    @FindBy(id = "form:table:status")
+    private WebElement statusColumn;
 
     @FindBy(id = "form:table:dateOfBirth")
     private WebElement dateOfBirthColumn;
@@ -386,11 +387,11 @@ public class OptimusFacesIT {
     @FindBy(id = "form:table:email:filter")
     private WebElement emailColumnFilter;
 
-    @FindBy(id = "form:table:gender:filter")
-    private WebElement genderColumnFilter;
+    @FindBy(id = "form:table:status:filter")
+    private WebElement statusColumnFilter;
 
-    @FindBy(id = "form:table:genderFilter")
-    private WebElement genderColumnDropdownFilter;
+    @FindBy(id = "form:table:statusFilter")
+    private WebElement statusColumnDropdownFilter;
 
     @FindBy(id = "form:table:dateOfBirth:filter")
     private WebElement dateOfBirthColumnFilter;
@@ -447,10 +448,10 @@ public class OptimusFacesIT {
     private WebElement criteriaEmailLikeName1;
 
     @FindBy(id = "form:criteria:2")
-    private WebElement criteriaGenderIsFemale;
+    private WebElement criteriaStatusIsInactive;
 
     @FindBy(id = "form:criteria:3")
-    private WebElement criteriaDateOfBirthBefore1950;
+    private WebElement criteriaDateOfBirthBeforeThreshold;
 
     @FindBy(id = "form:phoneTypes:0")
     private WebElement criteriaPhoneTypeMOBILE;
@@ -785,9 +786,9 @@ public class OptimusFacesIT {
         assertPaginatorState(1);
         assertSortedState(emailColumn, false);
 
-        clickColumn(genderColumn);
+        clickColumn(statusColumn);
         assertPaginatorState(1);
-        assertSortedState(genderColumn, true);
+        assertSortedState(statusColumn, true);
 
         clickColumn(emailColumn);
         assertPaginatorState(1);
@@ -812,19 +813,19 @@ public class OptimusFacesIT {
     }
 
     protected void testMultiSort() {
-        clickColumn(genderColumn);
+        clickColumn(statusColumn);
         controlClickColumn(emailColumn);
         controlClickColumn(emailColumn);
         assertPaginatorState(1);
-        assertMultiSortedStateByGenderAscendingAndEmailDescending();
+        assertMultiSortedStateByStatusAscendingAndEmailDescending();
 
-        open("LazyWithMultiSort", QUERY_PARAMETER_ORDER + "=gender&" + QUERY_PARAMETER_ORDER + "=-email");
-        assertMultiSortedStateByGenderAscendingAndEmailDescending();
+        open("LazyWithMultiSort", QUERY_PARAMETER_ORDER + "=status&" + QUERY_PARAMETER_ORDER + "=-email");
+        assertMultiSortedStateByStatusAscendingAndEmailDescending();
 
-        clickColumn(genderColumn);
-        assertEquals("descending", getSortDirection(genderColumn), "gender column sort");
+        clickColumn(statusColumn);
+        assertEquals("descending", getSortDirection(statusColumn), "status column sort");
         assertEquals("none", getSortDirection(emailColumn), "email column sort");
-        assertEventually(List.of("-gender"), () -> getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
+        assertEventually(List.of("-status"), () -> getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
     }
 
     private static String getSortDirection(WebElement column) {
@@ -842,24 +843,24 @@ public class OptimusFacesIT {
         return sortableColumnClass.contains("ui-icon-triangle-1-s") || sortableColumnClass.contains("p-datatable-sort-desc-icon");
     }
 
-    private void assertMultiSortedStateByGenderAscendingAndEmailDescending() {
-        assertEquals("ascending", getSortDirection(genderColumn), "gender column sort");
+    private void assertMultiSortedStateByStatusAscendingAndEmailDescending() {
+        assertEquals("ascending", getSortDirection(statusColumn), "status column sort");
         assertEquals("descending", getSortDirection(emailColumn), "email column sort");
-        assertEventually(List.of("gender", "-email"), () -> getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
+        assertEventually(List.of("status", "-email"), () -> getQueryParameters(QUERY_PARAMETER_ORDER), "order query string");
 
-        var genders = getCells(genderColumn).stream().map(WebElement::getText).toList();
+        var statuses = getCells(statusColumn).stream().map(WebElement::getText).toList();
         var emails = getCells(emailColumn).stream().map(WebElement::getText).toList();
         var collator = Collator.getInstance(Locale.ENGLISH);
-        var seenGenders = new HashSet<String>();
+        var seenStatuses = new HashSet<String>();
         var groupStart = 0;
 
-        for (var i = 1; i <= genders.size(); i++) {
-            if (i == genders.size() || !genders.get(i).equals(genders.get(groupStart))) {
-                assertTrue(seenGenders.add(genders.get(groupStart)), "rows of gender " + genders.get(groupStart) + " must be contiguous");
+        for (var i = 1; i <= statuses.size(); i++) {
+            if (i == statuses.size() || !statuses.get(i).equals(statuses.get(groupStart))) {
+                assertTrue(seenStatuses.add(statuses.get(groupStart)), "rows of status " + statuses.get(groupStart) + " must be contiguous");
                 var groupEmails = emails.subList(groupStart, i);
                 assertTrue(
                     isSortedBy(groupEmails, reverseOrder()) || isSortedBy(groupEmails, (a, b) -> collator.compare(b, a)),
-                    "emails of gender " + genders.get(groupStart) + " must be sorted descending: " + groupEmails
+                    "emails of status " + statuses.get(groupStart) + " must be sorted descending: " + groupEmails
                 );
                 groupStart = i;
             }
@@ -878,9 +879,9 @@ public class OptimusFacesIT {
         assertPaginatorState(1);
         assertSortedState(idColumn, true);
 
-        clickColumn(genderColumn);
+        clickColumn(statusColumn);
         assertPaginatorState(1);
-        assertSortedState(genderColumn, true);
+        assertSortedState(statusColumn, true);
     }
 
     protected void testFiltering() {
@@ -889,11 +890,11 @@ public class OptimusFacesIT {
         assertPaginatorState(1, 38);
         assertFilteredState(idColumnFilter, "3");
 
-        globalFilter.sendKeys("FEMALE");
+        globalFilter.sendKeys("INACTIVE");
         guardPrimeFacesAjax(globalFilterButton::click);
         var totalRecords2 = getRowCount();
         assertTrue(totalRecords2 < totalRecords1, totalRecords2 + " must be less than " + totalRecords1);
-        assertGlobalFilterState("FEMALE");
+        assertGlobalFilterState("INACTIVE");
         assertFilteredState(idColumnFilter, "3");
 
         globalFilter.clear();
@@ -904,19 +905,19 @@ public class OptimusFacesIT {
         clearColumnFilter(idColumnFilter);
         assertPaginatorState(1, TOTAL_RECORDS);
 
-        guardPrimeFacesAjax(() -> genderColumnFilter.sendKeys("FEMALE"));
+        guardPrimeFacesAjax(() -> statusColumnFilter.sendKeys("INACTIVE"));
         var totalRecords3 = getRowCount();
         assertPaginatorState(1);
-        assertFilteredState(genderColumnFilter, "FEMALE");
+        assertFilteredState(statusColumnFilter, "INACTIVE");
 
         guardPrimeFacesAjax(() -> emailColumnFilter.sendKeys("1"));
         var totalRecords4 = getRowCount();
         assertTrue(totalRecords4 < totalRecords3, totalRecords4 + " must be less than " + totalRecords3);
         assertPaginatorState(1);
         assertFilteredState(emailColumnFilter, "1");
-        assertFilteredState(genderColumnFilter, "FEMALE");
+        assertFilteredState(statusColumnFilter, "INACTIVE");
 
-        clearColumnFilter(genderColumnFilter);
+        clearColumnFilter(statusColumnFilter);
         assertPaginatorState(1, 119);
         assertFilteredState(emailColumnFilter, "1");
 
@@ -980,19 +981,19 @@ public class OptimusFacesIT {
         assertFilteredState(emailColumnFilter, "1");
         assertSortedState(emailColumn, false);
 
-        globalFilter.sendKeys("FEMALE");
+        globalFilter.sendKeys("INACTIVE");
         guardPrimeFacesAjax(globalFilterButton::click);
         var totalRecords1 = getRowCount();
         assertTrue(totalRecords1 < 119, totalRecords1 + " must be less than 119");
         assertFilteredState(emailColumnFilter, "1");
-        assertGlobalFilterState("FEMALE");
+        assertGlobalFilterState("INACTIVE");
         assertSortedState(emailColumn, false);
 
         clickColumn(idColumn);
         var totalRecords2 = getRowCount();
         assertTrue(totalRecords1 == totalRecords2, totalRecords1 + " must be equal to " + totalRecords2);
         assertFilteredState(emailColumnFilter, "1");
-        assertGlobalFilterState("FEMALE");
+        assertGlobalFilterState("INACTIVE");
         assertSortedState(idColumn, true);
 
         globalFilter.clear();
@@ -1019,15 +1020,15 @@ public class OptimusFacesIT {
         assertPaginatorState(1, 38);
         assertSortedState(emailColumn, true);
 
-        open(type, "p=3&o=-email&q=MALE");
+        open(type, "p=3&o=-email&q=ACTIVE");
         var totalRecords = getRowCount();
         assertPaginatorState(3, totalRecords);
         assertSortedState(emailColumn, false);
-        assertGlobalFilterState("MALE");
+        assertGlobalFilterState("ACTIVE");
         clickColumn(emailColumn);
         assertPaginatorState(1, totalRecords);
         assertSortedState(emailColumn, true);
-        assertGlobalFilterState("MALE");
+        assertGlobalFilterState("ACTIVE");
 
         open(type, "o=dateOfBirth");
         assertPaginatorState(1);
@@ -1048,46 +1049,46 @@ public class OptimusFacesIT {
         var rowCount1 = getRowCount();
         assertTrue(rowCount1 < 101, rowCount1 + " must be less than 101");
 
-        guardFacesAjax(criteriaGenderIsFemale::click);
+        guardFacesAjax(criteriaStatusIsInactive::click);
         assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
         assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
-        assertCriteriaState(genderColumn, "FEMALE");
+        assertCriteriaState(statusColumn, "INACTIVE");
         var rowCount2 = getRowCount();
         assertTrue(rowCount2 < rowCount1, rowCount2 + " must be less than " + rowCount1);
 
-        guardFacesAjax(criteriaDateOfBirthBefore1950::click);
+        guardFacesAjax(criteriaDateOfBirthBeforeThreshold::click);
         assertCriteriaState(idColumn, Between.range(50L, 150L), Long::valueOf);
         assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
-        assertCriteriaState(genderColumn, "FEMALE");
-        assertCriteriaState(dateOfBirthColumn, Order.lessThan(LocalDate.of(1950, 1, 1)), LocalDate::parse);
+        assertCriteriaState(statusColumn, "INACTIVE");
+        assertCriteriaState(dateOfBirthColumn, Order.lessThan(DateOfBirth.THRESHOLD), LocalDate::parse);
         var rowCount3 = getRowCount();
         assertTrue(rowCount3 < rowCount2, rowCount3 + " must be less than " + rowCount2);
 
         guardFacesAjax(criteriaIdBetween50And150::click); // Uncheck
         assertCriteriaState(emailColumn, Like.startsWith("name1"), String::valueOf);
-        assertCriteriaState(genderColumn, "FEMALE");
+        assertCriteriaState(statusColumn, "INACTIVE");
         var rowCount4 = getRowCount();
         assertTrue(rowCount4 > rowCount3, rowCount4 + " must be more than " + rowCount3);
 
         guardFacesAjax(criteriaEmailLikeName1::click); // Uncheck
-        assertCriteriaState(genderColumn, "FEMALE");
+        assertCriteriaState(statusColumn, "INACTIVE");
         var rowCount5 = getRowCount();
         assertTrue(rowCount5 > rowCount4, rowCount5 + " must be more than " + rowCount4);
 
-        guardFacesAjax(criteriaGenderIsFemale::click); // Uncheck
+        guardFacesAjax(criteriaStatusIsInactive::click); // Uncheck
         var rowCount6 = getRowCount();
         assertTrue(rowCount6 > rowCount5, rowCount6 + " must be more than " + rowCount5);
 
-        guardFacesAjax(criteriaDateOfBirthBefore1950::click); // Uncheck
+        guardFacesAjax(criteriaDateOfBirthBeforeThreshold::click); // Uncheck
         assertPaginatorState(1, TOTAL_RECORDS);
     }
 
     protected void testFilterOptions() {
         var matches = 0;
 
-        for (Gender gender : Gender.values()) {
-            setPrimeFacesSelectOneMenuValue(genderColumnDropdownFilter, gender.name());
-            assertFilteredState(genderColumnDropdownFilter.findElement(By.id("form:table:genderFilter_input")), gender.name());
+        for (Status status : Status.values()) {
+            setPrimeFacesSelectOneMenuValue(statusColumnDropdownFilter, status.name());
+            assertFilteredState(statusColumnDropdownFilter.findElement(By.id("form:table:statusFilter_input")), status.name());
             matches += getRowCount();
         }
 

@@ -16,7 +16,6 @@ import static java.util.stream.Collectors.toMap;
 import static org.omnifaces.utils.stream.Streams.stream;
 
 import java.io.Serializable;
-import java.time.LocalDate;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,8 +28,9 @@ import jakarta.inject.Named;
 
 import org.omnifaces.cdi.ViewScoped;
 import org.omnifaces.optimusfaces.model.PagedDataModel;
-import org.omnifaces.optimusfaces.test.model.Gender;
+import org.omnifaces.optimusfaces.test.model.DateOfBirth;
 import org.omnifaces.optimusfaces.test.model.Person;
+import org.omnifaces.optimusfaces.test.model.Status;
 import org.omnifaces.optimusfaces.test.service.PersonService;
 import org.omnifaces.persistence.criteria.Between;
 import org.omnifaces.persistence.criteria.Like;
@@ -48,8 +48,8 @@ public class OptimusFacesITLazyWithCriteriaBean implements Serializable {
     static {
         AVAILABLE_CRITERIA.put("Id BETWEEN 50 AND 150", new SimpleEntry<>(Person::getId, Between.range(50L, 150L)));
         AVAILABLE_CRITERIA.put("Email LIKE name1%", new SimpleEntry<>(Person::getEmail, Like.startsWith("name1")));
-        AVAILABLE_CRITERIA.put("Gender = FEMALE", new SimpleEntry<>(Person::getGender, Gender.FEMALE));
-        AVAILABLE_CRITERIA.put("DateOfBirth < 1950", new SimpleEntry<>(Person::getDateOfBirth, Order.lessThan(LocalDate.of(1950, 1, 1))));
+        AVAILABLE_CRITERIA.put("Status = INACTIVE", new SimpleEntry<>(Person::getStatus, Status.INACTIVE));
+        AVAILABLE_CRITERIA.put("DateOfBirth < " + DateOfBirth.THRESHOLD, new SimpleEntry<>(Person::getDateOfBirth, Order.lessThan(DateOfBirth.THRESHOLD)));
     }
 
     private PagedDataModel<Person> lazyPersonsWithCriteria;

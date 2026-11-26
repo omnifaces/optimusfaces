@@ -12,11 +12,11 @@
  */
 package org.omnifaces.optimusfaces.test.model;
 
-public enum Gender {
+public enum Status {
 
-    MALE,
-    FEMALE,
-    TRANS,
-    OTHER;
+    PENDING,
+    ACTIVE,
+    INACTIVE,
+    BLOCKED;
 
 }
