@@ -279,18 +279,13 @@ import org.primefaces.model.Visibility;
  *         mapping.put(YourEntityDTO::getName, root.get("name"));
  *         mapping.put(YourEntityDTO::getTotalPrice, criteriaBuilder.sum(child.get("price")));
  *
- *         if (!(query instanceof Subquery)) {
- *             query.groupBy(root.get("id"), root.get("name"));
- *         }
- *
  *         return mapping;
  *     });
  * }
  * </pre>
  * <p>
  * Note that you must return a {@link LinkedHashMap} with {@link Getter} as key and {@link Expression} as value and that the mapping must be in exactly the same
- * order as constructor arguments of your DTO. An aggregate such as <code>sum()</code> needs a <code>groupBy()</code> on the other mapped fields, but not in the
- * subquery of the total count, which is an <code>EXISTS</code> without aggregation.
+ * order as constructor arguments of your DTO. When the mapping holds an aggregate, such as <code>sum()</code>, the query is grouped by the root.
  *
  *
  * <h2 id="criteria-backend"><a href="#criteria-backend">Providing specific criteria in backend</a></h2>
