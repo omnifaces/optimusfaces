@@ -458,7 +458,7 @@ import org.primefaces.model.Visibility;
  * typical case is an enum with a human-readable label property.
  *
  * <pre>
- * &lt;op:column field="gender" value="#{item.gender.label}" /&gt;
+ * &lt;op:column field="status" value="#{item.status.label}" /&gt;
  * &lt;op:column field="status" value="#{item.status.label}" head="Status" /&gt;
  * </pre>
  * <p>

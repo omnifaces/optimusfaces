@@ -36,7 +36,7 @@ public class Person extends LocalGeneratedIdEntity {
     private static final long serialVersionUID = 1L;
 
     private @NotNull String email;
-    private @NotNull @Enumerated Gender gender;
+    private @NotNull @Enumerated Status status;
     private @NotNull LocalDate dateOfBirth;
 
     @OneToOne(cascade = PERSIST, fetch = LAZY)
@@ -57,12 +57,12 @@ public class Person extends LocalGeneratedIdEntity {
         this.email = email;
     }
 
-    public Gender getGender() {
-        return gender;
+    public Status getStatus() {
+        return status;
     }
 
-    public void setGender(Gender gender) {
-        this.gender = gender;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
     public LocalDate getDateOfBirth() {

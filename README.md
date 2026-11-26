@@ -1,5 +1,5 @@
 [![Maven](https://img.shields.io/maven-metadata/v/https/repo.maven.apache.org/maven2/org/omnifaces/optimusfaces/maven-metadata.xml.svg)](https://repo.maven.apache.org/maven2/org/omnifaces/optimusfaces/)
-[![Javadoc](https://javadoc.io/badge/org.omnifaces/optimusfaces.svg)](https://javadoc.io/doc/org.omnifaces/optimusfaces) 
+[![Javadoc](https://javadoc.io/badge/org.omnifaces/optimusfaces.svg)](https://javadoc.io/doc/org.omnifaces/optimusfaces)
 [![Tests](https://github.com/omnifaces/optimusfaces/actions/workflows/maven.yml/badge.svg)](https://github.com/omnifaces/optimusfaces/actions)
 [![License](https://img.shields.io/:license-apache-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
@@ -8,7 +8,7 @@
 Utility library for OmniFaces + PrimeFaces combined.
 
 
-This project basically combines best of [OmniFaces](https://omnifaces.org/) and [PrimeFaces](https://primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), an utility library for Jakarta Persistence (JPA). This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a Jakarta Persistence model and a generic entity repository.
+This project basically combines best of [OmniFaces](https://omnifaces.org/) and [PrimeFaces](https://primefaces.org/) with help of [OmniPersistence](https://github.com/omnifaces/omnipersistence), a utility library for Jakarta Persistence (JPA). This project should make it a breeze to create semi-dynamic lazy-loaded, searchable, sortable and filterable `<p:dataTable>` based on a Jakarta Persistence model and a generic entity repository.
 
 
 ### Installation
@@ -64,76 +64,72 @@ Your entity does not need to extend anything.
 
 ```Java
 @Entity
-public class YourEntity {
+public class Person {
 
     @Id @GeneratedValue(strategy=IDENTITY)
     private Long id;
-    private Instant created;
-    private String name;
-    private Type type;
-    private boolean deleted;
+    private String email;
+    private Status status;
+    private LocalDate dateOfBirth;
 
     // ...
 }
 ```
 
-Inject an [`org.omnifaces.persistence.service.EntityRepository`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/service/EntityRepository.html) of it into your backing bean, and create a [`org.omnifaces.optimusfaces.model.PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) with it as below. You do not need to create a service class. Noted should be that `@ViewScoped` is used here for basic usage, but `@RequestScoped` works equally fine thanks to the built-in bookmarkability support explained further below.
+Inject an [`org.omnifaces.persistence.service.EntityRepository`](https://javadoc.io/doc/org.omnifaces/omnipersistence/latest/org/omnifaces/persistence/service/EntityRepository.html) of it into your backing bean, and create a [`org.omnifaces.optimusfaces.model.PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) with it as below. You do not need to create a service class. Note that `@ViewScoped` is used here for basic usage, but `@RequestScoped` works equally fine thanks to the built-in bookmarkability support explained further below.
 
 ```Java
 @Named
 @ViewScoped
-public class YourBackingBean implements Serializable {
+public class PersonBacking implements Serializable {
 
-    private PagedDataModel<YourEntity> model;
+    private PagedDataModel<Person> model;
 
     @Inject
-    private EntityRepository<Long, YourEntity> repository;
+    private EntityRepository<Long, Person> repository;
 
     @PostConstruct
     public void init() {
         model = PagedDataModel.lazy(repository).build();
     }
 
-    public PagedDataModel<YourEntity> getModel() {
+    public PagedDataModel<Person> getModel() {
         return model;
     }
 
 }
 ```
 
-Finally use `<op:dataTable>` to have a semi-dynamic lazy-loaded, pageable, sortable and filterable 
-`<p:dataTable>` without much hassle.
+Finally use `<op:dataTable>` to have a semi-dynamic lazy-loaded, pageable, sortable and filterable `<p:dataTable>` without much hassle.
 
 ```XML
 <... xmlns:op="optimusfaces">
 
-<h:form id="yourEntitiesForm">
-    <op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}">
+<h:form id="personsForm">
+    <op:dataTable id="personsTable" value="#{personBacking.model}">
         <op:column field="id" />
-        <op:column field="created" />
-        <op:column field="name" />
-        <op:column field="type" />
-        <op:column field="deleted" />
+        <op:column field="email" />
+        <op:column field="status" />
+        <op:column field="dateOfBirth" />
     </op:dataTable>
 </h:form>
 ```
 
 NOTE: use XML namespace of `http://omnifaces.org/optimusfaces` when using version 0.17 or older.
 
-The `field` attribute of `<op:column>` represents the entity property path. This will
-in turn be used in `id`, `field`, `headerText` and `filterBy` attributes
-of `<p:column>`.
+The `field` attribute of `<op:column>` represents the entity property path.
+This will in turn be used in `id`, `field`, `headerText` and `filterBy` attributes of `<p:column>`.
 
-Here's how it looks like with the default UI of PrimeFaces 17, and of PrimeFaces 16 and older.
-This example uses **exactly** the above Java and XHTML code with a `Person` entity with `Long id`, `String email`, `Gender gender` and `LocalDate dateOfBirth` fields.
+Here's how it looks with the default UI of PrimeFaces 17, and of PrimeFaces 16 and older.
+This example uses **exactly** the above Java and XHTML code.
 
 PrimeFaces 17:
 
-![example of op:dataTable on PrimeFaces 17](https://github.com/user-attachments/assets/9aa18b40-7783-4fd7-b489-66df68623f08)
+![example of op:dataTable on PrimeFaces 17](https://github.com/user-attachments/assets/4a4fbbb5-b0a6-4235-924b-1e9828960f3e)
 
 PrimeFaces 16 and older:
 
-![example of op:dataTable on PrimeFaces 16 and older](https://github.com/user-attachments/assets/67ff87f2-d8fe-40f6-ad6a-3d8248b8b725)
+![example of op:dataTable on PrimeFaces 16 and older](https://github.com/user-attachments/assets/4a7684dc-5e21-4bea-bff4-5dbda5db597f)
 
 
 ### Data source
@@ -208,7 +204,7 @@ When a lazy model is serialized, it leaves out the entities of the loaded page a
 </op:dataTable>
 ```
 
-**DTO projections** are also supported by providing an additional `Class<DTO> resultType` and a `MappedQueryBuilder` mapping to the `getPage()` overload in `EntityRepository`. The model is then of the DTO type, so build it via `lazy(loader)` with `rowKey(YourEntityDTO::getId)`. See [`PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) javadoc for the full DTO example.
+**DTO projections** are also supported by providing an additional `Class<DTO> resultType` and a `MappedQueryBuilder` mapping to the `getPage()` overload in `EntityRepository`. The model is then of the DTO type, so build it via `lazy(loader)` with `rowKey(...)` of the DTO. See [`PagedDataModel`](https://javadoc.io/doc/org.omnifaces/optimusfaces/latest/org/omnifaces/optimusfaces/model/PagedDataModel.html) javadoc for the full DTO example.
 
 
 ### Non-lazy model
@@ -218,7 +214,7 @@ For a static in-memory list, use `PagedDataModel.nonLazy(list)`. The entities ca
 ```Java
 @PostConstruct
 public void init() {
-    List<YourEntity> list = createItSomehow();
+    List<Person> list = createItSomehow();
     model = PagedDataModel.nonLazy(list).build();
 }
 ```
@@ -231,12 +227,12 @@ To apply fixed query constraints, delegate to the `QueryBuilder` overload of `ge
 ```Java
 @PostConstruct
 public void init() {
-    model = PagedDataModel.lazy(repository, this::getPageOfFooType).build();
+    model = PagedDataModel.lazy(repository, this::getPageOfActivePersons).build();
 }
 
-private PartialResultList<YourEntity> getPageOfFooType(Page page, boolean count) {
+private PartialResultList<Person> getPageOfActivePersons(Page page, boolean count) {
     return repository.getPage(page, count, (criteriaBuilder, criteriaQuery, root) -> {
-        criteriaQuery.where(criteriaBuilder.equal(root.get("type"), Type.FOO));
+        criteriaQuery.where(criteriaBuilder.equal(root.get("status"), Status.ACTIVE));
     });
 }
 ```
@@ -256,17 +252,16 @@ public void init() {
     model = PagedDataModel.lazy(repository).criteria(this::getCriteria).build();
 }
 
-private Map<Getter<YourEntity>, Object> getCriteria() {
-    Map<Getter<YourEntity>, Object> criteria = new HashMap<>();
-    criteria.put(YourEntity::getName, Like.startsWith(searchName));
-    criteria.put(YourEntity::getCreated, Order.greaterThanOrEqualTo(searchStartDate));
-    criteria.put(YourEntity::getType, searchTypes);
-    criteria.put(YourEntity::isDeleted, false);
+private Map<Getter<Person>, Object> getCriteria() {
+    Map<Getter<Person>, Object> criteria = new HashMap<>();
+    criteria.put(Person::getEmail, Like.startsWith(searchEmail));
+    criteria.put(Person::getDateOfBirth, Order.lessThan(searchBornBefore));
+    criteria.put(Person::getStatus, searchStatuses);
     return criteria;
 }
 ```
 
-Available `Criteria` wrappers: `Like`, `Not`, `Between`, `Order`, `Enumerated`, `Numeric`, `Bool`, `IgnoreCase`. A `null` value produces `IS NULL`; use `Not(null)` for `IS NOT NULL`; omit the key entirely to skip the criterion.
+Available `Criteria` wrappers: `Like`, `Not`, `Between`, `Order`, `Enumerated`, `Numeric`, `Bool`, `IgnoreCase`. A `null` value produces `IS NULL`; use `Not.value(null)` for `IS NOT NULL`; omit the key entirely to skip the criterion.
 
 
 ### `<op:dataTable>` attributes
@@ -308,9 +303,9 @@ Available `Criteria` wrappers: `Like`, `Not`, `Between`, `Order`, `Enumerated`, 
 The default `<ui:insert>` in `<op:dataTable>` passes content directly into the underlying `<p:dataTable>` body. Use this to attach `<f:attribute>` tags or `<p:ajax>` listeners to the underlying `<p:dataTable>`:
 
 ```XML
-<op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}">
+<op:dataTable id="personsTable" value="#{personBacking.model}">
     <f:attribute name="draggableRows" value="true" />
-    <p:ajax event="rowReorder" listener="#{yourBackingBean.saveRowOrder}" />
+    <p:ajax event="rowReorder" listener="#{personBacking.saveRowOrder}" />
     <op:column field="id" />
     ...
 </op:dataTable>
@@ -319,9 +314,9 @@ The default `<ui:insert>` in `<op:dataTable>` passes content directly into the u
 When `searchable`, `exportable` or `actionable` is enabled, a `<ui:insert name="actions">` slot is available inside the header toolbar for custom buttons:
 
 ```XML
-<op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}" actionable="true">
+<op:dataTable id="personsTable" value="#{personBacking.model}" actionable="true">
     <ui:define name="actions">
-        <p:commandButton value="New" action="#{yourBackingBean.create}" icon="pi pi-plus" />
+        <p:commandButton value="New" action="#{personBacking.create}" icon="pi pi-plus" />
     </ui:define>
     <op:column field="id" />
     ...
@@ -334,7 +329,7 @@ When `searchable`, `exportable` or `actionable` is enabled, a `<ui:insert name="
 | Attribute | Default | Description |
 |---|---|---|
 | `field` | | Entity property path; supports dot-notation for nested paths, e.g. `address.street`. |
-| `head` | field name | Column header text. |
+| `head` | the `field` value | Column header text. |
 | `value` | `#{item[field]}` | Cell value expression; override to compute or format, e.g. `value="#{item.firstName} #{item.lastName}"`. |
 | `tooltip` | | `title` attribute on the cell wrapper `<span>`. |
 | `styleClass` | | |
@@ -347,7 +342,7 @@ When `searchable`, `exportable` or `actionable` is enabled, a `<ui:insert name="
 | `sortable` | inherits | Overrides the table-level `sortable` setting for this column. |
 | `sortDescending` | `false` | Sets the initial sort direction to descending for this column. |
 | `filterable` | inherits | Overrides the table-level `filterable` setting for this column. |
-| `filterMode` | `contains` | Filter match mode: `startsWith`, `endsWith`, `contains`, `exact`. |
+| `filterMode` | `contains`, or `exact` with `filterOptions` | Filter match mode: `startsWith`, `endsWith`, `contains`, `exact`. |
 | `filterOptions` | | When set, renders a `<p:selectOneMenu>` dropdown filter instead of a text input. Accepts a `List` or `Map` of options. |
 | `exportable` | `true` | Whether this column is included in exports. |
 | `exportValue` | same as `value` | Value used during export, e.g. to strip HTML markup from CSV output. |
@@ -355,28 +350,27 @@ When `searchable`, `exportable` or `actionable` is enabled, a `<ui:insert name="
 The `value` attribute overrides what is displayed in the cell while `field` still drives sorting and filtering. This is the right approach for e.g. an enum with a human-readable `label` property:
 
 ```XML
-<op:column field="gender" value="#{item.gender.label}" />
 <op:column field="status" value="#{item.status.label}" head="Status" />
 ```
 
 The default `<ui:insert>` in `<op:column>` is nested directly inside the cell's `<h:outputText>`, so converters can be attached without overriding the cell layout:
 
 ```XML
-<op:column field="price">
-    <f:convertNumber type="currency" currencySymbol="$" />
+<op:column field="dateOfBirth">
+    <f:convertDateTime type="localDate" pattern="yyyy-MM-dd" />
 </op:column>
 
-<op:column field="created">
-    <f:convertDateTime type="localDate" pattern="yyyy-MM-dd" />
+<op:column field="price">
+    <f:convertNumber type="currency" currencySymbol="$" />
 </op:column>
 ```
 
 For fully custom cell content, use `<ui:define name="cell">`. The `exportValue` attribute controls what is written to the export file independently of the custom cell rendering:
 
 ```XML
-<op:column field="name">
+<op:column field="id">
     <ui:define name="cell">
-        <h:link value="#{item.name}" outcome="detail">
+        <h:link value="#{item.id}" outcome="detail">
             <f:param name="id" value="#{item.id}" />
         </h:link>
     </ui:define>
@@ -414,9 +408,9 @@ For example, to keep a summary panel in sync with the current filter state:
 
 In plain PrimeFaces, a lazy `<p:dataTable>` requires a `@ViewScoped` backing bean. The reason is that the model instance needs to survive across postbacks, including its wrapped data. `@ViewScoped` achieves this by keeping the bean instance alive in the view map between requests, tracked by identifiers in the Faces view state. When the bean is `@RequestScoped` the model is brand new on every request, its wrapped data is `null` at the point decode runs, and pagination, sorting and selection postbacks silently fail.
 
-This also means that stateless JSF views (`<f:view transient="true">`), which disable Faces state saving entirely and therefore inherently break `@ViewScoped` beans and require `@RequestScoped` beans, are simply not an option in plain PrimeFaces when you need a lazy data table.
+This also means that stateless Faces views (`<f:view transient="true">`), which disable Faces state saving entirely and therefore inherently break `@ViewScoped` beans and require `@RequestScoped` beans, are simply not an option in plain PrimeFaces when you need a lazy data table.
 
-OptimusFaces solves this differently. After every page load, `LazyPagedDataModel` collects the current table state and emits a JavaScript callback to `OptimusFaces.Util.updateQueryString()` in `optimusfaces.js`. That function calls `window.history.replaceState()` to update the browser URL without a page reload and also updates the JSF ViewState in all forms on the page. The URL now always reflects the exact current table state: page number, sort columns, sort directions, active column filters and row selection.
+OptimusFaces solves this differently. After every page load, `LazyPagedDataModel` collects the current table state and emits a JavaScript callback to `OptimusFaces.Util.updateQueryString()` in `optimusfaces.js`. That function calls `window.history.replaceState()` to update the browser URL without a page reload and also updates the Faces ViewState in all forms on the page. The URL now always reflects the exact current table state: page number, sort columns, sort directions, active column filters and row selection.
 
 Each sorted column is one `o` query parameter, in order of priority, with a `-` prefix for descending, e.g. `?o=lastName&o=-dateOfBirth`.
 Only the sort which differs from the default ordering of the model is in the URL.
@@ -424,24 +418,24 @@ Fields which are not a column of the table are ignored, and with `sortMode="sing
 
 On the next request, whether it is a postback, a browser refresh or a bookmarked URL, `ExtendedDataTable` takes over. It overrides `preDecode()` and detects that the lazy model has no wrapped data yet. Instead of letting decode fail, it calls `LazyPagedDataModel#preloadPage()`, which reads the table state back from the URL query string parameters and loads the correct page from the data store before decode proceeds. Faces state is never needed for this. The query string is the state.
 
-The practical consequence is that `<op:dataTable>` works fully with `@RequestScoped` backing beans and stateless JSF views (`<f:view transient="true">`), and the table is fully bookmarkable and shareable at the same time.
+The practical consequence is that `<op:dataTable>` works fully with `@RequestScoped` backing beans and stateless Faces views (`<f:view transient="true">`), and the table is fully bookmarkable and shareable at the same time.
 
 ```Java
 @Named
 @RequestScoped // Works fine with both regular and stateless (<f:view transient="true">) views.
-public class YourBackingBean {
+public class PersonBacking {
 
-    private PagedDataModel<YourEntity> model;
+    private PagedDataModel<Person> model;
 
     @Inject
-    private EntityRepository<Long, YourEntity> repository;
+    private EntityRepository<Long, Person> repository;
 
     @PostConstruct
     public void init() {
         model = PagedDataModel.lazy(repository).build();
     }
 
-    public PagedDataModel<YourEntity> getModel() {
+    public PagedDataModel<Person> getModel() {
         return model;
     }
 
@@ -479,7 +473,7 @@ Recompile your code against both.
 
 ### Integration Tests
 
-The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/test/java/org/omnifaces/optimusfaces/test) currently run on [following environments](https://github.com/omnifaces/optimusfaces/actions/workflows/maven.yml):
+The [integration tests](https://github.com/omnifaces/optimusfaces/tree/main/src/test/java/org/omnifaces/optimusfaces/test) currently run on [the following environments](https://github.com/omnifaces/optimusfaces/actions/workflows/maven.yml):
 - WildFly 42.0.0 with Mojarra 4.1.13 and Hibernate 7.4.13
 - GlassFish 8.0.5 with Mojarra 4.1.17 and EclipseLink 5.0.2
 - TomEE 10.2.0 with MyFaces 4.0.3 and OpenJPA 4.1.1

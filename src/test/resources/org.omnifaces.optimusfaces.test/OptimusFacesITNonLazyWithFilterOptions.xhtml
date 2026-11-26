@@ -26,13 +26,13 @@
     </h:head>
 
     <h:body>
-        <o:importConstants type="org.omnifaces.optimusfaces.test.model.Gender" />
+        <o:importConstants type="org.omnifaces.optimusfaces.test.model.Status" />
 
         <o:form id="form">
             <op:dataTable id="table" value="#{optimusFacesITNonLazyBean.nonLazyPersons}">
                 <op:column field="id" />
                 <op:column field="email" />
-                <op:column field="gender" filterOptions="#{Gender}" />
+                <op:column field="status" filterOptions="#{Status}" />
                 <op:column field="dateOfBirth" />
             </op:dataTable>
         </o:form>

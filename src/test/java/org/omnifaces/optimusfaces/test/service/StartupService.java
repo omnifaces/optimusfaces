@@ -26,10 +26,11 @@ import jakarta.inject.Inject;
 
 import org.omnifaces.cdi.Eager;
 import org.omnifaces.optimusfaces.test.model.Address;
-import org.omnifaces.optimusfaces.test.model.Gender;
+import org.omnifaces.optimusfaces.test.model.DateOfBirth;
 import org.omnifaces.optimusfaces.test.model.Group;
 import org.omnifaces.optimusfaces.test.model.Person;
 import org.omnifaces.optimusfaces.test.model.Phone;
+import org.omnifaces.optimusfaces.test.model.Status;
 
 @Eager
 @ApplicationScoped
@@ -38,7 +39,6 @@ public class StartupService {
     public static final int TOTAL_RECORDS = 200;
     public static final int ROWS_PER_PAGE = 10;
 
-    private static final LocalDate CRITERIA_DATE_OF_BIRTH_THRESHOLD = LocalDate.of(1950, 1, 1);
     private static final int CRITERIA_MATCHING_INDEX = 100;
     private static final int CRITERIA_MISMATCHING_INDEX = 101;
 
@@ -51,7 +51,7 @@ public class StartupService {
     }
 
     private void createTestPersons() {
-        Gender[] genders = Gender.values();
+        Status[] statuses = Status.values();
         Phone.Type[] phoneTypes = Phone.Type.values();
         List<Group> groups = Arrays.asList(Group.values());
         ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -59,16 +59,16 @@ public class StartupService {
         for (int i = 0; i < TOTAL_RECORDS; i++) {
             Person person = new Person();
             person.setEmail("name" + i + "@example.com");
-            person.setGender(genders[random.nextInt(genders.length)]);
-            person.setDateOfBirth(LocalDate.ofEpochDay(random.nextLong(LocalDate.of(1900, 1, 1).toEpochDay(), LocalDate.of(2000, 1, 1).toEpochDay())));
+            person.setStatus(statuses[random.nextInt(statuses.length)]);
+            person.setDateOfBirth(LocalDate.ofEpochDay(random.nextLong(DateOfBirth.OLDEST.toEpochDay(), DateOfBirth.YOUNGEST.toEpochDay())));
 
             if (i == CRITERIA_MATCHING_INDEX) { // So that testCriteria() always finds at least one person matching all four criteria.
-                person.setGender(Gender.FEMALE);
-                person.setDateOfBirth(CRITERIA_DATE_OF_BIRTH_THRESHOLD.minusDays(1));
+                person.setStatus(Status.INACTIVE);
+                person.setDateOfBirth(DateOfBirth.THRESHOLD.minusDays(1));
             }
             else if (i == CRITERIA_MISMATCHING_INDEX) { // So that testCriteria() always sees the dateOfBirth criterion filter at least one person out.
-                person.setGender(Gender.FEMALE);
-                person.setDateOfBirth(CRITERIA_DATE_OF_BIRTH_THRESHOLD);
+                person.setStatus(Status.INACTIVE);
+                person.setDateOfBirth(DateOfBirth.THRESHOLD);
             }
 
             Address address = new Address();
