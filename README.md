@@ -194,13 +194,13 @@ When a lazy model is serialized, it leaves out the entities of the loaded page a
 </op:dataTable>
 ```
 
-**`@ElementCollection`** — given a `Product` with `@ElementCollection List<Tag> tags`. Note: sorting on `@ElementCollection` fields is not supported in lazy models.
+**`@ElementCollection`** — given a `Product` with `@ElementCollection List<Tag> tags`:
 
 ```XML
 <op:dataTable id="productsTable" value="#{shop.products}">
     <op:column field="id" />
     <op:column field="name" />
-    <op:column field="tags" sortable="false" />
+    <op:column field="tags" />
 </op:dataTable>
 ```
 
@@ -275,7 +275,7 @@ Available `Criteria` wrappers: `Like`, `Not`, `Between`, `Order`, `Enumerated`, 
 | `rendered` | `true` | |
 | `updateQueryString` | `true` | Reflects paging, sorting, filtering and selection state in the browser URL as query parameters, making the table state bookmarkable and enabling `@RequestScoped` backing beans and stateless views. |
 | `queryParameterPrefix` | | Prefix for all query parameters; useful when multiple tables share a page to avoid parameter name collisions. |
-| `sortable` | `true` | Enables sorting on all columns; can be overridden per column via `<op:column sortable="false">`. |
+| `sortable` | `true` | Enables sorting on all columns; can be overridden per column via `<op:column sortable="false">`. See [Known Issues](#known-issues) for a column which cannot be sorted. |
 | `sortMode` | `single` | Set to `multiple` to sort by more than one column: a click on a column header with Ctrl or Cmd pressed adds the column to the sort, a click without replaces the sort. |
 | `filterable` | `true` | Enables filtering on all columns; can be overridden per column via `<op:column filterable="false">`. |
 | `paginable` | `true` | Enables the paginator. |
@@ -295,8 +295,8 @@ Available `Criteria` wrappers: `Like`, `Not`, `Between`, `Order`, `Enumerated`, 
 | `exportVisibleColumnsButtonLabel` | `Visible Columns` | |
 | `exportAllColumnsButtonLabel` | `All Columns` | |
 | `exportFilename` | `<id>-<timestamp>` | Export file name without extension. |
-| `exportPreProcessorMethod` | | Method expression called before export, e.g. `#{bean.onBeforeExport}`. |
-| `exportPostProcessorMethod` | | Method expression called after export, e.g. `#{bean.onAfterExport}`. |
+| `exportPreProcessor` | | Method expression called before export, e.g. `#{bean.onBeforeExport}`. |
+| `exportPostProcessor` | | Method expression called after export, e.g. `#{bean.onAfterExport}`. |
 | `selectable` | `false` | Enables multi-row selection; selected rows are available as `model.selection`. |
 | `actionable` | `false` | Enables the header actions toolbar without requiring `searchable` or `exportable`. |
 
@@ -339,7 +339,7 @@ When `searchable`, `exportable` or `actionable` is enabled, a `<ui:insert name="
 | `width` | | Column width, e.g. `100px` or `10%`. |
 | `iterable` | auto | When `true`, collection values are rendered one item per line. Auto-detected from the value type. |
 | `emptyValue` | | Text rendered when the value is `null` or empty. |
-| `sortable` | inherits | Overrides the table-level `sortable` setting for this column. |
+| `sortable` | inherits | Overrides the table-level `sortable` setting for this column. Set it to `false` on a column which cannot be sorted, see [Known Issues](#known-issues). |
 | `sortDescending` | `false` | Sets the initial sort direction to descending for this column. |
 | `filterable` | inherits | Overrides the table-level `filterable` setting for this column. |
 | `filterMode` | `contains`, or `exact` with `filterOptions` | Filter match mode: `startsWith`, `endsWith`, `contains`, `exact`. |
@@ -470,6 +470,7 @@ Recompile your code against both.
 ### Known Issues
 
 - OpenJPA correlates a nested subquery in the count query with an extra cross-joined entity instead of the counted one, because it incorrectly declares the root of the enclosing subquery once more when the nested subquery refers to it. Therefore, on OpenJPA, a negated or multi-valued criteria on a `@OneToMany`, such as a set of phone types, and a negated criteria or a `Criteria` such as `Like` on an `@ElementCollection`, such as the global filter, are ignored in the total result count: the count is that of the query without them. The rows themselves are filtered correctly. In case this is undesirable, use a DTO projection instead.
+- On DB2, a lazy model of a DTO projection cannot be sorted on a column of a `@OneToMany`, `@ManyToMany` or `@ElementCollection` field which the DTO does not map, because DB2 does not accept a correlated subquery as order expression. OmniPersistence then throws `IllegalArgumentException`. Map an aggregate of the field in the `MappedQueryBuilder` and use that as the column field, or set `sortable="false"` on the column. See also the [known issues of OmniPersistence](https://github.com/omnifaces/omnipersistence#16-known-issues).
 
 ### Integration Tests
 

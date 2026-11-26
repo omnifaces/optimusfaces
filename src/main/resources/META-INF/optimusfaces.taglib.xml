@@ -206,7 +206,7 @@
             </attribute>
 
         <attribute>
-            <description><![CDATA[Whether you want to show the contents of <code>&lt;ui:define name="actions"&gt;</code> in top of table. Defaults to searchable or exportable.]]></description>
+            <description><![CDATA[Whether you want to show the contents of <code>&lt;ui:define name="actions"&gt;</code> in top of table, also when neither searchable nor exportable is true. Defaults to false. The contents are always shown when searchable or exportable is true.]]></description>
             <name>actionable</name>
             <required>false</required>
             <type>boolean</type>
@@ -291,6 +291,12 @@
                 <required>false</required>
                 <type>boolean</type>
             </attribute>
+            <attribute>
+                <description>The text to render when the column value is empty. Defaults to nothing.</description>
+                <name>emptyValue</name>
+                <required>false</required>
+                <type>java.lang.String</type>
+            </attribute>
 
         <attribute>
             <description>Whether the column is sortable. Defaults to sortable attribute of parent op:dataTable.</description>
@@ -312,7 +318,7 @@
             <type>boolean</type>
         </attribute>
             <attribute>
-                <description>The filter mode of the field. Supported values are "contains", "startsWith", "endsWith" and "exact". Defaults to "contains" when filterOptions=null, else "exact". Any unsupported value is interpreted as "exact". This attribute is ignored when filterable=false.</description>
+                <description>The filter mode of the field. Supported values are "contains", "startsWith", "endsWith" and "exact". Defaults to "contains" when filterOptions=null, else "exact". This attribute is ignored when filterable=false.</description>
                 <name>filterMode</name>
                 <required>false</required>
                 <type>java.lang.String</type>

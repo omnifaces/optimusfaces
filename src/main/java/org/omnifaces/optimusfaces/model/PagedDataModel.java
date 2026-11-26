@@ -18,7 +18,6 @@ import static org.omnifaces.util.Components.getCurrentComponent;
 import static org.omnifaces.utils.stream.Streams.stream;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -116,7 +115,7 @@ import org.primefaces.model.Visibility;
  * much hassle.
  *
  * <pre>
- * &lt;... xmlns:op="http://omnifaces.org/optimusfaces"&gt;
+ * &lt;... xmlns:op="optimusfaces"&gt;
  *
  * &lt;h:form id="yourEntitiesForm"&gt;
  *     &lt;op:dataTable id="yourEntitiesTable" value="#{yourBackingBean.model}"&gt;
@@ -235,12 +234,9 @@ import org.primefaces.model.Visibility;
  *     &lt;op:column field="id" /&gt;
  *     &lt;op:column field="name" /&gt;
  *     &lt;op:column field="price" /&gt;
- *     &lt;op:column field="tags" sortable="false" /&gt;
+ *     &lt;op:column field="tags" /&gt;
  * &lt;/op:dataTable&gt;
  * </pre>
- * <p>
- * Note: the <code>&#64;ElementCollection</code> has currently one limitation, sorting is not supported in lazy models due to the task not being trivial in JPQL
- * (for now). It's only supported in non-lazy models.
  *
  * <h3>DTO</h3>
  * <p>
@@ -283,13 +279,18 @@ import org.primefaces.model.Visibility;
  *         mapping.put(YourEntityDTO::getName, root.get("name"));
  *         mapping.put(YourEntityDTO::getTotalPrice, criteriaBuilder.sum(child.get("price")));
  *
+ *         if (!(query instanceof Subquery)) {
+ *             query.groupBy(root.get("id"), root.get("name"));
+ *         }
+ *
  *         return mapping;
  *     });
  * }
  * </pre>
  * <p>
  * Note that you must return a {@link LinkedHashMap} with {@link Getter} as key and {@link Expression} as value and that the mapping must be in exactly the same
- * order as constructor arguments of your DTO.
+ * order as constructor arguments of your DTO. An aggregate such as <code>sum()</code> needs a <code>groupBy()</code> on the other mapped fields, but not in the
+ * subquery of the total count, which is an <code>EXISTS</code> without aggregation.
  *
  *
  * <h2 id="criteria-backend"><a href="#criteria-backend">Providing specific criteria in backend</a></h2>
@@ -315,8 +316,8 @@ import org.primefaces.model.Visibility;
  * The same goes for fetch fields, e.g. <code>PagedDataModel.lazy(repository, (page, count) -&gt; repository.getPage(page, count, "address"))</code>.
  * <p>
  * With a service extending {@link BaseEntityService}, create a <code>getPageXxx()</code> method in the service which delegates to the same
- * <code>getPage()</code> method, and delegate to it via {@link #lazy(PartialResultListLoader)}, e.g.
- * <code>PagedDataModel.lazy(service::getPageOfFooType)</code>.
+ * <code>getPage()</code> method, and delegate to it via {@link #lazy(BaseEntityService, PartialResultListLoader)}, e.g.
+ * <code>PagedDataModel.lazy(service, service::getPageOfFooType)</code>.
  *
  *
  * <h2 id="criteria-frontend"><a href="#criteria-frontend">Providing specific criteria in frontend</a></h2>
@@ -363,10 +364,10 @@ import org.primefaces.model.Visibility;
  * <p>
  * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order}, {@link Enumerated},
  * {@link Numeric}, {@link Bool} and {@link IgnoreCase}. You can even create your own ones by extending {@link Criteria}. Note that any <code>null</code> value
- * is automatically interpreted as <code>IS NULL</code>. In case you intend to search for <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in
- * case you'd like to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria. On a collection property itself, such as
- * <code>"tags"</code> or <code>"children.labels"</code>, a <code>null</code> value matches the rows without elements, and <code>Not(null)</code> the rows with
- * elements. On a collection nested in a collection, such as <code>"children.labels"</code>, a row without elements is one of which no child has labels,
+ * is automatically interpreted as <code>IS NULL</code>. In case you intend to search for <code>IS NOT NULL</code>, use <code>Not.value(null)</code> criteria.
+ * Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a <code>null</code> value to the criteria. On a collection property itself, such as
+ * <code>"tags"</code> or <code>"children.labels"</code>, a <code>null</code> value matches the rows without elements, and <code>Not.value(null)</code> the rows
+ * with elements. On a collection nested in a collection, such as <code>"children.labels"</code>, a row without elements is one of which no child has labels,
  * including a row without children.
  * <p>
  * Those <code>searchNameStartsWith</code>, <code>searchStartDate</code> and <code>searchTypes</code> in the above example can in turn be supplied via Jakarta
@@ -375,7 +376,7 @@ import org.primefaces.model.Visibility;
  * <pre>
  * &lt;o:importConstants type="com.example.model.Type" /&gt;
  *
- * &lt;p:selectManyCheckbox value="#{yourBackingBean.selectedTypes}"&gt;
+ * &lt;p:selectManyCheckbox value="#{yourBackingBean.searchTypes}"&gt;
  *     &lt;f:selectItems value="#{Type}" /&gt;
  *     &lt;p:ajax update="yourEntitiesTable" /&gt;
  * &lt;/p:selectManyCheckbox&gt;
@@ -384,8 +385,8 @@ import org.primefaces.model.Visibility;
  *
  * <h2 id="non-lazy"><a href="#non-lazy">Non-lazy data model</a></h2>
  * <p>
- * If you have a static list and you'd like to use <code>&lt;op:dataTable&gt;</code>, then you can use either {@link PagedDataModel#nonLazy(List)} to create a
- * non-lazy {@link PagedDataModel}.
+ * If you have a static list and you'd like to use <code>&lt;op:dataTable&gt;</code>, then you can use {@link PagedDataModel#nonLazy(List)} to create a non-lazy
+ * {@link PagedDataModel}.
  *
  * <pre>
  * &#64;Named
@@ -637,8 +638,8 @@ import org.primefaces.model.Visibility;
  * &lt;op:dataTable ... searchable="true"&gt;
  * </pre>
  * <p>
- * This will perform a "contains" search in every column having the <code>field</code> attribute, including any custom <code>&lt;p:column&gt;</code>. Note that
- * this won't override the values of any column filters, it will just expand the filtering on them.
+ * This will perform a "contains" search in every column having the <code>field</code> attribute, including any custom <code>&lt;p:column&gt;</code>. It
+ * combines with the column filters: a row must match every column filter, and the search in at least one column.
  * <p>
  * On the contrary to the column filters, the global search field does not run on keyup, but only on enter key or when pressing the search button. This is done
  * on purpose because the global search performs a relatively expensive LIKE query on every single field.
@@ -1370,24 +1371,13 @@ public interface PagedDataModel<E> extends Serializable {
          * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order}, {@link Enumerated},
          * {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
          * <p>
-         * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
-         * <ul>
-         * <li>value = <code>null</code>, this will create IS NULL predicate.
-         * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
-         * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
-         * <li>value = {@link BaseEntity}, this will create an EQUAL predicate on entity ID.
-         * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * </ul>
-         * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value. Its
-         * {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked.
+         * How a plain value, a collection or array of values, an entity or a {@link Criteria} becomes a predicate is described in the
+         * <a href="https://github.com/omnifaces/omnipersistence#5-search-criteria">search criteria of OmniPersistence</a>. If you want to support a new kind of
+         * criteria, create a custom {@link Criteria} and supply it as criteria value. Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}
+         * will then be invoked.
          * <p>
          * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you intend to search for
-         * <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a
+         * <code>IS NOT NULL</code>, use <code>Not.value(null)</code> criteria. Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a
          * <code>null</code> value to the criteria. On a collection property, see the class javadoc.
          * <p>
          * The predefined criteria can be set only once in this builder.
@@ -1413,24 +1403,13 @@ public interface PagedDataModel<E> extends Serializable {
          * You can optionally wrap the value in any {@link Criteria}, such as {@link Like}, {@link Not}, {@link Between}, {@link Order}, {@link Enumerated},
          * {@link Numeric}, {@link Bool} and {@link IgnoreCase}.
          * <p>
-         * At least, the following values are automatically supported, in this scanning order where <code>type</code> is the field type:
-         * <ul>
-         * <li>value = <code>null</code>, this will create IS NULL predicate.
-         * <li>value = {@link Criteria}, this will delegate to {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>type = {@link ElementCollection}, this will treat given value as enumerated and create an IN predicate.
-         * <li>value = {@link Iterable} or {@link Array}, this will recursively create an OR disjunction of multiple predicates.
-         * <li>value = {@link BaseEntity}, this will create an EQUAL predicate on entity ID.
-         * <li>type = {@link Enum}, this will delegate to {@link Enumerated#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>type = {@link Number}, this will delegate to {@link Numeric#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>type = {@link Boolean}, this will delegate to {@link Bool#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>type = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * <li>value = {@link String}, this will delegate to {@link IgnoreCase#build(Expression, CriteriaBuilder, ParameterBuilder)}.
-         * </ul>
-         * If you want to support a new kind of criteria, just create a custom {@link Criteria} and supply this as criteria value. Its
-         * {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)} will then be invoked.
+         * How a plain value, a collection or array of values, an entity or a {@link Criteria} becomes a predicate is described in the
+         * <a href="https://github.com/omnifaces/omnipersistence#5-search-criteria">search criteria of OmniPersistence</a>. If you want to support a new kind of
+         * criteria, create a custom {@link Criteria} and supply it as criteria value. Its {@link Criteria#build(Expression, CriteriaBuilder, ParameterBuilder)}
+         * will then be invoked.
          * <p>
          * Note that any <code>null</code> value is automatically interpreted as <code>IS NULL</code>. In case you intend to search for
-         * <code>IS NOT NULL</code>, use <code>Not(null)</code> criteria. Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a
+         * <code>IS NOT NULL</code>, use <code>Not.value(null)</code> criteria. Or in case you'd like to skip <code>IS NULL</code>, then simply don't add a
          * <code>null</code> value to the criteria. On a collection property, see the class javadoc.
          * <p>
          * The dynamic criteria can be set only once in this builder.
