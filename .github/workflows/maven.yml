@@ -21,7 +21,7 @@ on:
 
 jobs:
   test:
-    name: ${{matrix.server}} pf${{matrix.pf}}
+    name: ${{matrix.server}} + PF${{matrix.pf}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
